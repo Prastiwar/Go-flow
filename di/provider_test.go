@@ -13,11 +13,10 @@ import (
 
 func TestNewProvider(t *testing.T) {
 	expectedService := mocks.NewStringerMock("test")
-	descriptors := []ServiceDescriptor{
-		NewServiceDescriptor[fmt.Stringer, mocks.StringerMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
-			return expectedService, nil
-		}),
-	}
+	d, _ := NewServiceDescriptor[fmt.Stringer, mocks.StringerMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
+		return expectedService, nil
+	})
+	descriptors := []ServiceDescriptor{d}
 
 	provider := newProvider(descriptors)
 
@@ -26,11 +25,10 @@ func TestNewProvider(t *testing.T) {
 
 func TestProvide(t *testing.T) {
 	expectedService := mocks.NewStringerMock("test")
-	descriptors := []ServiceDescriptor{
-		NewServiceDescriptor[fmt.Stringer, mocks.StringerMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
-			return expectedService, nil
-		}),
-	}
+	d, _ := NewServiceDescriptor[fmt.Stringer, mocks.StringerMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
+		return expectedService, nil
+	})
+	descriptors := []ServiceDescriptor{d}
 	provider := newProvider(descriptors)
 
 	var stringer fmt.Stringer
@@ -39,21 +37,48 @@ func TestProvide(t *testing.T) {
 	assert.NilError(t, err)
 }
 
+func TestProvideError(t *testing.T) {
+	provider := newProvider([]ServiceDescriptor{})
+
+	var stringer fmt.Stringer
+	err := Provide(provider, &stringer)
+
+	assert.Error(t, err)
+}
+
 func TestGetServiceSuccess(t *testing.T) {
-	descriptors := []ServiceDescriptor{
-		NewServiceDescriptor[fmt.Stringer, mocks.StringerMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
-			return nil, mocks.NewErrorMock("not registered")
-		}),
-		NewServiceDescriptor[error, mocks.ErrorMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
-			panic("panic")
-		}),
-		NewServiceDescriptor[fmt.GoStringer, mocks.StringerMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
-			panic(mocks.NewErrorMock("something went wrong"))
-		}),
-		NewServiceDescriptor[ServiceProvider, mocks.ServiceProviderMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
-			panic(time.Now())
-		}),
-	}
+	expectedService := mocks.NewStringerMock("test")
+	d, _ := NewServiceDescriptor[fmt.Stringer, mocks.StringerMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
+		return expectedService, nil
+	})
+	descriptors := []ServiceDescriptor{d}
+	provider := newProvider(descriptors)
+
+	s, err := provider.GetService(reflection.TypeOf[fmt.Stringer]())
+
+	assert.NilError(t, err)
+	assert.Equal(t, expectedService, s)
+	assert.Equal(t, 1, len(provider.singletons))
+
+	cachedService, err := provider.GetService(reflection.TypeOf[fmt.Stringer]())
+	assert.NilError(t, err)
+	assert.Equal(t, s, cachedService)
+}
+
+func TestGetServiceErrors(t *testing.T) {
+	stringer, _ := NewServiceDescriptor[fmt.Stringer, mocks.StringerMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
+		return nil, mocks.NewErrorMock("not registered")
+	})
+	errorer, _ := NewServiceDescriptor[error, mocks.ErrorMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
+		panic("panic")
+	})
+	goStringer, _ := NewServiceDescriptor[fmt.GoStringer, mocks.StringerMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
+		panic(mocks.NewErrorMock("something went wrong"))
+	})
+	providerMock, _ := NewServiceDescriptor[ServiceProvider, mocks.ServiceProviderMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
+		panic(time.Now())
+	})
+	descriptors := []ServiceDescriptor{stringer, errorer, goStringer, providerMock}
 	provider := newProvider(descriptors)
 
 	cases := []struct {

@@ -1,0 +1,12 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "go-coverage",
+            "type": "shell",
+            "command": "go test --count=1 -coverprofile=coverage.out .\/... ; cat coverage.out | awk 'BEGIN {cov=0; stat=0;} $3!=\"\" { cov+=($3==1?$2:0); stat+=$2; } END {printf(\"Total coverage: %.2f%% of statements\\n\", (cov\/stat)*100);}'"
+        }
+    ]
+}

@@ -1,6 +1,11 @@
 package di
 
-import "reflect"
+import (
+	"errors"
+	"fmt"
+	"goflow/reflection"
+	"reflect"
+)
 
 type ServiceCollection interface {
 	Register(d ServiceDescriptor)
@@ -27,17 +32,13 @@ func BuildProvider(c ServiceCollection) ServiceProvider {
 	return newProvider(c.Descriptors())
 }
 
-type Constructor[T any] struct {
-	ctor interface{}
-}
+func RegisterSingleton[I any, T any, C any](s ServiceCollection, ctor C) error {
+	method := reflect.ValueOf(ctor)
+	if method.Kind() != reflect.Func {
+		return errors.New("constructor must be a function")
+	}
 
-func NewConstructor[T any, C any](ctor C) *Constructor[T] {
-	return &Constructor[T]{ctor: ctor}
-}
-
-func RegisterSingleton[I any, T any, C *Constructor[T]](s ServiceCollection, ctor C) {
 	fac := func(provider ServiceProvider) (interface{}, error) {
-		method := reflect.ValueOf(ctor).MethodByName("ctor")
 		paramLen := method.Type().NumIn()
 		paramValues := make([]reflect.Value, paramLen)
 		for i := 0; i < paramLen; i++ {
@@ -48,21 +49,41 @@ func RegisterSingleton[I any, T any, C *Constructor[T]](s ServiceCollection, cto
 			}
 			paramValues[i] = reflect.ValueOf(object)
 		}
-		service := method.Call(paramValues)[0] // TODO: cast to T
+		service, ok := method.Call(paramValues)[0].Interface().(I)
+		if !ok {
+			msg := fmt.Sprintf("Unable to cast object of type '%v' to type '%v'", reflect.TypeOf(service), reflection.TypeOf[I]())
+			return nil, errors.New(msg)
+		}
 		return service, nil
 	}
-	d := NewServiceDescriptor[I, T](Singleton, fac)
+
+	d, err := NewServiceDescriptor[I, T](Singleton, fac)
+	if err != nil {
+		return err
+	}
+
 	s.Register(d)
+	return nil
 }
 
-func RegisterSingletonWithFactory[I any, T any](s ServiceCollection, fac func(ServiceProvider) (*T, error)) {
+func RegisterSingletonWithFactory[I any, T any](s ServiceCollection, fac func(ServiceProvider) (*T, error)) error {
 	ctor := func(provider ServiceProvider) (interface{}, error) { return fac(provider) }
-	d := NewServiceDescriptor[I, T](Singleton, ctor)
+	d, err := NewServiceDescriptor[I, T](Singleton, ctor)
+	if err != nil {
+		return err
+	}
+
 	s.Register(d)
+	return nil
 }
 
-func RegisterSingletonWithInstance[I any, T any](s ServiceCollection, service *T) {
+func RegisterSingletonWithInstance[I any, T any](s ServiceCollection, service *T) error {
 	ctor := func(provider ServiceProvider) (interface{}, error) { return service, nil }
-	d := NewServiceDescriptor[I, T](Singleton, ctor)
+	d, err := NewServiceDescriptor[I, T](Singleton, ctor)
+	if err != nil {
+		return err
+	}
+
 	s.Register(d)
+	return nil
 }

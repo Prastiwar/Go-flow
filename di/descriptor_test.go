@@ -78,23 +78,19 @@ func TestNewServiceDescriptorSuccess(t *testing.T) {
 		assert.Equal(t, nil, r)
 	}()
 
-	d := NewServiceDescriptor[fmt.Stringer, mocks.StringerMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
+	d, err := NewServiceDescriptor[fmt.Stringer, mocks.StringerMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
 		return nil, nil
 	})
 
+	assert.NilError(t, err)
 	assert.NotNil(t, d)
 }
 
 func TestNewServiceDescriptorInvalid(t *testing.T) {
-	defer func() {
-		r := recover()
-
-		assert.NotNil(t, r)
-	}()
-
-	d := NewServiceDescriptor[mocks.StringerMock, mocks.StringerMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
+	d, err := NewServiceDescriptor[mocks.StringerMock, mocks.StringerMock](Singleton, func(provider ServiceProvider) (interface{}, error) {
 		return nil, nil
 	})
 
+	assert.Error(t, err)
 	assert.Equal(t, nil, d)
 }

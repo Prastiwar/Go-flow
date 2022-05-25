@@ -46,9 +46,7 @@ func (d *descriptor) Factory() ServiceFactory {
 	return d.factory
 }
 
-// NewServiceDescriptor returns new instance of ServiceDescriptor.
-// It panics when I interfacce type is not assignable from S struct type
-func NewServiceDescriptor[I any, S any](life LifeTime, fac ServiceFactory) ServiceDescriptor {
+func NewServiceDescriptor[I any, S any](life LifeTime, fac ServiceFactory) (ServiceDescriptor, error) {
 	interfaceType := reflection.TypeOf[I]()
 	serviceType := reflection.TypeOf[S]()
 
@@ -61,10 +59,10 @@ func NewServiceDescriptor[I any, S any](life LifeTime, fac ServiceFactory) Servi
 
 	err := validateDescriptor(d)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return d
+	return d, nil
 }
 
 func validateDescriptor(descriptor ServiceDescriptor) error {
