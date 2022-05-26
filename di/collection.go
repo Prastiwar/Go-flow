@@ -37,12 +37,16 @@ func RegisterSingleton[I any, T any, C any](s ServiceCollection, ctor C) error {
 	if method.Kind() != reflect.Func {
 		return errors.New("constructor must be a function")
 	}
+	paramLen := method.Type().NumIn()
+	paramValues := make([]reflect.Value, paramLen)
+	paramTypes := make([]reflect.Type, paramLen)
+	for i := 0; i < paramLen; i++ {
+		paramTypes = append(paramTypes, method.Type().In(i))
+	}
 
 	fac := func(provider ServiceProvider) (interface{}, error) {
-		paramLen := method.Type().NumIn()
-		paramValues := make([]reflect.Value, paramLen)
 		for i := 0; i < paramLen; i++ {
-			t := method.Type().In(i)
+			t := paramTypes[i]
 			object, err := provider.GetService(t)
 			if err != nil {
 				return nil, err
