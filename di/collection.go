@@ -65,7 +65,6 @@ func RegisterSingleton[I any, T any, C any](s ServiceCollection, ctor C) error {
 	if err != nil {
 		return err
 	}
-
 	s.Register(d)
 	return nil
 }

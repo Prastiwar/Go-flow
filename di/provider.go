@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"goflow/reflection"
 	"reflect"
+	"sync"
 )
 
 var ErrNotRegistered = errors.New("service was not registered")
@@ -14,6 +15,7 @@ type ServiceProvider interface {
 }
 
 type provider struct {
+	sync.Mutex
 	descriptors map[reflect.Type]ServiceDescriptor
 	singletons  map[reflect.Type]interface{}
 }
@@ -59,6 +61,8 @@ func (p *provider) GetService(serviceType reflect.Type) (instance interface{}, e
 	}
 
 	if descr.LifeTime() == Singleton {
+		p.Lock()
+		defer p.Unlock()
 		p.singletons[serviceType] = service
 	}
 
