@@ -27,6 +27,31 @@ func provideStringerImplementation(provider ServiceProvider) (*mocks.StringerMoc
 	return newStringerImplementation(s), nil
 }
 
+func TestRegisterTransient(t *testing.T) {
+	services := NewServiceCollection()
+	provider := mocks.NewServiceProviderMock(func(serviceType reflect.Type) (interface{}, error) { return ServiceImplementation{}, nil })
+
+	err := RegisterTransient[fmt.Stringer, mocks.StringerMock](services, newStringerImplementation)
+	assert.NilError(t, err)
+
+	service, err := services.Descriptors()[0].Factory()(provider)
+	assert.NilError(t, err)
+	assert.NotNil(t, service)
+}
+
+func TestRegisterTransientWithFactory(t *testing.T) {
+	services := NewServiceCollection()
+	provider := mocks.NewServiceProviderMock(func(serviceType reflect.Type) (interface{}, error) { return ServiceImplementation{}, nil })
+
+	err := RegisterTransientWithFactory[fmt.Stringer](services, provideStringerImplementation)
+	assert.NilError(t, err)
+
+	assert.Equal(t, 1, len(services.Descriptors()))
+	service, err := services.Descriptors()[0].Factory()(provider)
+	assert.NilError(t, err)
+	assert.NotNil(t, service)
+}
+
 func TestRegisterSingleton(t *testing.T) {
 	services := NewServiceCollection()
 	provider := mocks.NewServiceProviderMock(func(serviceType reflect.Type) (interface{}, error) { return ServiceImplementation{}, nil })
