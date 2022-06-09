@@ -1,16 +1,22 @@
 package logf
 
+import "encoding/json"
+
 type JsonFormatter struct {
 	pretty bool
 }
 
+func NewJsonFormatter(pretty bool) *JsonFormatter {
+	return &JsonFormatter{pretty: pretty}
+}
+
 func (f *JsonFormatter) Format(msg string, fields Fields) string {
-	// TODO: implement
+	val := MergeFields(fields, Fields{"message": msg})
 	if f.pretty {
-
-	} else {
-
+		b, _ := json.MarshalIndent(val, "", "	")
+		return string(b)
 	}
 
-	return msg
+	b, _ := json.Marshal(val)
+	return string(b)
 }
