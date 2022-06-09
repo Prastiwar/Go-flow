@@ -18,5 +18,7 @@ func (c *Counter) Inc() {
 }
 
 func (c *Counter) Assert(t *testing.T) {
-	Equal(t, c.expectedCount, c.counter)
+	if c.expectedCount != c.counter {
+		t.Errorf("expected call count: '%v' actual: '%v'", c.expectedCount, c.counter)
+	}
 }

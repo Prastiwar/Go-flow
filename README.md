@@ -60,32 +60,62 @@ if err != nil {
 ## logging
 Extended package for standard "log" package
 
-TODO:
-- [ ] custom output option 
-- [ ] formatter for WithLogFormat 
-
 ```go
-// settings for global logger
-logging.WithOptions(
-    logging.WithLogFormat("[{level}]: %v") // this is default format for each level which does not have custom format
-    logging.WithInfoFormat("[Info]: %v") // custom format for info level
-    logging.WithWarnFormat("[Warn]: %v") // custom format for warn level
-    logging.WithErrorFormat("[Error]: %v") // custom format for error level
-)
+// logging functions with added level field
+logf.PrintError("error message")
+logf.PrintErrorf("error occured: %v", err)
 
-logging.Info("something happened")
-logging.Warn("should not happen often")
-logging.Error(errors.New("something went wrong"))
+logf.PrintInfo("info message")
+logf.PrintInfof("count: %v", 1)
 
-// creates new instance of logger
-logger := logging.NewLogger(logging.WithLogFormat("[%level]: %v"))
+logf.PrintWarn("warning message")
+logf.PrintWarnf("probably should be: %v", 2)
 
-logging.LogInfo(logger, "something happened")
-logging.LogWarn(logger, "should not happen often")
-logging.LogError(logger, errors.New("something went wrong"))
+logf.PrintDebug("debug message")
+logf.PrintDebugf("debug message: %v", "debug message")
 
-// log with defined level and custom format
-logger.Log(logging.Errorl, "[%v]: %v", "ERROR", errors.New("something went wrong"))
+logf.PrintTrace("trace message")
+logf.PrintTracef("trace message: %v", "trace message")
+
+logf.PrintFatal("fatal message")
+logf.PrintFatalf("fatal message: %v", "fatal message")
+
+// SetFormatter wraps default (global) writer with formatter and sets flags to 0
+SetFormatter(formatter)
+
+// SetScope wraps default (global) writer and replaces formatter with additional scope
+SetScope(formatter)
+
+// CreateWithScope creates new instance of *log.Logger with provided formatter
+logger := CreateWithFormatter(formatter)
+
+// CreateWithScope creates new instance of *log.Logger with provided fields.
+// Formatter is preserved or initialized with logf.DefaultFormatter() if not set
+logger = CreateWithScope(logf.Fields{"currentTime": time.Now().UTC().Format("2006-01-02 15:04:05")})
+
+logf.Error(logger, "error message")
+logf.Errorf(logger, "error occured: %v", err)
+
+logf.Info(logger, "info message")
+logf.Infof(logger, "count: %v", 1)
+
+logf.Warn(logger, "warning message")
+logf.Warnf(logger, "probably should be: %v", 2)
+
+logf.Debug(logger, "debug message")
+logf.Debugf(logger, "debug message: %v", "debug message")
+
+logf.Trace(logger, "trace message")
+logf.Tracef(logger, "trace message: %v", "trace message")
+
+logf.Fatal(logger, "fatal message")
+logf.Fatalf(logger, "fatal message: %v", "fatal message")
+
+// Creates logger based on parent logger with additional scope
+logger = WithScope(logger, logf.Fields{"currentTime": time.Now().UTC().Format("2006-01-02 15:04:05")})
+
+// Creates logger based on parent logger with different formatter
+logger = WithFormatter(logger, formatter)
 ```
 
 ## middleware
