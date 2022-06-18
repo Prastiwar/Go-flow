@@ -1,5 +1,9 @@
 # Go-flow
  Backend framework for services in go with zero dependency rule, so you can use it in any project without other third-party dependencies or writing your own code for common tasks.
+ 
+ ### Library purpose
+ The idea is to provide and maintain by community single framework without other third-party dependencies to facilitate software development without worrying and dealing with obsolete libraries which hugely increases technical debt. This framework's mission is to extend the built-in GO standard library in a non-invasive way with common systems like configuration, logging and dependency management meaning it should have feeling like it's part of standard one but it should not give up on simplifying building systems by adding GOs like boilerplate.
+Writing production-ready system developer often must make decision which will not change and will not apply to every possible case but still should be modifiable enough to make development easier not harder.
 
 - [Go-flow](#go-flow)
   - [configs](#configs)
