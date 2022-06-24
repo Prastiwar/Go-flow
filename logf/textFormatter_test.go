@@ -5,37 +5,27 @@ import (
 )
 
 func TestTextFormatter_Format(t *testing.T) {
-	formatter := NewTextFormatter()
-	fields := Fields{"count": 1, "version": "1.0"}
-
 	tests := []formatterTestCase{
 		{
-			name:     "compact-message-without-fields",
-			f:        formatter,
+			name:     "message-without-fields",
+			f:        NewTextFormatter(),
 			msg:      "test",
 			fields:   nil,
-			expected: "test",
+			expected: "test\n",
 		},
 		{
-			name:     "pretty-message-without-fields",
-			f:        formatter,
+			name:     "message-with-fields",
+			f:        NewTextFormatter(),
 			msg:      "test",
-			fields:   nil,
-			expected: "test",
+			fields:   Fields{"count": 1},
+			expected: "test {\"count\":1}\n",
 		},
 		{
-			name:     "compact-message-with-fields",
-			f:        formatter,
+			name:     "message-with-left-fields",
+			f:        NewTextFormatterWith("version", "date"),
 			msg:      "test",
-			fields:   fields,
-			expected: "test",
-		},
-		{
-			name:     "pretty-message-with-fields",
-			f:        formatter,
-			msg:      "test",
-			fields:   fields,
-			expected: "test",
+			fields:   Fields{"count": 1, "version": "1.0", "date": "2022-12-13"},
+			expected: "[1.0] [2022-12-13] test {\"count\":1}\n",
 		},
 	}
 

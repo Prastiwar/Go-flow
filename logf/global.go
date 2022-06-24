@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	LogTime    = "log_time"
 	Level      = "level"
 	InfoLevel  = "information"
 	WarnLevel  = "warning"
