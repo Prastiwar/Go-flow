@@ -1,20 +1,21 @@
-package v2
+package di
 
 import (
 	"errors"
 	"fmt"
 	"goflow/exception"
-	"goflow/reflection"
 	"reflect"
 )
 
 type Container interface {
 	Validate() error
+	Provide(v interface{})
+	Register(ctors ...any)
 }
 
 type container struct {
 	services map[reflect.Type]constructor
-	cache    map[reflect.Type]interface{}
+	cache    DiCache
 }
 
 var (
@@ -42,6 +43,7 @@ func Register(ctors ...any) (*container, error) {
 
 	return &container{
 		services: services,
+		cache:    NewRootCache(),
 	}, nil
 }
 
@@ -66,7 +68,7 @@ func (c *container) Validate() error {
 				continue
 			}
 
-			_, ok := c.checkRegistered(dependencyType)
+			_, ok := checkRegistered(dependencyType, c.services)
 			if !ok {
 				errs = append(errs, fmt.Errorf("'%w': '%v'", NotRegisteredError, dependencyType))
 			}
@@ -79,8 +81,7 @@ func (c *container) Validate() error {
 func (c *container) Scope() *container {
 	scoped := &container{
 		services: c.services,
-		cache:    c.cache,
-		// TODO: cache handling
+		cache:    NewScopeCache(c.cache),
 	}
 
 	return scoped
@@ -119,53 +120,19 @@ func (c *container) get(typ reflect.Type) interface{} {
 		panic("must be pointer")
 	}
 
-	ctor, ok := c.checkRegistered(typ)
+	ctor, ok := checkRegistered(typ, c.services)
 	if !ok {
 		panic(fmt.Errorf("'%w': '%v'", NotRegisteredError, typ))
 	}
 
-	if ctor.life == Singleton {
-		service, ok := c.cache[ctor.typ]
-		if ok {
-			return service
-		}
+	service, ok := c.cache.Get(ctor.life, ctor.typ)
+	if ok {
+		return service
 	}
 
-	service := ctor.Create(c.get)
+	service = ctor.Create(c.get)
 
-	if ctor.life == Singleton {
-		c.cache[ctor.typ] = service
-	}
+	c.cache.Put(ctor.life, ctor.typ, service)
 
 	return service
-}
-
-func (c *container) checkInterface(u reflect.Type) (constructor, bool) {
-	for serviceType, ctor := range c.services {
-		ok := serviceType.Implements(u)
-		if ok {
-			return ctor, true
-		}
-	}
-
-	return constructor{}, false
-}
-
-func (c *container) checkRegistered(u reflect.Type) (constructor, bool) {
-	if u.Kind() == reflect.Interface {
-		return c.checkInterface(u)
-	}
-
-	ctor, ok := c.services[u]
-	if !ok {
-		otherType := reflection.TogglePointer(u)
-		if otherType.Kind() == reflect.Interface {
-			return c.checkInterface(otherType)
-		}
-
-		ctor, ok := c.services[otherType]
-		return ctor, ok
-	}
-
-	return ctor, ok
 }

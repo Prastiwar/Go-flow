@@ -1,4 +1,4 @@
-package v2
+package di
 
 import (
 	"goflow/reflection"
@@ -93,17 +93,17 @@ func TestValidate(t *testing.T) {
 		{
 			name:        "missing-single-dep",
 			ctors:       []any{NewSomeServiceWithDep},
-			expectedErr: "['dependency is not registered': 'v2.SomeDependency']",
+			expectedErr: "['dependency is not registered': 'di.SomeDependency']",
 		},
 		{
 			name:        "missing-two-deps",
 			ctors:       []any{NewSomeServiceWithTwoDeps},
-			expectedErr: "['dependency is not registered': 'v2.SomeDependency', 'dependency is not registered': 'v2.SomeOtherDependency']",
+			expectedErr: "['dependency is not registered': 'di.SomeDependency', 'dependency is not registered': 'di.SomeOtherDependency']",
 		},
 		{
 			name:        "cyclic-dependency",
 			ctors:       []any{NewSomeServiceWithCyclicDep},
-			expectedErr: "['cyclic dependency detected': 'v2.SomeService']",
+			expectedErr: "['cyclic dependency detected': 'di.SomeService']",
 		},
 	}
 
