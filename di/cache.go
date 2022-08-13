@@ -9,6 +9,10 @@ type DiCache interface {
 
 type rootCache map[reflect.Type]interface{}
 
+func NewRootCache() *rootCache {
+	return &rootCache{}
+}
+
 func (c *rootCache) Get(life LifeTime, t reflect.Type) (interface{}, bool) {
 	if life == Singleton {
 		v, ok := (*c)[t]
@@ -25,13 +29,16 @@ func (c *rootCache) Put(life LifeTime, t reflect.Type, v interface{}) bool {
 	return false
 }
 
-func NewRootCache() *rootCache {
-	return &rootCache{}
-}
-
 type scopeCache struct {
 	root  DiCache
 	scope map[reflect.Type]interface{}
+}
+
+func NewScopeCache(root DiCache) *scopeCache {
+	return &scopeCache{
+		root:  root,
+		scope: make(map[reflect.Type]interface{}),
+	}
 }
 
 func (c *scopeCache) Get(life LifeTime, t reflect.Type) (interface{}, bool) {
@@ -49,10 +56,4 @@ func (c *scopeCache) Put(life LifeTime, t reflect.Type, v interface{}) bool {
 		return true
 	}
 	return ok
-}
-
-func NewScopeCache(root DiCache) *scopeCache {
-	return &scopeCache{
-		root: root,
-	}
 }

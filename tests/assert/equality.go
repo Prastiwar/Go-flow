@@ -5,10 +5,27 @@ import (
 	"testing"
 )
 
+type ErrorFunc func(t *testing.T, err error)
+
 // Equal asserts expected and actual values are equal using equal operator
-func Equal(t *testing.T, expected interface{}, actual interface{}) {
+func Equal(t *testing.T, expected interface{}, actual interface{}, prefixes ...string) {
 	if expected != actual {
-		t.Errorf("expected: '%v', actual: '%v'", expected, actual)
+		prefix := ""
+		if len(prefixes) > 0 {
+			prefix = strings.Join(prefixes, ": ") + ": "
+		}
+		t.Errorf("%vexpected: '%v', actual: '%v'", prefix, expected, actual)
+	}
+}
+
+// Equal asserts expected and actual values are not equal using equal operator
+func NotEqual(t *testing.T, expected interface{}, actual interface{}, prefixes ...string) {
+	if expected == actual {
+		prefix := ""
+		if len(prefixes) > 0 {
+			prefix = strings.Join(prefixes, ": ") + ": "
+		}
+		t.Errorf("%vexpected: '%v', actual: '%v'", prefix, expected, actual)
 	}
 }
 
@@ -31,7 +48,7 @@ func Error(t *testing.T, err error) {
 }
 
 func ErrorWith(t *testing.T, err error, content string) {
-	errFormat := "content: '%v', error: '%v'"
+	errFormat := "expected error with content: '%v', error: '%v'"
 	if err == nil {
 		t.Errorf(errFormat, content, err)
 		return

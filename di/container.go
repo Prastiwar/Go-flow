@@ -21,7 +21,8 @@ type container struct {
 var (
 	NotRegisteredError    = errors.New("dependency is not registered")
 	CyclicDependencyError = errors.New("cyclic dependency detected")
-	NotAddresableError    = errors.New("need to pass address to v")
+	NotAddresableError    = errors.New("need to pass address")
+	NotPointerError       = errors.New("must be a pointer")
 )
 
 func Register(ctors ...any) (*container, error) {
@@ -30,7 +31,12 @@ func Register(ctors ...any) (*container, error) {
 	for _, ctor := range ctors {
 		construct, ok := ctor.(constructor)
 		if !ok {
-			construct = *Construct(Transient, ctor)
+			constr, ok := ctor.(*constructor)
+			if !ok {
+				construct = *Construct(Transient, ctor)
+			} else {
+				construct = *constr
+			}
 		}
 
 		err := construct.Validate()
@@ -41,10 +47,17 @@ func Register(ctors ...any) (*container, error) {
 		services[construct.typ] = construct
 	}
 
-	return &container{
+	c := &container{
 		services: services,
 		cache:    NewRootCache(),
-	}, nil
+	}
+
+	err := c.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }
 
 func (c *container) Validate() error {
@@ -117,7 +130,7 @@ func (c *container) setValue(v interface{}, service interface{}) {
 
 func (c *container) get(typ reflect.Type) interface{} {
 	if typ.Kind() != reflect.Pointer {
-		panic("must be pointer")
+		panic(NotPointerError)
 	}
 
 	ctor, ok := checkRegistered(typ, c.services)
