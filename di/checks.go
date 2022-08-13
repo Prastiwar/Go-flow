@@ -5,9 +5,13 @@ import (
 	"reflect"
 )
 
-func checkInterface(u reflect.Type, services map[reflect.Type]constructor) (constructor, bool) {
+func checkInterface(typ reflect.Type, services map[reflect.Type]constructor) (constructor, bool) {
+	if typ.Kind() != reflect.Interface {
+		return constructor{}, false
+	}
+
 	for serviceType, ctor := range services {
-		ok := serviceType.Implements(u)
+		ok := serviceType.Implements(typ)
 		if ok {
 			return ctor, true
 		}
@@ -16,14 +20,14 @@ func checkInterface(u reflect.Type, services map[reflect.Type]constructor) (cons
 	return constructor{}, false
 }
 
-func checkRegistered(u reflect.Type, services map[reflect.Type]constructor) (constructor, bool) {
-	if u.Kind() == reflect.Interface {
-		return checkInterface(u, services)
+func checkRegistered(typ reflect.Type, services map[reflect.Type]constructor) (constructor, bool) {
+	if typ.Kind() == reflect.Interface {
+		return checkInterface(typ, services)
 	}
 
-	ctor, ok := services[u]
+	ctor, ok := services[typ]
 	if !ok {
-		otherType := reflection.TogglePointer(u)
+		otherType := reflection.TogglePointer(typ)
 		if otherType.Kind() == reflect.Interface {
 			return checkInterface(otherType, services)
 		}

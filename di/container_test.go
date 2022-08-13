@@ -3,20 +3,27 @@ package di
 import (
 	"goflow/reflection"
 	"goflow/tests/assert"
+	"math/rand"
 	"reflect"
 	"testing"
 )
 
 type SomeInterface interface{}
 
-type SomeDependency struct{}
+type SomeDependency struct {
+	id float64
+}
 
 type SomeOtherDependency struct{}
 
-type SomeService struct{}
+type SomeService struct {
+	id float64
+}
 
 func NewSomeDependency() *SomeDependency {
-	return &SomeDependency{}
+	return &SomeDependency{
+		id: rand.Float64(),
+	}
 }
 
 func NewSomeDependencyNoPointer() SomeDependency {
@@ -24,11 +31,15 @@ func NewSomeDependencyNoPointer() SomeDependency {
 }
 
 func NewSomeService() *SomeService {
-	return &SomeService{}
+	return &SomeService{
+		id: rand.Float64(),
+	}
 }
 
 func NewSomeServiceNonPointerDep(*SomeDependency) SomeService {
-	return SomeService{}
+	return SomeService{
+		id: rand.Float64(),
+	}
 }
 
 func NewSomeServiceWithDep(dep SomeDependency) *SomeService {
@@ -349,7 +360,7 @@ func TestProvideCache(t *testing.T) {
 		{
 			name: "success-singleton-scope-cached",
 			container: func(t *testing.T) (*container, error) {
-				c, err := Register(Construct(Transient, NewSomeService))
+				c, err := Register(Construct(Singleton, NewSomeService))
 				if err != nil {
 					return nil, err
 				}
@@ -374,7 +385,7 @@ func TestProvideCache(t *testing.T) {
 			provideFn: func(t *testing.T, provider func(any)) any {
 				var service SomeService
 				provider(&service)
-				return service
+				return &service
 			},
 			cached: false,
 		},

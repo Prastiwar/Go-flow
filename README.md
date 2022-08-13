@@ -18,7 +18,9 @@ Writing production-ready system developer often must make decision which will no
 TBA
 
 ## di
-Dependency injection module with container
+Dependency injection module with container. This pattern is encouraged to use in large projects where dependency hierarchy is deep and complex and cannot be improved by design decisions.
+It's not recommended to use it in small or medium projects where dependency graph is simple and could be improved by design decisions. 
+Use dependency injection without container first and then use container if you really need it.
 ```go
 
 type Dependency interface {}

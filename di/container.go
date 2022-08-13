@@ -124,7 +124,7 @@ func (c *container) setValue(v interface{}, service interface{}) {
 			velem.Set(serviceValue.Elem())
 		}
 	} else {
-		panic("unhandled case")
+		panic(fmt.Sprintf("cannot set value for '%v'", service))
 	}
 }
 
