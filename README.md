@@ -1,11 +1,12 @@
 # Go-flow
- Backend framework for services in go with zero dependency rule, so you can use it in any project without other third-party dependencies or writing your own code for common tasks.
+ Framework for Go services in go with zero dependency rule, so you can use it in any project without other third-party dependencies or writing your own code for common tasks.
  
  ### Library purpose
  The idea is to provide and maintain by community single framework without other third-party dependencies to facilitate software development without worrying and dealing with obsolete libraries which hugely increases technical debt. This framework's mission is to extend the built-in GO standard library in a non-invasive way with common systems like configuration, logging and dependency management meaning it should have feeling like it's part of standard one but it should not give up on simplifying building systems by adding GOs like boilerplate.
 Writing production-ready system developer often must make decision which will not change and will not apply to every possible case but still should be modifiable enough to make development easier not harder.
 
 - [Go-flow](#go-flow)
+    - [Library purpose](#library-purpose)
   - [configs](#configs)
   - [di](#di)
   - [logging](#logging)
@@ -17,7 +18,59 @@ Writing production-ready system developer often must make decision which will no
 TBA
 
 ## di
-Dependency injection module with container
+Dependency injection module with container. This pattern is encouraged to use in large projects where dependency hierarchy is deep and complex and cannot be improved by design decisions.
+It's not recommended to use it in small or medium projects where dependency graph is simple and could be improved by design decisions. 
+Use dependency injection without container first and then use container if you really need it.
+```go
+
+type Dependency interface {}
+type someDependency struct {} // implements Dependency
+
+func NewSomeDependency() *someDependency {
+	return &someDependency{}
+}
+
+type SomeInterface interface {}
+type someService struct { // implements SomeInterface
+	serv Dependency
+}
+
+func NewSomeService(serv Dependency) *someService {
+	return &SomeService{
+		serv: serv,
+	}
+}
+
+// register constructors for services and dependencies
+// by default all services are transient
+container, err := di.Register(
+	NewSomeService,
+	NewSomeDependency,
+)
+
+// alternatively you can setup lifetime
+container, err := di.Register(
+	di.Construct(di.Singleton, NewSomeService),
+	di.Construct(di.Transient, NewSomeDependency),
+	di.Construct(di.Scoped, NewSomeDependency),
+)
+
+if err != nil {
+    // each ctor must be func Kind with single output parameter
+    panic(err)
+}
+
+// return error if any service cannot be created due to dependencies
+err := container.Validate()
+
+// alternative: s := di.New[SomeInterface]()
+var s SomeInterface
+// panics when there is not service implementing SomeInterface
+container.Provide(&s)
+
+scopedContainer := container.Scope()
+scopedContainer.Provide(&scopedService) // will cache this service in this scope
+```
 
 ```go
 // newStringerImplementation is constructor with dependencies
@@ -85,17 +138,21 @@ logf.PrintFatal("fatal message")
 logf.PrintFatalf("fatal message: %v", "fatal message")
 
 // SetFormatter wraps default (global) writer with formatter and sets flags to 0
-SetFormatter(formatter)
+logf.SetFormatter(formatter)
 
 // SetScope wraps default (global) writer and replaces formatter with additional scope
-SetScope(formatter)
+logf.SetScope(formatter)
 
 // CreateWithScope creates new instance of *log.Logger with provided formatter
-logger := CreateWithFormatter(formatter)
+logger := logf.CreateWithFormatter(formatter)
 
 // CreateWithScope creates new instance of *log.Logger with provided fields.
 // Formatter is preserved or initialized with logf.DefaultFormatter() if not set
-logger = CreateWithScope(logf.Fields{"currentTime": time.Now().UTC().Format("2006-01-02 15:04:05")})
+logger = logf.CreateWithScope(
+    logf.Fields{
+        "currentTime": time.Now().UTC().Format("2006-01-02 15:04:05")
+    }
+)
 
 logf.Error(logger, "error message")
 logf.Errorf(logger, "error occured: %v", err)
@@ -116,10 +173,15 @@ logf.Fatal(logger, "fatal message")
 logf.Fatalf(logger, "fatal message: %v", "fatal message")
 
 // Creates logger based on parent logger with additional scope
-logger = WithScope(logger, logf.Fields{"currentTime": time.Now().UTC().Format("2006-01-02 15:04:05")})
+logger = logf.WithScope(
+    logger, 
+    logf.Fields{
+        "currentTime": time.Now().UTC().Format("2006-01-02 15:04:05")
+    }
+)
 
 // Creates logger based on parent logger with different formatter
-logger = WithFormatter(logger, formatter)
+logger = logf.WithFormatter(logger, formatter)
 ```
 
 ## middleware
