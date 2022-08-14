@@ -2,8 +2,13 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"goflow/exception"
 	"reflect"
+)
+
+var (
+	ErrNonPointer = errors.New("cannot pass non pointer values")
 )
 
 type Provider interface {
@@ -49,6 +54,10 @@ func (s *Source) Default(v any) error {
 
 //
 func (s *Source) Load(v any) error {
+	if reflect.TypeOf(v).Kind() != reflect.Pointer {
+		return ErrNonPointer
+	}
+
 	err := s.Default(v)
 	if err != nil {
 		return err

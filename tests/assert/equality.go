@@ -1,15 +1,16 @@
 package assert
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 )
 
 type ErrorFunc func(t *testing.T, err error)
 
-// Equal asserts expected and actual values are equal using equal operator
+// Equal asserts expected and actual values are equal using deep equal from reflection
 func Equal(t *testing.T, expected interface{}, actual interface{}, prefixes ...string) {
-	if expected != actual {
+	if !reflect.DeepEqual(expected, actual) {
 		prefix := ""
 		if len(prefixes) > 0 {
 			prefix = strings.Join(prefixes, ": ") + ": "

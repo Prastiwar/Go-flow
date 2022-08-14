@@ -1,8 +1,8 @@
 package config
 
 import (
-	"errors"
 	"goflow/exception"
+	"goflow/reflection"
 	"os"
 	"reflect"
 )
@@ -16,9 +16,9 @@ func NewEnvProvider() *envProvider {
 }
 
 func NewEnvProviderWith(prefix string) *envProvider {
-	return &envProvider{
-		prefix: prefix,
-	}
+	p := NewEnvProvider()
+	p.prefix = prefix
+	return p
 }
 
 func (p *envProvider) Load(v any) (err error) {
@@ -26,7 +26,11 @@ func (p *envProvider) Load(v any) (err error) {
 		err = er
 	})
 
-	toVal := reflect.ValueOf(v)
+	if reflect.ValueOf(v).Kind() != reflect.Pointer {
+		return ErrNonPointer
+	}
+
+	toVal := reflect.ValueOf(v).Elem()
 	for i := 0; i < toVal.NumField(); i++ {
 		field := toVal.Field(i)
 		if !field.CanSet() {
@@ -40,9 +44,18 @@ func (p *envProvider) Load(v any) (err error) {
 			continue
 		}
 
-		// TODO: parse common types
 		envValue := reflect.ValueOf(s)
-		field.Set(envValue)
+		if envValue.Type() == field.Type() {
+			field.Set(envValue)
+			continue
+		}
+
+		vv, err := reflection.Parse(envValue.String(), field.Interface())
+		if err != nil {
+			return err
+		}
+		field.Set(reflect.ValueOf(vv))
 	}
-	return errors.New("not implemented")
+
+	return nil
 }
