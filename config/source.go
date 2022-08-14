@@ -1,20 +1,22 @@
 package config
 
 import (
-	"errors"
+	"encoding/json"
+	"goflow/exception"
+	"reflect"
 )
 
 type Provider interface {
-	Default(v any) error
-	Bind(v any) error
+	Load(v any) error
 }
 
 type Source struct {
 	providers []Provider
+	options   []byte
 }
 
 type opt struct {
-	key string
+	key   string
 	value string
 }
 
@@ -23,14 +25,37 @@ func Opt(key, value string) *opt {
 }
 
 // Provide returns a pointer to new instance of Source.
-// providers order defines values-overriding order
+// Field value will be overriden by each provider in the same order as they're passed in.
 func Provide(providers ...Provider) *Source {
 	return &Source{providers: providers}
 }
 
+func (s *Source) SetDefault(options ...opt) {
+	opts := make(map[string]interface{}, len(options))
+	for _, opt := range options {
+		opts[opt.key] = opt.value
+	}
+
+	bytes, err := json.Marshal(opts)
+	if err != nil {
+		panic(err)
+	}
+	s.options = bytes
+}
+
 func (s *Source) Default(v any) error {
-	for _, p in providers {
-		err := p.Default(v)
+	return json.Unmarshal(s.options, v)
+}
+
+//
+func (s *Source) Load(v any) error {
+	err := s.Default(v)
+	if err != nil {
+		return err
+	}
+
+	for _, p := range s.providers {
+		err := p.Load(v)
 		if err != nil {
 			return err
 		}
@@ -39,12 +64,22 @@ func (s *Source) Default(v any) error {
 	return nil
 }
 
-func (s *Source) Bind(v any) error {
-	for _, p in providers {
-		err := p.Bind(v)
-		if err != nil {
-			return err
+// Bind sets each 'to' field value from corresponding field from 'from'.
+func Bind(from any, to any) (err error) {
+	defer exception.HandlePanicError(func(er error) {
+		err = er
+	})
+
+	toVal := reflect.ValueOf(to)
+	fromVal := reflect.ValueOf(from)
+	for i := 0; i < toVal.NumField(); i++ {
+		sf := toVal.Type().Field(i)
+		fv := fromVal.FieldByName(sf.Name)
+		if fv.IsZero() {
+			continue
 		}
+
+		// TODO: copy field value if possible
 	}
 
 	return nil

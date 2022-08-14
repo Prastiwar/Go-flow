@@ -1,22 +1,32 @@
 package config
 
 import (
-	"errors"
-	"flag"
+	"io"
+	"os"
 )
+
+type FileDecoder interface {
+	Decode(r io.Reader, v any) error
+}
 
 type fileProvider struct {
 	filename string
+	decoder  FileDecoder
 }
 
-func FileProvider(filename string) *fileProvider {
-	return &fileProvider{filename: filename}
+func NewFileProvider(filename string, decoder FileDecoder) *fileProvider {
+	return &fileProvider{
+		filename: filename,
+		decoder:  decoder,
+	}
 }
 
-func (p *fileProvider) Default(v any) error {
-	return errors.New("not implemented")
-}
+func (p *fileProvider) Load(v any) error {
+	f, err := os.Open(p.filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
 
-func (p *fileProvider) Bind(v any) error {
-	return errors.New("not implemented")
+	return p.decoder.Decode(f, v)
 }

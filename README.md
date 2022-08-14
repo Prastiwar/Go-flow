@@ -8,6 +8,7 @@ Writing production-ready system developer often must make decision which will no
 - [Go-flow](#go-flow)
     - [Library purpose](#library-purpose)
   - [configs](#configs)
+      - [TODO](#todo)
   - [di](#di)
   - [logging](#logging)
   - [middleware](#middleware)
@@ -15,7 +16,67 @@ Writing production-ready system developer often must make decision which will no
   - [reflection](#reflection)
 
 ## configs
-TBA
+Loading configuration from file, environment variables and command line arguments with binding functionality.
+```go
+// Provide creates new Source instance with provided configs.
+cfg := configs.Provide(
+    // { "queryTimeout": "10s" }
+    configs.NewFileProvider("config.json", decoders.NewJson()), 
+    // --dbName="my-collection" --errorDetails=true
+    configs.NewFlagProvider(
+        configs.StringFlag("dbName", "name for database"),
+        configs.BoolFlag("errorDetails", "should show error details"),
+    ),
+    // CONNECTION_STRING="mongodb://localhost:8089"; ERROR_DETAILS="false"
+    configs.NewEnvProvider(),
+)
+
+// Use default values for options in case they are not included in providers.
+cfg.SetDefault(
+    configs.Opt("connectionString", "mongodb://localhost:27017"),
+    configs.Opt("dbName", "go-flow"),
+    configs.Opt("errorDetails", true),
+    configs.Opt("queryTimeout", time.Second * 15),
+    configs.Opt("access-key", "ABC123EFGH456IJK789"),
+)
+
+type DbOptions struct {
+    DbName           string
+    ConnectionString string
+    ErrorDetails     bool
+    QueryTimeout     time.Duration
+    AccessKey        string
+}
+
+var dbOptions DbOptions
+err := cfg.Load(&dbOptions)
+// dbOptions were loaded starting from file -> flag -> env and all values were overriden in that order.
+// The default value is not overriden if it doesn't exist in any provider
+if err != nil {
+    // One of the providers failed to load config values
+    panic(err)
+}
+// options.DbName == "my-collection"
+// options.ConnectionString == "mongodb://localhost:8089"
+// options.ErrorDetails == false
+// options.QueryTimeout == time.Second * 10
+// settings.AccessKey == "ABC123EFGH456IJK789"
+
+type AccessOptions struct {
+    AccessKey string
+}
+var aOptions AccessOptions
+// Bind will try to copy corresponding field from dbOptions to aOptions
+err = configs.Bind(dbOptions, &aOptions)
+if err != nil {
+    // Probably field type mismatch
+    panic(err)
+}
+// aOptions.AccessKey == "ABC123EFGH456IJK789"
+```
+
+#### TODO
+- [ ] cache bindings
 
 ## di
 Dependency injection module with container. This pattern is encouraged to use in large projects where dependency hierarchy is deep and complex and cannot be improved by design decisions.
