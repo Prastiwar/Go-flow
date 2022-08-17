@@ -36,8 +36,66 @@ func TestEnvProviderLoad(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		// invalid non-pointer
-		// not-parsable
+		{
+			name: "success-unexported-field",
+			init: func(t *testing.T) (any, func()) {
+				os.Setenv("Obj", "true")
+				v := struct {
+					obj struct{}
+				}{
+					obj: struct{}{},
+				}
+
+				return &v, func() {
+					os.Unsetenv("Obj")
+				}
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid-non-pointer",
+			init: func(t *testing.T) (any, func()) {
+				os.Setenv("CI", "true")
+				v := struct {
+					CI bool
+				}{
+					CI: false,
+				}
+
+				return v, func() {
+					os.Unsetenv("CI")
+				}
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid-not-parsable",
+			init: func(t *testing.T) (any, func()) {
+				os.Setenv("Obj", "true")
+				v := struct {
+					Obj struct{}
+				}{
+					Obj: struct{}{},
+				}
+
+				return &v, func() {
+					os.Unsetenv("CI")
+				}
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid-not-struct",
+			init: func(t *testing.T) (any, func()) {
+				os.Setenv("CI", "true")
+				var v *bool
+
+				return &v, func() {
+					os.Unsetenv("CI")
+				}
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {

@@ -1,7 +1,6 @@
 package config
 
 import (
-	"goflow/exception"
 	"goflow/reflection"
 	"os"
 	"reflect"
@@ -22,15 +21,15 @@ func NewEnvProviderWith(prefix string) *envProvider {
 }
 
 func (p *envProvider) Load(v any) (err error) {
-	defer exception.HandlePanicError(func(er error) {
-		err = er
-	})
-
 	if reflect.ValueOf(v).Kind() != reflect.Pointer {
 		return ErrNonPointer
 	}
 
 	toVal := reflect.ValueOf(v).Elem()
+	if toVal.Kind() != reflect.Struct {
+		return ErrNonStruct
+	}
+
 	for i := 0; i < toVal.NumField(); i++ {
 		field := toVal.Field(i)
 		if !field.CanSet() {

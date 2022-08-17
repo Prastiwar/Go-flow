@@ -8,6 +8,10 @@ func TypeOf[T any]() reflect.Type {
 
 // InParamTypes returns a function input parameter types. It panics if the 'fn' Kind is not Func.
 func InParamTypes(fn reflect.Type) []reflect.Type {
+	if fn.Kind() != reflect.Func {
+		return nil
+	}
+
 	paramLen := fn.NumIn()
 	paramTypes := make([]reflect.Type, paramLen)
 	for i := 0; i < paramLen; i++ {
@@ -19,6 +23,10 @@ func InParamTypes(fn reflect.Type) []reflect.Type {
 
 // OutParamTypesOf returns a function output parameter types. It panics if the 'fn' Kind is not Func.
 func OutParamTypes(fn reflect.Type) []reflect.Type {
+	if fn.Kind() != reflect.Func {
+		return nil
+	}
+
 	paramLen := fn.NumOut()
 	paramTypes := make([]reflect.Type, paramLen)
 	for i := 0; i < paramLen; i++ {

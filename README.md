@@ -7,7 +7,7 @@ Writing production-ready system developer often must make decision which will no
 
 - [Go-flow](#go-flow)
     - [Library purpose](#library-purpose)
-  - [configs](#configs)
+  - [config](#config)
       - [TODO](#todo)
   - [di](#di)
   - [logging](#logging)
@@ -15,29 +15,29 @@ Writing production-ready system developer often must make decision which will no
   - [observability](#observability)
   - [reflection](#reflection)
 
-## configs
+## config
 Loading configuration from file, environment variables and command line arguments with binding functionality.
 ```go
 // Provide creates new Source instance with provided configs.
-cfg := configs.Provide(
+cfg := config.Provide(
     // { "queryTimeout": "10s" }
-    configs.NewFileProvider("config.json", decoders.NewJson()), 
+    config.NewFileProvider("config.json", decoders.NewJson()), 
     // --dbName="my-collection" --errorDetails=true
-    configs.NewFlagProvider(
-        configs.StringFlag("dbName", "name for database"),
-        configs.BoolFlag("errorDetails", "should show error details"),
+    config.NewFlagProvider(
+        config.StringFlag("dbName", "name for database"),
+        config.BoolFlag("errorDetails", "should show error details"),
     ),
     // CONNECTION_STRING="mongodb://localhost:8089"; ERROR_DETAILS="false"
-    configs.NewEnvProvider(),
+    config.NewEnvProvider(),
 )
 
 // Use default values for options in case they are not included in providers.
 cfg.SetDefault(
-    configs.Opt("connectionString", "mongodb://localhost:27017"),
-    configs.Opt("dbName", "go-flow"),
-    configs.Opt("errorDetails", true),
-    configs.Opt("queryTimeout", time.Second * 15),
-    configs.Opt("access-key", "ABC123EFGH456IJK789"),
+    config.Opt("connectionString", "mongodb://localhost:27017"),
+    config.Opt("dbName", "go-flow"),
+    config.Opt("errorDetails", true),
+    config.Opt("queryTimeout", time.Second * 15),
+    config.Opt("access-key", "ABC123EFGH456IJK789"),
 )
 
 type DbOptions struct {
@@ -67,7 +67,7 @@ type AccessOptions struct {
 }
 var aOptions AccessOptions
 // Bind will try to copy corresponding field from dbOptions to aOptions
-err = configs.Bind(dbOptions, &aOptions)
+err = config.Bind(dbOptions, &aOptions)
 if err != nil {
     // Probably field type mismatch
     panic(err)

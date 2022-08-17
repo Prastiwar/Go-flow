@@ -9,13 +9,7 @@ type flagProvider struct {
 	set *flag.FlagSet
 }
 
-type Flag struct {
-	Name  string
-	Usage string
-	Value flag.Value
-}
-
-func NewFlagProvider(flags ...Flag) *flagProvider {
+func NewFlagProvider(flags ...flag.Flag) *flagProvider {
 	set := flag.NewFlagSet("configs.FlagProvider", flag.ContinueOnError)
 	for _, f := range flags {
 		set.Var(f.Value, f.Name, f.Usage)

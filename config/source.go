@@ -2,13 +2,8 @@ package config
 
 import (
 	"encoding/json"
-	"errors"
 	"goflow/exception"
 	"reflect"
-)
-
-var (
-	ErrNonPointer = errors.New("cannot pass non pointer values")
 )
 
 type Provider interface {
