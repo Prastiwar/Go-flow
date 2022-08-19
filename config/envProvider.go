@@ -1,9 +1,7 @@
 package config
 
 import (
-	"goflow/reflection"
 	"os"
-	"reflect"
 )
 
 type envProvider struct {
@@ -20,41 +18,15 @@ func NewEnvProviderWith(prefix string) *envProvider {
 	return p
 }
 
-func (p *envProvider) Load(v any) (err error) {
-	if reflect.ValueOf(v).Kind() != reflect.Pointer {
-		return ErrNonPointer
-	}
-
-	toVal := reflect.ValueOf(v).Elem()
-	if toVal.Kind() != reflect.Struct {
-		return ErrNonStruct
-	}
-
-	for i := 0; i < toVal.NumField(); i++ {
-		field := toVal.Field(i)
-		if !field.CanSet() {
-			continue
-		}
-
-		sf := toVal.Type().Field(i)
-		envKey := p.prefix + sf.Name
+func (p *envProvider) Load(v any, opts ...LoadOption) (err error) {
+	options := NewLoadOptions(opts...)
+	return setFields(v, *options, func(key string) (any, error) {
+		envKey := p.prefix + key
 		s, ok := os.LookupEnv(envKey)
 		if !ok {
-			continue
+			return nil, nil
 		}
 
-		envValue := reflect.ValueOf(s)
-		if envValue.Type() == field.Type() {
-			field.Set(envValue)
-			continue
-		}
-
-		vv, err := reflection.Parse(envValue.String(), field.Interface())
-		if err != nil {
-			return err
-		}
-		field.Set(reflect.ValueOf(vv))
-	}
-
-	return nil
+		return s, nil
+	})
 }

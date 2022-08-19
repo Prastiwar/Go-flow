@@ -1,12 +1,9 @@
 # Go-flow
- Framework for Go services in go with zero dependency rule, so you can use it in any project without other third-party dependencies or writing your own code for common tasks.
- 
- ### Library purpose
- The idea is to provide and maintain by community single framework without other third-party dependencies to facilitate software development without worrying and dealing with obsolete libraries which hugely increases technical debt. This framework's mission is to extend the built-in GO standard library in a non-invasive way with common systems like configuration, logging and dependency management meaning it should have feeling like it's part of standard one but it should not give up on simplifying building systems by adding GOs like boilerplate.
-Writing production-ready system developer often must make decision which will not change and will not apply to every possible case but still should be modifiable enough to make development easier not harder.
 
+Framework for Go services in go with zero dependency rule, so you can use it in any project without other third-party dependencies or writing your own code for common tasks.
+ 
 - [Go-flow](#go-flow)
-    - [Library purpose](#library-purpose)
+  - [Library purpose](#library-purpose)
   - [config](#config)
       - [TODO](#todo)
   - [di](#di)
@@ -14,8 +11,15 @@ Writing production-ready system developer often must make decision which will no
   - [middleware](#middleware)
   - [observability](#observability)
   - [reflection](#reflection)
+ 
+## Library purpose
+
+The idea is to provide and maintain by community single framework without other third-party dependencies to facilitate software development without worrying and dealing with obsolete libraries which hugely increases technical debt. This framework's mission is to extend the built-in GO standard library in a non-invasive way with common systems like configuration, logging and dependency management meaning it should have feeling like it's part of standard one but it should not give up on simplifying building systems by adding GOs like boilerplate.
+Writing production-ready system developer often must make decision which will not change and will not apply to every possible case but still should be modifiable enough to make development easier not harder.
+
 
 ## config
+
 Loading configuration from file, environment variables and command line arguments with binding functionality.
 ```go
 // Provide creates new Source instance with provided configs.
@@ -76,12 +80,15 @@ if err != nil {
 ```
 
 #### TODO
+
 - [ ] cache bindings
 
 ## di
+
 Dependency injection module with container. This pattern is encouraged to use in large projects where dependency hierarchy is deep and complex and cannot be improved by design decisions.
 It's not recommended to use it in small or medium projects where dependency graph is simple and could be improved by design decisions. 
 Use dependency injection without container first and then use container if you really need it.
+
 ```go
 
 type Dependency interface {}
@@ -176,6 +183,7 @@ if err != nil {
 ```
 
 ## logging
+
 Extended package for standard "log" package
 
 ```go
@@ -246,7 +254,9 @@ logger = logf.WithFormatter(logger, formatter)
 ```
 
 ## middleware
+
 Generic middleware pipeline pattern for any request and responses
+
 ```go
 type pipeRequest string
 type pipeResponse error
@@ -291,9 +301,11 @@ logging.Info(response)
 ```
 
 ## observability
+
 TBA
 
 ## reflection
+
 Extended package for standard "reflect" package
 
 ```go

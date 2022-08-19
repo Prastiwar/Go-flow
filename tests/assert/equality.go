@@ -8,6 +8,8 @@ import (
 
 type ErrorFunc func(t *testing.T, err error)
 
+type ResultErrorFunc[T any] func(t *testing.T, result T, err error)
+
 // Equal asserts expected and actual values are equal using deep equal from reflection
 func Equal(t *testing.T, expected interface{}, actual interface{}, prefixes ...string) {
 	if !reflect.DeepEqual(expected, actual) {

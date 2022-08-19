@@ -7,12 +7,12 @@ import (
 )
 
 type Provider interface {
-	Load(v any) error
+	Load(v any, opts ...LoadOption) error
 }
 
 type Source struct {
 	providers []Provider
-	options   []byte
+	defaults  []byte
 }
 
 type opt struct {
@@ -40,14 +40,15 @@ func (s *Source) SetDefault(options ...opt) {
 	if err != nil {
 		panic(err)
 	}
-	s.options = bytes
+	s.defaults = bytes
 }
 
 func (s *Source) Default(v any) error {
-	return json.Unmarshal(s.options, v)
+	return json.Unmarshal(s.defaults, v)
 }
 
-//
+// Load run loading on each provider in order as it was initialized and bind found properties
+// to corresponding 'v' field by it's name. 'v' must be a Pointer.
 func (s *Source) Load(v any) error {
 	if reflect.TypeOf(v).Kind() != reflect.Pointer {
 		return ErrNonPointer
@@ -59,6 +60,7 @@ func (s *Source) Load(v any) error {
 	}
 
 	for _, p := range s.providers {
+		// TODO: pass options
 		err := p.Load(v)
 		if err != nil {
 			return err
