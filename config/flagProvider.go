@@ -9,6 +9,9 @@ type flagProvider struct {
 	set *flag.FlagSet
 }
 
+// NewFlagProvider returns a new flag provider with defined flags which
+// will be used for command line arguments parsing. It panics if any value field of flag
+// does not implement flag.Getter interface.
 func NewFlagProvider(flags ...flag.Flag) *flagProvider {
 	set := flag.NewFlagSet("configs.FlagProvider", flag.ContinueOnError)
 	for _, f := range flags {
@@ -23,6 +26,9 @@ func NewFlagProvider(flags ...flag.Flag) *flagProvider {
 	}
 }
 
+// Load parses flag definitions from the argument list, which should not include the command name.
+// Parsed flag value results are stored in matching v fields. If there is no matching field it
+// will be ignored and it's value will not be overriden.
 func (p *flagProvider) Load(v any, opts ...LoadOption) error {
 	err := p.set.Parse(os.Args[1:])
 	if err != nil {

@@ -5,8 +5,11 @@ import (
 	"reflect"
 )
 
+// FieldValueFinder defines function which should return field value or error for named key
 type FieldValueFinder func(key string) (any, error)
 
+// FieldSetter is implemented by any value that has a SetFields method.
+// The implementation controls how fields for v value are set.
 type FieldSetter interface {
 	SetFields(v any, findFn FieldValueFinder) error
 }
@@ -16,6 +19,7 @@ type fieldSetter struct {
 	options LoadOptions
 }
 
+// NewFieldSetter returns a new FieldSetter implementation which can store found value for each v field.
 func NewFieldSetter(name string, o LoadOptions) *fieldSetter {
 	return &fieldSetter{
 		name:    name,
@@ -23,6 +27,10 @@ func NewFieldSetter(name string, o LoadOptions) *fieldSetter {
 	}
 }
 
+// SetFields stores found value from FieldValueFinder function. If found value is nil it will
+// skip assignment. To override value and set nil value, FieldValueFinder should return reflect.ValueOf(nil).
+// If field type and found value are not the same type but found value is convertible, it will try to
+// convert it to matching type. It also supports converting between pointers and non-pointers.
 func (s *fieldSetter) SetFields(v any, findFn FieldValueFinder) error {
 	toVal, err := valueLoadOf(v)
 	if err != nil {

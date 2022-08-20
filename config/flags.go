@@ -223,6 +223,7 @@ func TimeFlag(name string, usage string) flag.Flag {
 	return CustomFlag(name, usage, &value)
 }
 
+// CustomFlag creates a flag with specified name, usage and flag.Value implementation.
 func CustomFlag(name string, usage string, value flag.Value) flag.Flag {
 	return flag.Flag{
 		Name:     name,

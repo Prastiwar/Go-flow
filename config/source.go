@@ -5,10 +5,14 @@ import (
 	"reflect"
 )
 
+// Provider is implemented by any value that has a Load method, which loads
+// configuration and overrides if applicable matching field values for v
 type Provider interface {
 	Load(v any, opts ...LoadOption) error
 }
 
+// Source stores shared options, default values and configured providers to manage
+// multi-source configuration loading.
 type Source struct {
 	providers []Provider
 	defaults  []byte
@@ -20,6 +24,7 @@ type opt struct {
 	value any
 }
 
+// Opts creates an instance used for initializing default value for named key
 func Opt(key string, value any) *opt {
 	return &opt{
 		key:   key,
@@ -27,16 +32,19 @@ func Opt(key string, value any) *opt {
 	}
 }
 
-// Provide returns a pointer to new instance of Source.
-// Field value will be overriden by each provider in the same order as they're passed in.
+// Provide creates an instance of Source. The order of passed providers matters in terms of
+// overriding field value since each provider will be Load'ed in the same order as they were
+// passed to this function
 func Provide(providers ...Provider) *Source {
 	return &Source{providers: providers}
 }
 
+// ShareOptions shares provided options to be used across each call to Load
 func (s *Source) ShareOptions(options ...LoadOption) {
 	s.options = options
 }
 
+// SetDefault sets default values in json format to be easily unmarshaled by Default method
 func (s *Source) SetDefault(defaults ...opt) error {
 	opts := make(map[string]interface{}, len(defaults))
 	for _, opt := range defaults {
@@ -56,6 +64,8 @@ func (s *Source) SetDefault(defaults ...opt) error {
 	return nil
 }
 
+// Default parses the JSON-encoded default values and stores the result
+// in the value pointed to by v. Read json.Unmarshal for more information.
 func (s *Source) Default(v any) error {
 	if len(s.defaults) > 0 {
 		return json.Unmarshal(s.defaults, v)
@@ -63,13 +73,15 @@ func (s *Source) Default(v any) error {
 	return nil
 }
 
-// Load calls LoadWithOptions with shared LoadOptions
+// Load calls LoadWithOptions with LoadOptions stored by ShareOptions method.
 func (s *Source) Load(v any) error {
 	return s.LoadWithOptions(v, s.options...)
 }
 
-// Load run loading on each provider in order as it was initialized and bind found properties
-// to corresponding 'v' field by it's name. 'v' must be a Pointer.
+// LoadWithOptions calls Load method on each provider which binds matching v fields by
+// corresponding key value. LoadWithOptions can return ErrNonPointer or ErrNonStruct if v is not valid.
+// If field was not found in provider - it will not override the value. But it can be overriden by
+// provider which will be called as next in order if the value can be found.
 func (s *Source) LoadWithOptions(v any, opts ...LoadOption) error {
 	if _, err := valueLoadOf(v); err != nil {
 		return err
@@ -89,7 +101,8 @@ func (s *Source) LoadWithOptions(v any, opts ...LoadOption) error {
 }
 
 // Bind sets each 'to' field value from corresponding field from 'from'.
-func Bind(from any, to any) (err error) {
+// It will not return an error if will not find matching field.
+func Bind(from any, to any) error {
 	setter := NewFieldSetter("bind", *NewLoadOptions())
 	fromVal := reflect.ValueOf(from)
 

@@ -1,3 +1,4 @@
+// package logf provides extens
 package logf
 
 import (
