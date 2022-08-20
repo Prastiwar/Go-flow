@@ -234,7 +234,7 @@ func TestProvide(t *testing.T) {
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
 				defer func() {
-					assert.Equal(t, NotPointerError, recover())
+					assert.Equal(t, ErrNotPointer, recover())
 					t.SkipNow()
 				}()
 
@@ -251,7 +251,7 @@ func TestProvide(t *testing.T) {
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
 				defer func() {
-					assert.Equal(t, NotAddresableError, recover())
+					assert.Equal(t, ErrNotAddresable, recover())
 					t.SkipNow()
 				}()
 
@@ -269,7 +269,7 @@ func TestProvide(t *testing.T) {
 			provideFn: func(t *testing.T, provider func(any)) any {
 				defer func() {
 					err, _ := recover().(error)
-					assert.ErrorWith(t, err, NotRegisteredError.Error())
+					assert.ErrorWith(t, err, ErrNotRegistered.Error())
 					t.SkipNow()
 				}()
 

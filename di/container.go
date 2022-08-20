@@ -19,10 +19,10 @@ type container struct {
 }
 
 var (
-	NotRegisteredError    = errors.New("dependency is not registered")
-	CyclicDependencyError = errors.New("cyclic dependency detected")
-	NotAddresableError    = errors.New("need to pass address")
-	NotPointerError       = errors.New("must be a pointer")
+	ErrNotRegistered    = errors.New("dependency is not registered")
+	ErrCyclicDependency = errors.New("cyclic dependency detected")
+	ErrNotAddresable    = errors.New("need to pass address")
+	ErrNotPointer       = errors.New("must be a pointer")
 )
 
 func Register(ctors ...any) (*container, error) {
@@ -77,13 +77,13 @@ func (c *container) Validate() error {
 			}
 
 			if cyclic {
-				errs = append(errs, fmt.Errorf("'%w': '%v'", CyclicDependencyError, dependencyType))
+				errs = append(errs, fmt.Errorf("'%w': '%v'", ErrCyclicDependency, dependencyType))
 				continue
 			}
 
 			_, ok := checkRegistered(dependencyType, c.services)
 			if !ok {
-				errs = append(errs, fmt.Errorf("'%w': '%v'", NotRegisteredError, dependencyType))
+				errs = append(errs, fmt.Errorf("'%w': '%v'", ErrNotRegistered, dependencyType))
 			}
 		}
 	}
@@ -112,7 +112,7 @@ func (c *container) setValue(v interface{}, service interface{}) {
 	velem := vval.Elem()
 	serviceValue := reflect.ValueOf(service)
 	if !velem.IsValid() {
-		panic(NotAddresableError)
+		panic(ErrNotAddresable)
 	}
 
 	if velem.Kind() == reflect.Interface {
@@ -130,12 +130,12 @@ func (c *container) setValue(v interface{}, service interface{}) {
 
 func (c *container) get(typ reflect.Type) interface{} {
 	if typ.Kind() != reflect.Pointer {
-		panic(NotPointerError)
+		panic(ErrNotPointer)
 	}
 
 	ctor, ok := checkRegistered(typ, c.services)
 	if !ok {
-		panic(fmt.Errorf("'%w': '%v'", NotRegisteredError, typ))
+		panic(fmt.Errorf("'%w': '%v'", ErrNotRegistered, typ))
 	}
 
 	service, ok := c.cache.Get(ctor.life, ctor.typ)

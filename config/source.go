@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"goflow/exception"
 	"reflect"
 )
 
@@ -91,21 +90,10 @@ func (s *Source) LoadWithOptions(v any, opts ...LoadOption) error {
 
 // Bind sets each 'to' field value from corresponding field from 'from'.
 func Bind(from any, to any) (err error) {
-	defer exception.HandlePanicError(func(er error) {
-		err = er
-	})
-
-	toVal := reflect.ValueOf(to)
+	setter := NewFieldSetter("bind", *NewLoadOptions())
 	fromVal := reflect.ValueOf(from)
-	for i := 0; i < toVal.NumField(); i++ {
-		sf := toVal.Type().Field(i)
-		fv := fromVal.FieldByName(sf.Name)
-		if fv.IsZero() {
-			continue
-		}
 
-		// TODO: copy field value if possible
-	}
-
-	return nil
+	return setter.SetFields(to, func(key string) (any, error) {
+		return fromVal.Elem().FieldByName(key), nil
+	})
 }
