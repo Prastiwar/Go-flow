@@ -2,7 +2,10 @@ package config
 
 import "reflect"
 
-type KeyInterceptor func(reflect.StructField) string
+// KeyInterceptor allows to intercept field name before it's used to find it in provider.
+// It's useful when you want to use different field names than they're defined in struct.
+// For example you can use tag to define field name and intercept it there.
+type KeyInterceptor func(providerName string, field reflect.StructField) string
 
 type LoadOption func(*LoadOptions)
 
@@ -26,10 +29,10 @@ func WithInterceptor(i KeyInterceptor) LoadOption {
 }
 
 // Intercept provides default behaviour in case Interceptor is not set the exact field name will be used
-func (o *LoadOptions) Intercept(f reflect.StructField) string {
+func (o *LoadOptions) Intercept(providerName string, f reflect.StructField) string {
 	if o.Interceptor == nil {
 		return f.Name
 	}
 
-	return o.Interceptor(f)
+	return o.Interceptor(providerName, f)
 }

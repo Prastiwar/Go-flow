@@ -32,7 +32,7 @@ func TestFlagProviderLoad(t *testing.T) {
 	nowUtc := time.Now().UTC().Format(time.RFC3339)
 
 	optionsWithLowerFirtCase := []LoadOption{
-		WithInterceptor(func(sf reflect.StructField) string {
+		WithInterceptor(func(name string, sf reflect.StructField) string {
 			a := []rune(sf.Name)
 			a[0] = unicode.ToLower(a[0])
 			return string(a)
@@ -226,8 +226,8 @@ func TestNewFlagProvider(t *testing.T) {
 	assert.NotNil(t, valid)
 
 	defer func() {
-		expectedError := errors.Is(recover().(error), ErrMustImplementGetter)
-		assert.Equal(t, expectedError, true, "error expectation failed")
+		isExpectedError := errors.Is(recover().(error), ErrMustImplementGetter)
+		assert.Equal(t, true, isExpectedError, "error expectation failed")
 	}()
 
 	_ = NewFlagProvider(flag.Flag{})
@@ -245,6 +245,6 @@ func TestFlagProviderLoadEmptyFlag(t *testing.T) {
 		Name string
 	}{})
 
-	expectedError := errors.Is(err, ErrMustImplementGetter)
-	assert.Equal(t, expectedError, true, "error expectation failed")
+	isExpectedError := errors.Is(err, ErrMustImplementGetter)
+	assert.Equal(t, true, isExpectedError, "error expectation failed")
 }

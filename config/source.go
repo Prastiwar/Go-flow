@@ -13,15 +13,19 @@ type Provider interface {
 type Source struct {
 	providers []Provider
 	defaults  []byte
+	options   []LoadOption
 }
 
 type opt struct {
 	key   string
-	value string
+	value any
 }
 
-func Opt(key, value string) *opt {
-	return &opt{}
+func Opt(key string, value any) *opt {
+	return &opt{
+		key:   key,
+		value: value,
+	}
 }
 
 // Provide returns a pointer to new instance of Source.
@@ -30,26 +34,44 @@ func Provide(providers ...Provider) *Source {
 	return &Source{providers: providers}
 }
 
-func (s *Source) SetDefault(options ...opt) {
-	opts := make(map[string]interface{}, len(options))
-	for _, opt := range options {
+func (s *Source) ShareOptions(options ...LoadOption) {
+	s.options = options
+}
+
+func (s *Source) SetDefault(defaults ...opt) error {
+	opts := make(map[string]interface{}, len(defaults))
+	for _, opt := range defaults {
+		_, ok := opts[opt.key]
+		if ok {
+			return wrapErrDuplicateKey(opt.key)
+		}
 		opts[opt.key] = opt.value
 	}
 
 	bytes, err := json.Marshal(opts)
 	if err != nil {
-		panic(err)
+		return err
 	}
+
 	s.defaults = bytes
+	return nil
 }
 
 func (s *Source) Default(v any) error {
-	return json.Unmarshal(s.defaults, v)
+	if len(s.defaults) > 0 {
+		return json.Unmarshal(s.defaults, v)
+	}
+	return nil
+}
+
+// Load calls LoadWithOptions with shared LoadOptions
+func (s *Source) Load(v any) error {
+	return s.LoadWithOptions(v, s.options...)
 }
 
 // Load run loading on each provider in order as it was initialized and bind found properties
 // to corresponding 'v' field by it's name. 'v' must be a Pointer.
-func (s *Source) Load(v any) error {
+func (s *Source) LoadWithOptions(v any, opts ...LoadOption) error {
 	if reflect.TypeOf(v).Kind() != reflect.Pointer {
 		return ErrNonPointer
 	}
@@ -60,8 +82,7 @@ func (s *Source) Load(v any) error {
 	}
 
 	for _, p := range s.providers {
-		// TODO: pass options
-		err := p.Load(v)
+		err := p.Load(v, opts...)
 		if err != nil {
 			return err
 		}

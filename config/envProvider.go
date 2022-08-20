@@ -20,7 +20,9 @@ func NewEnvProviderWith(prefix string) *envProvider {
 
 func (p *envProvider) Load(v any, opts ...LoadOption) (err error) {
 	options := NewLoadOptions(opts...)
-	return setFields(v, *options, func(key string) (any, error) {
+	setter := NewFieldSetter(EnvProviderName, *options)
+
+	return setter.SetFields(v, func(key string) (any, error) {
 		envKey := p.prefix + key
 		s, ok := os.LookupEnv(envKey)
 		if !ok {

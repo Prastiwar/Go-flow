@@ -35,6 +35,19 @@ cfg := config.Provide(
     config.NewEnvProvider(),
 )
 
+// ShareOptions provides options to set default options for all provider.
+cfg.ShareOptions(
+    // KeyInterceptor allows to intercept field name before it's used to find it in provider.
+    // It's useful when you want to use different field names than they're defined in struct.
+    // For example you can use tag to define field name and intercept it there.
+    WithKeyInterceptor(func(providerName string, field reflect.StructField) string {
+        if providerName == config.EnvProviderName {
+            return strings.ToUpper(field.Name)
+        }
+        return field.Name
+    })
+)
+
 // Use default values for options in case they are not included in providers.
 cfg.SetDefault(
     config.Opt("connectionString", "mongodb://localhost:27017"),

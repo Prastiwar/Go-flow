@@ -24,14 +24,15 @@ func NewFlagProvider(flags ...flag.Flag) *flagProvider {
 }
 
 func (p *flagProvider) Load(v any, opts ...LoadOption) error {
-	options := NewLoadOptions(opts...)
-
 	err := p.set.Parse(os.Args[1:])
 	if err != nil {
 		return err
 	}
 
-	return setFields(v, *options, func(key string) (any, error) {
+	options := NewLoadOptions(opts...)
+	setter := NewFieldSetter(FlagProviderName, *options)
+
+	return setter.SetFields(v, func(key string) (any, error) {
 		var f *flag.Flag
 		p.set.Visit(func(visitFlag *flag.Flag) {
 			if visitFlag.Name == key {

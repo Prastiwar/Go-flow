@@ -7,7 +7,23 @@ import (
 
 type FieldValueFinder func(key string) (any, error)
 
-func setFields(v any, opts LoadOptions, findFn FieldValueFinder) error {
+type FieldSetter interface {
+	SetFields(v any, findFn FieldValueFinder) error
+}
+
+type fieldSetter struct {
+	name    string
+	options LoadOptions
+}
+
+func NewFieldSetter(name string, o LoadOptions) *fieldSetter {
+	return &fieldSetter{
+		name:    name,
+		options: o,
+	}
+}
+
+func (s *fieldSetter) SetFields(v any, findFn FieldValueFinder) error {
 	toVal, err := valueLoadOf(v)
 	if err != nil {
 		return err
@@ -21,7 +37,7 @@ func setFields(v any, opts LoadOptions, findFn FieldValueFinder) error {
 		}
 
 		sf := toVal.Type().Field(i)
-		key := opts.Intercept(sf)
+		key := s.options.Intercept(s.name, sf)
 		rawValue, err := findFn(key)
 		if err != nil {
 			return err

@@ -36,8 +36,9 @@ func TestSetFields(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v, asserts := tt.init(t)
+			setter := NewFieldSetter("", tt.opts)
 
-			err := setFields(v, tt.opts, tt.findFn)
+			err := setter.SetFields(v, tt.findFn)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
