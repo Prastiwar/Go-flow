@@ -88,6 +88,7 @@ func (s *fieldSetter) SetFields(v any, findFn FieldValueFinder) error {
 	return nil
 }
 
+// valueLoadOf returns reflect.Value for struct pointer. If 'v' is not a pointer or struct it will return an error
 func valueLoadOf(v any) (reflect.Value, error) {
 	if reflect.ValueOf(v).Kind() != reflect.Pointer {
 		return reflect.Value{}, ErrNonPointer

@@ -21,7 +21,7 @@ func NewReaderProvider(r io.Reader, d ReaderDecoder) *readerProvider {
 	}
 }
 
-func (p *readerProvider) Load(v any) error {
+func (p *readerProvider) Load(v any, opts ...LoadOption) error {
 	return p.decoder.Decode(p.reader, v)
 }
 

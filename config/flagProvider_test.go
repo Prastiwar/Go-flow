@@ -226,8 +226,7 @@ func TestNewFlagProvider(t *testing.T) {
 	assert.NotNil(t, valid)
 
 	defer func() {
-		isExpectedError := errors.Is(recover().(error), ErrMustImplementGetter)
-		assert.Equal(t, true, isExpectedError, "error expectation failed")
+		assert.ErrorIs(t, recover().(error), ErrMustImplementGetter)
 	}()
 
 	_ = NewFlagProvider(flag.Flag{})

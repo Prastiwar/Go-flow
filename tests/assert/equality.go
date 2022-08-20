@@ -1,6 +1,7 @@
 package assert
 
 import (
+	"errors"
 	"reflect"
 	"strings"
 	"testing"
@@ -60,5 +61,17 @@ func ErrorWith(t *testing.T, err error, content string) {
 	ok := strings.Contains(err.Error(), content)
 	if !ok {
 		t.Errorf(errFormat, content, err.Error())
+	}
+}
+
+func ErrorIs(t *testing.T, err error, target error) {
+	if !errors.Is(err, target) {
+		t.Errorf("expected '%#v' error but got '%#v'", target, err)
+	}
+}
+
+func ErrorType(t *testing.T, err error, target error) {
+	if reflect.TypeOf(err) != reflect.TypeOf(target) {
+		t.Errorf("expected '%#v' error but got '%#v'", target, err)
 	}
 }

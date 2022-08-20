@@ -72,18 +72,16 @@ func (s *Source) Load(v any) error {
 // Load run loading on each provider in order as it was initialized and bind found properties
 // to corresponding 'v' field by it's name. 'v' must be a Pointer.
 func (s *Source) LoadWithOptions(v any, opts ...LoadOption) error {
-	if reflect.TypeOf(v).Kind() != reflect.Pointer {
-		return ErrNonPointer
+	if _, err := valueLoadOf(v); err != nil {
+		return err
 	}
 
-	err := s.Default(v)
-	if err != nil {
+	if err := s.Default(v); err != nil {
 		return err
 	}
 
 	for _, p := range s.providers {
-		err := p.Load(v, opts...)
-		if err != nil {
+		if err := p.Load(v, opts...); err != nil {
 			return err
 		}
 	}
