@@ -15,7 +15,7 @@ func setFields(v any, opts LoadOptions, findFn FieldValueFinder) error {
 
 	for i := 0; i < toVal.NumField(); i++ {
 		field := toVal.Field(i)
-		field.Type().Name()
+
 		if !field.CanSet() {
 			continue
 		}
@@ -27,6 +27,8 @@ func setFields(v any, opts LoadOptions, findFn FieldValueFinder) error {
 			return err
 		}
 
+		// nil value is treated as not existing (so skip)
+		// return reflect.ValueOf(nil) to treat is as acual nil value
 		if rawValue == nil {
 			continue
 		}
@@ -36,8 +38,25 @@ func setFields(v any, opts LoadOptions, findFn FieldValueFinder) error {
 			val = reflect.ValueOf(rawValue)
 		}
 
-		// TODO: duration case is invalid
-		if val.Type() == field.Type() {
+		if val.Kind() == reflect.Pointer {
+			val = val.Elem()
+		}
+
+		fieldType := field.Type()
+
+		if field.Kind() == reflect.Pointer {
+			fieldNonPointer := fieldType.Elem()
+			if val.Type().ConvertibleTo(fieldNonPointer) {
+				p := reflect.New(fieldNonPointer)
+				val = val.Convert(fieldNonPointer)
+				p.Elem().Set(val)
+				field.Set(p)
+				continue
+			}
+		}
+
+		if val.Type().ConvertibleTo(fieldType) {
+			val = val.Convert(fieldType)
 			field.Set(val)
 			continue
 		}

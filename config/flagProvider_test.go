@@ -11,6 +11,15 @@ import (
 	"unicode"
 )
 
+type notGetterStringValue string
+
+func (d *notGetterStringValue) Set(s string) error {
+	*d = notGetterStringValue(s)
+	return nil
+}
+
+func (d *notGetterStringValue) String() string { return string(*d) }
+
 func setArgs(args ...string) {
 	os.Args = []string{
 		"go-flow", // os.Args[0] is always program name
@@ -50,9 +59,6 @@ func TestFlagProviderLoad(t *testing.T) {
 				Float64Flag("varFloat64", desc),
 				DurationFlag("varDuration", desc),
 				TimeFlag("varTime", desc),
-
-				StringFlag("notOverrideString", desc),
-				StringFlag("overridenEmptyString", desc),
 			},
 			init: func(t *testing.T) (any, func()) {
 				setArgs(
@@ -66,7 +72,6 @@ func TestFlagProviderLoad(t *testing.T) {
 					"-varFloat64=64.64",
 					"-varDuration=1s",
 					"-varTime="+nowUtc,
-					"-overridenEmptyString=overriden",
 				)
 
 				v := struct {
@@ -78,15 +83,9 @@ func TestFlagProviderLoad(t *testing.T) {
 					VarUint64   uint64
 					VarFloat32  float32
 					VarFloat64  float64
-					VarDuration int32
+					VarDuration time.Duration
 					VarTime     time.Time
-
-					NotOverrideString    string
-					OverridenEmptyString string
 				}{}
-
-				v.NotOverrideString = "not-ovveridden"
-				v.OverridenEmptyString = "not-ovveridden"
 
 				return &v, func() {
 					assert.Equal(t, true, v.VarBool, "bool flag expectation failed")
@@ -99,9 +98,56 @@ func TestFlagProviderLoad(t *testing.T) {
 					assert.Equal(t, float64(64.64), v.VarFloat64, "float64 flag expectation failed")
 					assert.Equal(t, 1*time.Second, v.VarDuration, "duration flag expectation failed")
 					assert.Equal(t, nowUtc, v.VarTime.Format(time.RFC3339), "time flag expectation failed")
+				}
+			},
+			options: optionsWithLowerFirtCase,
+			wantErr: false,
+		},
+		{
+			name: "success-pointers",
+			flags: []flag.Flag{
+				StringFlag("varString", desc),
+				BoolFlag("varBool", desc),
+			},
+			init: func(t *testing.T) (any, func()) {
+				setArgs(
+					"-varBool",
+					"-varString=pointing",
+				)
 
-					assert.Equal(t, "not-ovveridden", v.NotOverrideString, "not override expectation failed")
-					assert.Equal(t, "overriden", v.OverridenEmptyString, "nil override expectation failed")
+				v := struct {
+					VarBool   *bool
+					VarString *string
+				}{}
+
+				return &v, func() {
+					assert.Equal(t, "pointing", *v.VarString, "string pointer expectation failed")
+					assert.Equal(t, true, *v.VarBool, "bool pointer expectation failed")
+				}
+			},
+			options: optionsWithLowerFirtCase,
+			wantErr: false,
+		},
+		{
+			name: "success-convertible",
+			flags: []flag.Flag{
+				Int32Flag("varIntPointer", desc),
+				Int32Flag("varInt", desc),
+			},
+			init: func(t *testing.T) (any, func()) {
+				setArgs(
+					"-varInt=64",
+					"-varIntPointer=64",
+				)
+
+				v := struct {
+					VarInt        int64
+					VarIntPointer *int64
+				}{}
+
+				return &v, func() {
+					assert.Equal(t, int64(64), v.VarInt, "convertible integer expectation failed")
+					assert.Equal(t, int64(64), *v.VarIntPointer, "convertible integer pointer expectation failed")
 				}
 			},
 			options: optionsWithLowerFirtCase,
@@ -185,4 +231,20 @@ func TestNewFlagProvider(t *testing.T) {
 	}()
 
 	_ = NewFlagProvider(flag.Flag{})
+}
+
+func TestFlagProviderLoadEmptyFlag(t *testing.T) {
+	p := &flagProvider{
+		set: flag.NewFlagSet("", flag.ContinueOnError),
+	}
+	var s notGetterStringValue
+	p.set.Var(&s, "Name", "usage")
+
+	setArgs("-Name=test")
+	err := p.Load(&struct {
+		Name string
+	}{})
+
+	expectedError := errors.Is(err, ErrMustImplementGetter)
+	assert.Equal(t, expectedError, true, "error expectation failed")
 }
