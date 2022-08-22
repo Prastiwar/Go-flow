@@ -11,6 +11,10 @@ var (
 	ErrNotSupportedType = errors.New("target type is not supported by parser")
 )
 
+// Parse returns the parsed value with target type. s can be parsed to any of these types:
+// string, int, float, complex, bool, time.Duration, time.Time, error. It accepts both
+// pointer or non-pointer type. If s value is convertible to target it will return the converted value.
+// Returns ErrNotSupportedType error if cannot parse to target value.
 func Parse(s string, target interface{}) (interface{}, error) {
 	if val, ok := target.(reflect.Value); ok {
 		if val.Kind() == reflect.Pointer {
@@ -89,6 +93,12 @@ func Parse(s string, target interface{}) (interface{}, error) {
 
 	case error:
 		return errors.New(s), nil
+	}
+
+	sVal := reflect.ValueOf(s)
+	targetTyp := reflect.TypeOf(target)
+	if reflect.TypeOf(s).ConvertibleTo(targetTyp) {
+		return sVal.Convert(targetTyp).Interface(), nil
 	}
 
 	return nil, ErrNotSupportedType

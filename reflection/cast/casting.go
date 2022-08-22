@@ -1,7 +1,7 @@
 package cast
 
 // As creates new slice instance and casts from elements to result slice.
-// It will return true when from slice is empty
+// It will return true when from slice is empty.
 func As[R any, T any](from []T) ([]R, bool) {
 	count := len(from)
 	result := make([]R, count)

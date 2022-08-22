@@ -15,8 +15,8 @@ const (
 )
 
 var (
-	NotFuncError       = errors.New("ctor is not func")
-	WrongCtorSignature = errors.New("ctor must return only service value")
+	ErrCtorNotFunc        = errors.New("ctor is not func")
+	ErrWrongCtorSignature = errors.New("ctor must return only service value")
 )
 
 type constructor struct {
@@ -26,6 +26,8 @@ type constructor struct {
 	life   LifeTime
 }
 
+// Construct returns a new constructor instance for specified function.
+// It panics if ctor is not a function or it does not return any value.
 func Construct(life LifeTime, ctor any) *constructor {
 	var typ reflect.Type
 
@@ -39,28 +41,37 @@ func Construct(life LifeTime, ctor any) *constructor {
 		inParamTypes = reflection.InParamTypes(ctorValue.Type())
 	}
 
-	return &constructor{
+	c := &constructor{
 		typ:    typ,
 		fn:     ctor,
 		life:   life,
 		params: inParamTypes,
 	}
+
+	err := c.validate()
+	if err != nil {
+		panic(err)
+	}
+
+	return c
 }
 
-func (c *constructor) Validate() error {
+// validate verifies if ctor function is func and returns single value.
+func (c *constructor) validate() error {
 	ctorValue := reflect.ValueOf(c.fn)
 	if ctorValue.Kind() != reflect.Func {
-		return NotFuncError
+		return ErrCtorNotFunc
 	}
 
 	paramTypes := reflection.OutParamTypes(ctorValue.Type())
 	if len(paramTypes) != 1 {
-		return WrongCtorSignature
+		return ErrWrongCtorSignature
 	}
 
 	return nil
 }
 
+// Create returns created instance from called ctor with parameters retrieved with provider.
 func (c *constructor) Create(provider func(reflect.Type) interface{}) interface{} {
 	paramValues := make([]reflect.Value, len(c.params))
 	for i := 0; i < len(c.params); i++ {

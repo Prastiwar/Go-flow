@@ -17,7 +17,7 @@ const (
 	TraceLevel = "trace"
 )
 
-// resetLogger set output to os.Stderr
+// resetLogger sets output to os.Stderr
 func resetLogger() {
 	log.SetOutput(os.Stderr)
 }

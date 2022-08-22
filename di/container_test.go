@@ -105,14 +105,14 @@ func TestRegister(t *testing.T) {
 			name:  "invalid-ctor-func",
 			ctors: []interface{}{NewSomeService, ""},
 			assertErr: func(t *testing.T, err error) {
-				assert.Equal(t, NotFuncError, err)
+				assert.Equal(t, ErrCtorNotFunc, err)
 			},
 		},
 		{
 			name:  "invalid-ctor-signature",
 			ctors: []interface{}{NewSomeService, func() {}},
 			assertErr: func(t *testing.T, err error) {
-				assert.Equal(t, WrongCtorSignature, err)
+				assert.Equal(t, ErrWrongCtorSignature, err)
 			},
 		},
 		// Validation

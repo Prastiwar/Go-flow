@@ -7,6 +7,9 @@ import (
 	"reflect"
 )
 
+// Container is implemented by any value that has a Validate, Provide and Register method.
+// The implementation controls how constructors are registered or provided inside container and what
+// are requirements must be met to consider container as valid instance.
 type Container interface {
 	Validate() error
 	Provide(v interface{})
@@ -15,7 +18,7 @@ type Container interface {
 
 type container struct {
 	services map[reflect.Type]constructor
-	cache    DiCache
+	cache    Cache
 }
 
 var (
@@ -25,7 +28,15 @@ var (
 	ErrNotPointer       = errors.New("must be a pointer")
 )
 
-func Register(ctors ...any) (*container, error) {
+// Register returns a new container instance with constructor services. Construct or func constructor
+// can be passed. Error will be returned if any func constructor is not valid or Validate on
+// container will return error.
+func Register(ctors ...any) (c *container, err error) {
+	defer exception.HandlePanicError(func(rerr error) {
+		c = nil
+		err = rerr
+	})
+
 	services := make(map[reflect.Type]constructor, len(ctors))
 
 	for _, ctor := range ctors {
@@ -39,20 +50,15 @@ func Register(ctors ...any) (*container, error) {
 			}
 		}
 
-		err := construct.Validate()
-		if err != nil {
-			return nil, err
-		}
-
 		services[construct.typ] = construct
 	}
 
-	c := &container{
+	c = &container{
 		services: services,
 		cache:    NewRootCache(),
 	}
 
-	err := c.Validate()
+	err = c.Validate()
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +66,8 @@ func Register(ctors ...any) (*container, error) {
 	return c, nil
 }
 
+// Validate verifies if every dependency is registered to provide services without
+// missing dependency issue and tests if there is no cyclic dependency.
 func (c *container) Validate() error {
 	errs := make([]error, 0)
 	for serviceType, serviceCtor := range c.services {
@@ -91,6 +99,7 @@ func (c *container) Validate() error {
 	return exception.Aggregate(errs...)
 }
 
+// Scope returns a new scoped container which will cache scoped lifetime services.
 func (c *container) Scope() *container {
 	scoped := &container{
 		services: c.services,
@@ -100,6 +109,10 @@ func (c *container) Scope() *container {
 	return scoped
 }
 
+// Provide creates service from found constructor and sets the result to v. It will panic
+// if constructor cannot be found or v is not a pointer. Singleton services are cahced in
+// root cache. If container is scoped it will cache also Scoped services. Transient services
+// are always recreated from constructor.
 func (c *container) Provide(v interface{}) {
 	typ := reflect.TypeOf(v)
 	service := c.get(typ)
@@ -107,6 +120,7 @@ func (c *container) Provide(v interface{}) {
 	c.setValue(v, service)
 }
 
+// setValue sets service value to v pointer.
 func (c *container) setValue(v interface{}, service interface{}) {
 	vval := reflect.ValueOf(v)
 	velem := vval.Elem()
@@ -123,11 +137,12 @@ func (c *container) setValue(v interface{}, service interface{}) {
 		} else {
 			velem.Set(serviceValue.Elem())
 		}
-	} else {
-		panic(fmt.Sprintf("cannot set value for '%v'", service))
 	}
+
+	panic(fmt.Sprintf("cannot set value for '%v'", service))
 }
 
+// get returns service value for typ. Can retrieve it from cache if applicable.
 func (c *container) get(typ reflect.Type) interface{} {
 	if typ.Kind() != reflect.Pointer {
 		panic(ErrNotPointer)

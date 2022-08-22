@@ -9,7 +9,7 @@ import (
 func TestCache(t *testing.T) {
 	tests := []struct {
 		name       string
-		cache      DiCache
+		cache      Cache
 		life       LifeTime
 		typ        reflect.Type
 		val        interface{}

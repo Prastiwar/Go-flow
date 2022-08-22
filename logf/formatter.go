@@ -7,6 +7,7 @@ import (
 
 type Fields map[string]interface{}
 
+// MergeFields puts values from fields to source and returns merged Fields.
 func MergeFields(source Fields, fields Fields) Fields {
 	if fields == nil && source == nil {
 		return make(Fields)
@@ -27,6 +28,9 @@ func MergeFields(source Fields, fields Fields) Fields {
 	return source
 }
 
+// FieldSetter is implemented by any value that has a Format method.
+// The implementation controls how to format message with Fields as
+// an output string.
 type Formatter interface {
 	Format(msg string, fields Fields) string
 }
@@ -43,6 +47,7 @@ func (f formatterWriter) Write(p []byte) (n int, err error) {
 	return f.writer.Write(buf)
 }
 
+// DefaultFormatter returns a new text formatter.
 func DefaultFormatter() Formatter {
 	return &TextFormatter{}
 }

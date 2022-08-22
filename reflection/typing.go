@@ -6,7 +6,7 @@ func TypeOf[T any]() reflect.Type {
 	return reflect.TypeOf((*T)(nil)).Elem()
 }
 
-// InParamTypes returns a function input parameter types. It panics if the 'fn' Kind is not Func.
+// InParamTypes returns a function input parameter types. It returns nil if the 'fn' Kind is not Func.
 func InParamTypes(fn reflect.Type) []reflect.Type {
 	if fn.Kind() != reflect.Func {
 		return nil
@@ -21,7 +21,7 @@ func InParamTypes(fn reflect.Type) []reflect.Type {
 	return paramTypes
 }
 
-// OutParamTypesOf returns a function output parameter types. It panics if the 'fn' Kind is not Func.
+// OutParamTypesOf returns a function output parameter types. It returns nil if the 'fn' Kind is not Func.
 func OutParamTypes(fn reflect.Type) []reflect.Type {
 	if fn.Kind() != reflect.Func {
 		return nil
@@ -36,7 +36,7 @@ func OutParamTypes(fn reflect.Type) []reflect.Type {
 	return paramTypes
 }
 
-// TogglePointer if u kind is pointer, returns its element else returns u as pointer
+// TogglePointer if u kind is pointer, returns its element else returns u as pointer.
 func TogglePointer(u reflect.Type) reflect.Type {
 	if u.Kind() == reflect.Pointer {
 		return u.Elem()

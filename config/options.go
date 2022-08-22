@@ -9,6 +9,7 @@ type KeyInterceptor func(providerName string, field reflect.StructField) string
 
 type LoadOption func(*LoadOptions)
 
+// LoadOptions stores settings to control behaviour in configuration loading.
 type LoadOptions struct {
 	Interceptor KeyInterceptor
 }
@@ -28,7 +29,7 @@ func WithInterceptor(i KeyInterceptor) LoadOption {
 	}
 }
 
-// Intercept provides default behaviour in case Interceptor is not set the exact field name will be used
+// Intercept provides default behaviour in case Interceptor is not set the exact field name will be used.
 func (o *LoadOptions) Intercept(providerName string, f reflect.StructField) string {
 	if o.Interceptor == nil {
 		return f.Name

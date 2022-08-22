@@ -5,6 +5,7 @@ import (
 	"reflect"
 )
 
+// checkInterface returns constructor found from services for service which implements typ
 func checkInterface(typ reflect.Type, services map[reflect.Type]constructor) (constructor, bool) {
 	if typ.Kind() != reflect.Interface {
 		return constructor{}, false
@@ -20,6 +21,7 @@ func checkInterface(typ reflect.Type, services map[reflect.Type]constructor) (co
 	return constructor{}, false
 }
 
+// checkInterface returns constructor found from services for matched typ
 func checkRegistered(typ reflect.Type, services map[reflect.Type]constructor) (constructor, bool) {
 	if typ.Kind() == reflect.Interface {
 		return checkInterface(typ, services)
