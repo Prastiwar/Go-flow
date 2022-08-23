@@ -1,94 +1,122 @@
 package logf
 
-import "log"
+import (
+	"fmt"
+	"io"
+	"strings"
+)
 
-func createWrapper(logger *log.Logger, formatter Formatter, fields Fields) formatterWriter {
-	writer := logger.Writer()
-	writerf, ok := writer.(formatterWriter)
-	if ok {
-		writer = writerf.writer
-		if formatter == nil {
-			formatter = writerf.formatter
-		}
-		fields = MergeFields(writerf.fields, fields)
+const (
+	// LogTime is shared key used for time field
+	LogTime = "log_time"
+
+	// Level is shared key used for level field
+	Level = "level"
+
+	InfoLevel  = "INFO"
+	ErrorLevel = "ERR"
+	DebugLevel = "DEBUG"
+)
+
+type Formatter interface {
+	Format(msg string, fields Fields) string
+}
+
+type Logger interface {
+	Output() io.Writer
+	Scope() Fields
+	Formatter() Formatter
+
+	Error(v interface{})
+	Errorf(format string, args ...any)
+
+	Info(v interface{})
+	Infof(format string, args ...any)
+
+	Debug(v interface{})
+	Debugf(format string, args ...any)
+}
+
+type wrappedLogger struct {
+	writer    io.Writer
+	formatter Formatter
+	fields    Fields
+}
+
+// NewLogger returns a new Logger which is wrapper for new log.Logger.
+func NewLogger(opts ...LoggerOption) Logger {
+	options := NewLoggerOptions(opts...)
+	return &wrappedLogger{
+		writer:    options.Output,
+		formatter: options.Format,
+		fields:    options.Scope,
 	}
-
-	if formatter == nil {
-		formatter = DefaultFormatter()
-	}
-
-	out := formatterWriter{
-		formatter: formatter,
-		writer:    writer,
-		fields:    fields,
-	}
-
-	return out
 }
 
 // WithScope creates new instance of log.Logger with provided fields.
 // Formatter is preserved or initialized with logf.DefaultFormatter() if not set
-func WithScope(logger *log.Logger, fields Fields) *log.Logger {
-	out := createWrapper(logger, nil, fields)
-	l := log.New(out, "", 0)
-	return l
+func WithScope(logger Logger, fields Fields) Logger {
+	return &wrappedLogger{
+		writer:    logger.Output(),
+		formatter: logger.Formatter(),
+		fields:    MergeFields(logger.Scope(), fields),
+	}
 }
 
-// WithFormatter creates new instance of log.Logger based on parent logger with replaced formatter
-func WithFormatter(logger *log.Logger, formatter Formatter) *log.Logger {
-	out := createWrapper(logger, formatter, nil)
-	l := log.New(out, "", 0)
-	return l
+func (l *wrappedLogger) Output() io.Writer {
+	return l.writer
 }
 
-func Error(logger *log.Logger, v interface{}) {
-	withLevel(logger, ErrorLevel).Print(v)
+func (l *wrappedLogger) Formatter() Formatter {
+	return l.formatter
 }
 
-func Errorf(logger *log.Logger, format string, args ...any) {
-	withLevel(logger, ErrorLevel).Printf(format, args...)
+func (l *wrappedLogger) Scope() Fields {
+	return l.fields
 }
 
-func Warn(logger *log.Logger, v interface{}) {
-	withLevel(logger, WarnLevel).Print(v)
+func (l *wrappedLogger) Error(v interface{}) {
+	l.print(ErrorLevel, v)
 }
 
-func Warnf(logger *log.Logger, format string, args ...any) {
-	withLevel(logger, WarnLevel).Printf(format, args...)
+func (l *wrappedLogger) Errorf(format string, args ...any) {
+	l.printf(ErrorLevel, format, args...)
 }
 
-func Info(logger *log.Logger, v interface{}) {
-	withLevel(logger, InfoLevel).Print(v)
+func (l *wrappedLogger) Info(v interface{}) {
+	l.print(InfoLevel, v)
 }
 
-func Infof(logger *log.Logger, format string, args ...any) {
-	withLevel(logger, InfoLevel).Printf(format, args...)
+func (l *wrappedLogger) Infof(format string, args ...any) {
+	l.printf(InfoLevel, format, args...)
 }
 
-func Fatal(logger *log.Logger, v interface{}) {
-	withLevel(logger, FatalLevel).Fatal(v)
+func (l *wrappedLogger) Debug(v interface{}) {
+	l.print(DebugLevel, v)
 }
 
-func Fatalf(logger *log.Logger, format string, args ...any) {
-	withLevel(logger, FatalLevel).Fatalf(format, args...)
+func (l *wrappedLogger) Debugf(format string, args ...any) {
+	l.printf(DebugLevel, format, args...)
 }
 
-func Debug(logger *log.Logger, v interface{}) {
-	withLevel(logger, DebugLevel).Print(v)
+func (l *wrappedLogger) print(level string, v interface{}) {
+	formattedMsg := l.formatMessage(level, fmt.Sprint(v))
+	l.output(formattedMsg)
 }
 
-func Debugf(logger *log.Logger, format string, args ...any) {
-	withLevel(logger, DebugLevel).Printf(format, args...)
+func (l *wrappedLogger) printf(level string, format string, args ...any) {
+	formattedMsg := l.formatMessage(level, fmt.Sprintf(format, args...))
+	l.output(formattedMsg)
 }
 
-func Trace(logger *log.Logger, v interface{}) {
-	withLevel(logger, TraceLevel).Print(v)
+func (l *wrappedLogger) formatMessage(level string, message string) string {
+	levelField := Fields{Level: level}
+	fields := MergeFields(l.fields, levelField)
+	msg := strings.TrimSuffix(message, "\n")
+	return l.formatter.Format(msg, fields)
 }
 
-func Tracef(logger *log.Logger, format string, args ...any) {
-	withLevel(logger, TraceLevel).Printf(format, args...)
-}
-
-func withLevel(logger *log.Logger, level string) *log.Logger {
-	return WithScope(logger, Fields{Level: level})
+func (l *wrappedLogger) output(message string) {
+	buf := []byte(message + "\n")
+	_, _ = l.writer.Write(buf)
 }

@@ -201,61 +201,15 @@ if err != nil {
 Extended package for standard "log" package
 
 ```go
-// logging functions with added level field
-logf.PrintError("error message")
-logf.PrintErrorf("error occured: %v", err)
-
-logf.PrintInfo("info message")
-logf.PrintInfof("count: %v", 1)
-
-logf.PrintWarn("warning message")
-logf.PrintWarnf("probably should be: %v", 2)
-
-logf.PrintDebug("debug message")
-logf.PrintDebugf("debug message: %v", "debug message")
-
-logf.PrintTrace("trace message")
-logf.PrintTracef("trace message: %v", "trace message")
-
-logf.PrintFatal("fatal message")
-logf.PrintFatalf("fatal message: %v", "fatal message")
-
-// SetFormatter wraps default (global) writer with formatter and sets flags to 0
-logf.SetFormatter(formatter)
-
-// SetScope wraps default (global) writer and replaces formatter with additional scope
-logf.SetScope(formatter)
-
-// CreateWithScope creates new instance of *log.Logger with provided formatter
-logger := logf.CreateWithFormatter(formatter)
-
-// CreateWithScope creates new instance of *log.Logger with provided fields.
-// Formatter is preserved or initialized with logf.DefaultFormatter() if not set
-logger = logf.CreateWithScope(
-    logf.Fields{
-        "currentTime": time.Now().UTC().Format("2006-01-02 15:04:05")
-    }
+// Create new logger with optional settiings like output, formatter, scope fields
+logger = logf.NewLogger(
+    logf.WithOutput(writer),
+    logf.WithFormatter(logf.NewTextFormatter()),
+    logf.WithFields(logf.Fields{logf.LogTime: logf.NewTimeField(time.RFC3999)}),
 )
 
-logf.Error(logger, "error message")
-logf.Errorf(logger, "error occured: %v", err)
 
-logf.Info(logger, "info message")
-logf.Infof(logger, "count: %v", 1)
-
-logf.Warn(logger, "warning message")
-logf.Warnf(logger, "probably should be: %v", 2)
-
-logf.Debug(logger, "debug message")
-logf.Debugf(logger, "debug message: %v", "debug message")
-
-logf.Trace(logger, "trace message")
-logf.Tracef(logger, "trace message: %v", "trace message")
-
-logf.Fatal(logger, "fatal message")
-logf.Fatalf(logger, "fatal message: %v", "fatal message")
-
-// Creates logger based on parent logger with additional scope
+// Create logger based on parent logger with additional scope
 logger = logf.WithScope(
     logger, 
     logf.Fields{
@@ -263,8 +217,14 @@ logger = logf.WithScope(
     }
 )
 
-// Creates logger based on parent logger with different formatter
-logger = logf.WithFormatter(logger, formatter)
+logger.Error("error message")
+logger.Errorf("error occured: %v", err)
+
+logger.Info("info message")
+logger.Infof("count: %v", 1)
+
+logger.Debug("debug message")
+logger.Debugf("debug message: %v", "debug message")
 ```
 
 ## middleware

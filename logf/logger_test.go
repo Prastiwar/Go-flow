@@ -3,137 +3,110 @@ package logf
 import (
 	"goflow/tests/assert"
 	"goflow/tests/mocks"
-	"log"
 	"testing"
 )
 
 func TestWithScope(t *testing.T) {
-	loggerMock := log.New(nil, "", 0)
-	fields := Fields{"1": "1"}
+	tests := []struct {
+		name          string
+		originScope   Fields
+		withScope     Fields
+		expectedScope Fields
+	}{
+		{
+			name: "success-no-fields",
+		},
+		{
+			name:        "success-add-field",
+			originScope: Fields{"time": "now"},
+			withScope:   Fields{"level": "1"},
+			expectedScope: Fields{
+				"time":  "now",
+				"level": "1",
+			},
+		},
+		{
+			name:          "success-override-field",
+			originScope:   Fields{"time": "now"},
+			withScope:     Fields{"time": "today"},
+			expectedScope: Fields{"time": "today"},
+		},
+	}
 
-	logger := WithScope(loggerMock, fields)
-	writer := logger.Writer().(formatterWriter)
-	assert.MapMatch(t, writer.fields, fields)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			loggerMock := NewLogger(WithFields(tt.originScope))
+			logger := WithScope(loggerMock, tt.withScope)
+			assert.MapMatch(t, tt.expectedScope, logger.Scope())
 
-	assert.NotNil(t, logger)
+			assert.NotNil(t, logger)
+		})
+	}
 }
 
-func TestWithFormatter(t *testing.T) {
-	writerCounter := assert.Count(1)
-	formatterCounter := assert.Count(1)
+func TestPrinting(t *testing.T) {
+	tests := []struct {
+		name  string
+		print func(Logger, string, ...any)
+	}{
+		{
+			name: "success-info",
+			print: func(l Logger, s string, a ...any) {
+				l.Info(s)
+			},
+		},
+		{
+			name: "success-infof",
+			print: func(l Logger, s string, a ...any) {
+				l.Infof(s, a...)
+			},
+		},
+		{
+			name: "success-error",
+			print: func(l Logger, s string, a ...any) {
+				l.Error(s)
+			},
+		},
+		{
+			name: "success-errorf",
+			print: func(l Logger, s string, a ...any) {
+				l.Errorf(s, a...)
+			},
+		},
+		{
+			name: "success-debug",
+			print: func(l Logger, s string, a ...any) {
+				l.Debug(s)
+			},
+		},
+		{
+			name: "success-debugf",
+			print: func(l Logger, s string, a ...any) {
+				l.Debugf(s, a...)
+			},
+		},
+	}
 
-	writerMock := mocks.NewWriterMock(func(p []byte) (n int, err error) {
-		writerCounter.Inc()
-		return 0, nil
-	})
-	loggerMock := log.New(writerMock, "", 0)
-	formatter := NewFormatterMock(func(msg string, fields Fields) string {
-		formatterCounter.Inc()
-		return msg
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			writerCounter := assert.Count(1)
+			formatCounter := assert.Count(1)
+			writerMock := mocks.NewWriterMock(func(p []byte) (n int, err error) {
+				writerCounter.Inc()
+				return 0, nil
+			})
+			formatMock := NewFormatterMock(func(msg string, fields Fields) string {
+				formatCounter.Inc()
+				return msg
+			})
+			loggerMock := NewLogger(
+				WithOutput(writerMock),
+				WithFormatter(formatMock),
+			)
 
-	logger := WithFormatter(loggerMock, formatter)
-	Info(logger, "test")
+			tt.print(loggerMock, "%v", "test")
 
-	assert.NotNil(t, logger)
-	formatterCounter.Assert(t)
-	writerCounter.Assert(t)
-}
-
-func TestInfo(t *testing.T) {
-	logTest(t, Info)
-}
-
-func TestInfof(t *testing.T) {
-	logTestf(t, Infof)
-}
-
-func TestWarn(t *testing.T) {
-	logTest(t, Warn)
-}
-
-func TestWarnf(t *testing.T) {
-	logTestf(t, Warnf)
-}
-
-func TestError(t *testing.T) {
-	logTest(t, Error)
-}
-
-func TestErrorf(t *testing.T) {
-	logTestf(t, Errorf)
-}
-
-func TestDebug(t *testing.T) {
-	logTest(t, Debug)
-}
-
-func TestDebugf(t *testing.T) {
-	logTestf(t, Debugf)
-}
-
-func TestTrace(t *testing.T) {
-	logTest(t, Trace)
-}
-
-func TestTracef(t *testing.T) {
-	logTestf(t, Tracef)
-}
-
-func TestFatal(t *testing.T) {
-	resetLogger()
-	counter := assert.Count(1)
-	writerMock := mocks.NewWriterMock(func(p []byte) (n int, err error) {
-		counter.Inc()
-		t.Skip()
-		return 0, nil
-	})
-	loggerMock := log.New(writerMock, "", 0)
-
-	Fatal(loggerMock, "test")
-
-	counter.Assert(t)
-}
-
-func TestFatalf(t *testing.T) {
-	resetLogger()
-	counter := assert.Count(1)
-	writerMock := mocks.NewWriterMock(func(p []byte) (n int, err error) {
-		counter.Inc()
-		t.Skip()
-		return 0, nil
-	})
-	loggerMock := log.New(writerMock, "", 0)
-
-	Fatalf(loggerMock, "%v", "test")
-
-	counter.Assert(t)
-}
-
-func logTest(t *testing.T, fn func(*log.Logger, interface{})) {
-	resetLogger()
-	counter := assert.Count(1)
-	writerMock := mocks.NewWriterMock(func(p []byte) (n int, err error) {
-		counter.Inc()
-		return 0, nil
-	})
-	loggerMock := log.New(writerMock, "", 0)
-
-	fn(loggerMock, "test")
-
-	counter.Assert(t)
-}
-
-func logTestf(t *testing.T, fn func(*log.Logger, string, ...any)) {
-	resetLogger()
-	counter := assert.Count(1)
-	writerMock := mocks.NewWriterMock(func(p []byte) (n int, err error) {
-		counter.Inc()
-		return 0, nil
-	})
-	loggerMock := log.New(writerMock, "", 0)
-
-	fn(loggerMock, "%v", "test")
-
-	counter.Assert(t)
+			writerCounter.Assert(t)
+		})
+	}
 }
