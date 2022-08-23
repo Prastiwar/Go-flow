@@ -2,7 +2,6 @@ package logf
 
 import (
 	"goflow/tests/assert"
-	"goflow/tests/mocks"
 	"testing"
 )
 
@@ -74,31 +73,4 @@ func TestMergeFields(t *testing.T) {
 			assert.MapMatch(t, tt.want, merged)
 		})
 	}
-}
-
-func TestWrite(t *testing.T) {
-	formatterCounter := assert.Count(1)
-	writerCounter := assert.Count(1)
-
-	formatterMock := NewFormatterMock(func(msg string, fields Fields) string {
-		formatterCounter.Inc()
-		return msg
-	})
-
-	writerMock := mocks.NewWriterMock(func(p []byte) (n int, err error) {
-		writerCounter.Inc()
-		return 0, nil
-	})
-
-	writer := formatterWriter{
-		formatter: formatterMock,
-		writer:    writerMock,
-	}
-
-	n, err := writer.Write([]byte("smth"))
-
-	assert.Equal(t, 0, n)
-	assert.NilError(t, err)
-	formatterCounter.Assert(t)
-	writerCounter.Assert(t)
 }

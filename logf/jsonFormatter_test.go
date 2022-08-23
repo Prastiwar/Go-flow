@@ -1,10 +1,14 @@
 package logf
 
 import (
+	"fmt"
 	"testing"
+	"time"
 )
 
 func TestJsonFormatter_Format(t *testing.T) {
+	const monthCalendarFormat = "2006-01-02"
+	now := time.Now().UTC().Format(monthCalendarFormat)
 	prettyFormatter := NewJsonFormatter(true)
 	compactFormatter := NewJsonFormatter(false)
 	fields := Fields{"count": 1, "version": "1.0"}
@@ -43,6 +47,13 @@ func TestJsonFormatter_Format(t *testing.T) {
 	"message": "test",
 	"version": "1.0"
 }`,
+		},
+		{
+			name:     "compact-message-with-time-field",
+			f:        compactFormatter,
+			msg:      "test",
+			fields:   Fields{LogTime: NewTimeField(monthCalendarFormat)},
+			expected: fmt.Sprintf("{\"%v\":\"%v\",\"message\":\"test\"}", LogTime, now),
 		},
 	}
 
