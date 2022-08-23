@@ -4,8 +4,10 @@ import (
 	"time"
 )
 
+// Fields is used to parse scope for each log as key value pair.
 type Fields map[string]interface{}
 
+// MergeFields puts values from fields to source and returns merged Fields.
 func MergeFields(source Fields, fields Fields) Fields {
 	if fields == nil && source == nil {
 		return make(Fields)
@@ -30,8 +32,8 @@ type timeField struct {
 	format string
 }
 
-// NewTimeField returns a new instance of time field which will always return the current time
-// with specified format on log formatting
+// NewTimeField returns a new time field which should always return the current time
+// with specified format on log formatting.
 func NewTimeField(format string) *timeField {
 	return &timeField{
 		format: format,

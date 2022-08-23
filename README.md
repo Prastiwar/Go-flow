@@ -208,7 +208,6 @@ logger = logf.NewLogger(
     logf.WithFields(logf.Fields{logf.LogTime: logf.NewTimeField(time.RFC3999)}),
 )
 
-
 // Create logger based on parent logger with additional scope
 logger = logf.WithScope(
     logger, 

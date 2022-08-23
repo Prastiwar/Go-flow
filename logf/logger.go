@@ -7,33 +7,50 @@ import (
 )
 
 const (
-	// LogTime is shared key used for time field
+	// LogTime is shared key used for time field.
 	LogTime = "log_time"
 
-	// Level is shared key used for level field
+	// Level is shared key used for level field.
 	Level = "level"
 
-	InfoLevel  = "INFO"
-	ErrorLevel = "ERR"
-	DebugLevel = "DEBUG"
+	InfoLevel  = "INFO"  // informational log level.
+	ErrorLevel = "ERR"   // error, failure log level.
+	DebugLevel = "DEBUG" // diagnostics log level.
 )
 
+// FieldSetter is implemented by any value that has a Format method.
+// The implementation controls how to format message with Fields as
+// an output string.
 type Formatter interface {
 	Format(msg string, fields Fields) string
 }
 
 type Logger interface {
+	// Output returns writer used as a logger output.
 	Output() io.Writer
+
+	// Scope returns Fields used as a logger scope.
 	Scope() Fields
+
+	// Formatter returns Formatter used by logger.
 	Formatter() Formatter
 
+	// Error prints a message with error level indicating any defect or failure.
 	Error(v interface{})
+
+	// Errorf prints a message with specified format with error level indicating any defect or failure.
 	Errorf(format string, args ...any)
 
+	// Info prints a message with info level indicating any information or warning.
 	Info(v interface{})
+
+	// Infof prints a message with specified format with info level indicating any information or warning.
 	Infof(format string, args ...any)
 
+	// Debug prints a message with debug level indicating any information used for diagnostics or troubleshooting.
 	Debug(v interface{})
+
+	// Debugf prints a message with specified format debug level indicating any information used for diagnostics or troubleshooting.
 	Debugf(format string, args ...any)
 }
 
@@ -109,6 +126,7 @@ func (l *wrappedLogger) printf(level string, format string, args ...any) {
 	l.output(formattedMsg)
 }
 
+// formatMessage merges fields with level field and formats the message.
 func (l *wrappedLogger) formatMessage(level string, message string) string {
 	levelField := Fields{Level: level}
 	fields := MergeFields(l.fields, levelField)
@@ -116,6 +134,7 @@ func (l *wrappedLogger) formatMessage(level string, message string) string {
 	return l.formatter.Format(msg, fields)
 }
 
+// output writes the message for a logging. A newline is appended if the last character.
 func (l *wrappedLogger) output(message string) {
 	buf := []byte(message + "\n")
 	_, _ = l.writer.Write(buf)

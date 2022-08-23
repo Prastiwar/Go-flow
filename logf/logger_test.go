@@ -6,6 +6,23 @@ import (
 	"testing"
 )
 
+type formatterTestCase struct {
+	name     string
+	f        Formatter
+	msg      string
+	fields   Fields
+	expected string
+}
+
+func testFormatter(t *testing.T, tests []formatterTestCase) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.f.Format(tt.msg, tt.fields)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 func TestWithScope(t *testing.T) {
 	tests := []struct {
 		name          string
