@@ -25,8 +25,8 @@ type opt struct {
 }
 
 // Opts creates an instance used for initializing default value for named key
-func Opt(key string, value any) *opt {
-	return &opt{
+func Opt(key string, value any) opt {
+	return opt{
 		key:   key,
 		value: value,
 	}
@@ -103,10 +103,17 @@ func (s *Source) LoadWithOptions(v any, opts ...LoadOption) error {
 // Bind sets each 'to' field value from corresponding field from 'from'.
 // It will not return an error if will not find matching field.
 func Bind(from any, to any) error {
-	setter := NewFieldSetter("bind", *NewLoadOptions())
-	fromVal := reflect.ValueOf(from)
+	if reflect.ValueOf(from).Kind() != reflect.Pointer {
+		return ErrNonPointer
+	}
 
+	fromVal := reflect.ValueOf(from).Elem()
+	if fromVal.Kind() != reflect.Struct {
+		return ErrNonStruct
+	}
+
+	setter := NewFieldSetter("bind", *NewLoadOptions())
 	return setter.SetFields(to, func(key string) (any, error) {
-		return fromVal.Elem().FieldByName(key), nil
+		return fromVal.FieldByName(key), nil
 	})
 }

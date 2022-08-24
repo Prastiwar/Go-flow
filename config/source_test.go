@@ -31,8 +31,8 @@ func TestSourceSetDefault(t *testing.T) {
 		{
 			name: "success",
 			defaults: []opt{
-				*Opt("key", "value"),
-				*Opt("key2", 1),
+				Opt("key", "value"),
+				Opt("key2", 1),
 			},
 			init: func(t *testing.T) (*Source, func(error)) {
 				s := Provide()
@@ -45,8 +45,8 @@ func TestSourceSetDefault(t *testing.T) {
 		{
 			name: "invalid-duplicate-key",
 			defaults: []opt{
-				*Opt("key", "value"),
-				*Opt("key", 1),
+				Opt("key", "value"),
+				Opt("key", 1),
 			},
 			init: func(t *testing.T) (*Source, func(error)) {
 				s := Provide()
@@ -59,7 +59,7 @@ func TestSourceSetDefault(t *testing.T) {
 		{
 			name: "invalid-json-value",
 			defaults: []opt{
-				*Opt("key", make(chan int)),
+				Opt("key", make(chan int)),
 			},
 			init: func(t *testing.T) (*Source, func(error)) {
 				s := Provide()
@@ -104,7 +104,7 @@ func TestSourceDefault(t *testing.T) {
 			init: func(t *testing.T) (*Source, any, func(err error)) {
 				s := Provide()
 				err := s.SetDefault(
-					*Opt("key", "value"),
+					Opt("key", "value"),
 				)
 				assert.NilError(t, err)
 
@@ -167,7 +167,7 @@ func TestSourceLoad(t *testing.T) {
 				)
 
 				err := s.SetDefault(
-					*Opt("DefaultKey", "1234567890"),
+					Opt("DefaultKey", "1234567890"),
 				)
 				assert.NilError(t, err)
 
@@ -230,7 +230,7 @@ func TestSourceLoad(t *testing.T) {
 			init: func(t *testing.T) (*Source, any, func(error)) {
 				s := Provide()
 				err := s.SetDefault(
-					*Opt("Key", 10),
+					Opt("Key", 10),
 				)
 				assert.NilError(t, err)
 
