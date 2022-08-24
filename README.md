@@ -13,6 +13,8 @@ Framework for Go services in go with zero dependency rule, so you can use it in 
   - [middleware](#middleware)
   - [observability](#observability)
   - [reflection](#reflection)
+  - [Contributing](#contributing)
+  - [License](#license)
  
 ## Library purpose
 
@@ -294,3 +296,12 @@ if !ok {
     panic("cannot cast between provided two types")
 }
 ```
+
+## Contributing
+
+You can freely contribute to this library! Report issues and make pull requests to help us improve this project.  
+Please read [CONTRIBUTING.md](https://github.com/Prastiwar/Go-Flow/blob/main/.github/CONTRIBUTING.md) for details before contributing.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/Prastiwar/Go-Flow/blob/main/LICENSE) file for details.
