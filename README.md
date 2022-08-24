@@ -3,19 +3,19 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/Prastiwar/go-flow.svg)](https://pkg.go.dev/github.com/Prastiwar/go-flow)
 
 Framework for Go services in go with zero dependency rule, so you can use it in any project without other third-party dependencies or writing your own code for common tasks.
- 
+
 - [Go-flow](#go-flow)
-  - [Library purpose](#library-purpose)
-  - [config](#config)
-      - [TODO](#todo)
-  - [di](#di)
-  - [logging](#logging)
-  - [middleware](#middleware)
-  - [observability](#observability)
-  - [reflection](#reflection)
-  - [Contributing](#contributing)
-  - [License](#license)
- 
+	- [Library purpose](#library-purpose)
+	- [config](#config)
+			- [TODO](#todo)
+	- [di](#di)
+	- [logging](#logging)
+	- [middleware](#middleware)
+	- [observability](#observability)
+	- [reflection](#reflection)
+	- [Contributing](#contributing)
+	- [License](#license)
+
 ## Library purpose
 
 The idea is to provide and maintain by community single framework without other third-party dependencies to facilitate software development without worrying and dealing with obsolete libraries which hugely increases technical debt. This framework's mission is to extend the built-in GO standard library in a non-invasive way with common systems like configuration, logging and dependency management meaning it should have feeling like it's part of standard one but it should not give up on simplifying building systems by adding GOs like boilerplate.
@@ -28,7 +28,7 @@ Loading configuration from file, environment variables and command line argument
 // Provide creates new Source instance with provided configs.
 cfg := config.Provide(
     // { "queryTimeout": "10s" }
-    config.NewFileProvider("config.json", decoders.NewJson()), 
+    config.NewFileProvider("config.json", decoders.NewJson()),
     // --dbName="my-collection" --errorDetails=true
     config.NewFlagProvider(
         config.StringFlag("dbName", "name for database"),
@@ -102,7 +102,7 @@ if err != nil {
 ## di
 
 Dependency injection module with container. This pattern is encouraged to use in large projects where dependency hierarchy is deep and complex and cannot be improved by design decisions.
-It's not recommended to use it in small or medium projects where dependency graph is simple and could be improved by design decisions. 
+It's not recommended to use it in small or medium projects where dependency graph is simple and could be improved by design decisions.
 Use dependency injection without container first and then use container if you really need it.
 
 ```go
@@ -212,7 +212,7 @@ logger = logf.NewLogger(
 
 // Create logger based on parent logger with additional scope
 logger = logf.WithScope(
-    logger, 
+    logger,
     logf.Fields{
         "currentTime": time.Now().UTC().Format("2006-01-02 15:04:05")
     }
@@ -266,7 +266,7 @@ handler := func(r pipeRequest) pipeResponse {
 	return nil
 }
 
-// wrap middleware to handler 
+// wrap middleware to handler
 wrappedHandler := middleware.Wrap(handler)
 request := pipeRequest("request")
 
@@ -299,7 +299,7 @@ if !ok {
 
 ## Contributing
 
-You can freely contribute to this library! Report issues and make pull requests to help us improve this project.  
+You can freely contribute to this library! Report issues and make pull requests to help us improve this project.
 Please read [CONTRIBUTING.md](https://github.com/Prastiwar/Go-Flow/blob/main/.github/CONTRIBUTING.md) for details before contributing.
 
 ## License

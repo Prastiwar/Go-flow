@@ -8,9 +8,9 @@
 <!-- Describe the scope of changes for this pull request -->
 ### Changes
 
-- 
+-
 
 <!-- Share with additional decisions you had to make or other implementation details, warnings, important information -->
 ### Notes
 
-- 
+-

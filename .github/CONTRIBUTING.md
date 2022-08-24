@@ -11,7 +11,7 @@ You're free to contribute with us! Read the instructions before do it.
 
 ## Templates
 
-Please, respect the github templates which were made for descriptive enough information realted with issue/pull request. 
+Please, respect the github templates which were made for descriptive enough information realted with issue/pull request.
 If something in template is unrelevant, remove it instead of leaving it blank.
 Always use clear and concise title for your request to allow easier identification for the contents.
 
