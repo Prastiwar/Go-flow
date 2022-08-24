@@ -9,29 +9,21 @@ import (
 // TextFormatter implements Formatter which outputs message as raw text formaat
 // with control over side where fields are put.
 type TextFormatter struct {
-	leftFields Fields
+	leftFieldKeys []string
 }
 
-// NewTextFormatter returns a new Text Formatter with Level and LogTime as fields which
-// are outputed on the left side of message.
+// NewTextFormatter returns a new Text Formatter with Level and LogTime as field keys which
+// values will be outputed on the left side of message.
 func NewTextFormatter() *TextFormatter {
 	return &TextFormatter{
-		leftFields: map[string]interface{}{
-			Level:   nil,
-			LogTime: nil,
-		},
+		leftFieldKeys: []string{Level, LogTime},
 	}
 }
 
 // NewTextFormatterWith returns a new Text Formatter with field keys which are outputed on the left side of message.
 func NewTextFormatterWith(leftFieldNames ...string) *TextFormatter {
-	leftFields := make(map[string]interface{}, len(leftFieldNames))
-	for _, v := range leftFieldNames {
-		leftFields[v] = nil
-	}
-
 	return &TextFormatter{
-		leftFields: leftFields,
+		leftFieldKeys: leftFieldNames,
 	}
 }
 
@@ -39,25 +31,23 @@ func NewTextFormatterWith(leftFieldNames ...string) *TextFormatter {
 func (f *TextFormatter) Format(msg string, fields Fields) string {
 	leftBuilder := strings.Builder{}
 	rightBuilder := strings.Builder{}
-	rightFields := make(map[string]interface{}, len(fields))
 
-	for k, v := range fields {
-		_, isLeft := f.leftFields[k]
-		if isLeft {
-			leftBuilder.WriteRune('[')
-			leftBuilder.WriteString(fmt.Sprintf("%v", v))
-			leftBuilder.WriteString("] ")
-		} else {
-			rightFields[k] = v
+	for _, key := range f.leftFieldKeys {
+		v, ok := fields[key]
+		if !ok {
+			continue
 		}
+		leftBuilder.WriteRune('[')
+		leftBuilder.WriteString(fmt.Sprint(v))
+		leftBuilder.WriteString("] ")
+		delete(fields, key)
 	}
 
-	if len(rightFields) > 0 {
+	if len(fields) > 0 {
 		rightBuilder.WriteRune(' ')
-		jsonBytes, _ := json.Marshal(rightFields)
+		jsonBytes, _ := json.Marshal(fields)
 		rightBuilder.Write(jsonBytes)
 	}
-	rightBuilder.WriteRune('\n')
 
 	return leftBuilder.String() + msg + rightBuilder.String()
 }

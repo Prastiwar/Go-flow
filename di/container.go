@@ -115,6 +115,9 @@ func (c *container) Scope() *container {
 // are always recreated from constructor.
 func (c *container) Provide(v interface{}) {
 	typ := reflect.TypeOf(v)
+	if typ.Kind() != reflect.Pointer {
+		panic(ErrNotPointer)
+	}
 	service := c.get(typ)
 
 	c.setValue(v, service)
@@ -131,12 +134,17 @@ func (c *container) setValue(v interface{}, service interface{}) {
 
 	if velem.Kind() == reflect.Interface {
 		velem.Set(serviceValue)
-	} else if serviceValue.Kind() == reflect.Pointer {
+		return
+	}
+
+	if serviceValue.Kind() == reflect.Pointer {
 		if velem.Kind() == reflect.Pointer {
 			velem.Set(serviceValue)
-		} else {
-			velem.Set(serviceValue.Elem())
+			return
 		}
+
+		velem.Set(serviceValue.Elem())
+		return
 	}
 
 	panic(fmt.Sprintf("cannot set value for '%v'", service))
@@ -144,10 +152,6 @@ func (c *container) setValue(v interface{}, service interface{}) {
 
 // get returns service value for typ. Can retrieve it from cache if applicable.
 func (c *container) get(typ reflect.Type) interface{} {
-	if typ.Kind() != reflect.Pointer {
-		panic(ErrNotPointer)
-	}
-
 	ctor, ok := checkRegistered(typ, c.services)
 	if !ok {
 		panic(fmt.Errorf("'%w': '%v'", ErrNotRegistered, typ))

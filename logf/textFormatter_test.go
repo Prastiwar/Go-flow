@@ -16,28 +16,28 @@ func TestTextFormatter_Format(t *testing.T) {
 			f:        NewTextFormatter(),
 			msg:      "test",
 			fields:   nil,
-			expected: "test\n",
+			expected: "test",
 		},
 		{
 			name:     "message-with-fields",
 			f:        NewTextFormatter(),
 			msg:      "test",
 			fields:   Fields{"count": 1},
-			expected: "test {\"count\":1}\n",
+			expected: "test {\"count\":1}",
 		},
 		{
 			name:     "message-with-left-field",
 			f:        NewTextFormatterWith("version"),
 			msg:      "test",
 			fields:   Fields{"count": 1, "version": "1.0"},
-			expected: "[1.0] test {\"count\":1}\n",
+			expected: "[1.0] test {\"count\":1}",
 		},
 		{
 			name:     "message-with-time-field",
 			f:        NewTextFormatter(),
 			msg:      "test",
 			fields:   Fields{LogTime: NewTimeField(monthCalendarFormat)},
-			expected: fmt.Sprintf("[%v] test\n", now),
+			expected: fmt.Sprintf("[%v] test", now),
 		},
 	}
 

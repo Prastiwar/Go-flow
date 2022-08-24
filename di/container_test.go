@@ -8,54 +8,46 @@ import (
 	"testing"
 )
 
-type SomeInterface interface{}
+type someInterface interface{}
 
-type SomeDependency struct {
+type someDependency struct {
 	id float64
 }
 
-type SomeOtherDependency struct{}
+type someOtherDependency struct{}
 
-type SomeService struct {
+type someService struct {
 	id float64
 }
 
-func NewSomeDependency() *SomeDependency {
-	return &SomeDependency{
+func newSomeDependency() *someDependency {
+	return &someDependency{
 		id: rand.Float64(),
 	}
 }
 
-func NewSomeDependencyNoPointer() SomeDependency {
-	return SomeDependency{}
-}
-
-func NewSomeService() *SomeService {
-	return &SomeService{
+func newSomeService() *someService {
+	return &someService{
 		id: rand.Float64(),
 	}
 }
 
-func NewSomeServiceNonPointerDep(*SomeDependency) SomeService {
-	return SomeService{
+func newSomeServiceNonPointerDep(*someDependency) someService {
+	return someService{
 		id: rand.Float64(),
 	}
 }
 
-func NewSomeServiceWithDep(dep SomeDependency) *SomeService {
-	return NewSomeService()
+func newSomeServiceWithDep(dep someDependency) *someService {
+	return newSomeService()
 }
 
-func NewSomeServiceWithPointerDep(dep *SomeDependency) *SomeService {
-	return NewSomeService()
+func newSomeServiceWithTwoDeps(dep someDependency, otherDep someOtherDependency) *someService {
+	return newSomeService()
 }
 
-func NewSomeServiceWithTwoDeps(dep SomeDependency, otherDep SomeOtherDependency) *SomeService {
-	return NewSomeService()
-}
-
-func NewSomeServiceWithCyclicDep(dep SomeService) *SomeService {
-	return NewSomeService()
+func newSomeServiceWithCyclicDep(dep someService) *someService {
+	return newSomeService()
 }
 
 func TestRegister(t *testing.T) {
@@ -67,10 +59,10 @@ func TestRegister(t *testing.T) {
 	}{
 		{
 			name:  "success-some-service",
-			ctors: []interface{}{NewSomeService},
+			ctors: []interface{}{newSomeService},
 			expectedServices: map[reflect.Type]constructor{
-				reflection.TypeOf[*SomeService](): {
-					fn: NewSomeService,
+				reflection.TypeOf[*someService](): {
+					fn: newSomeService,
 				},
 			},
 			assertErr: func(t *testing.T, err error) {
@@ -79,10 +71,10 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name:  "success-ctor-pointer",
-			ctors: []interface{}{Construct(Scoped, NewSomeService)},
+			ctors: []interface{}{Construct(Scoped, newSomeService)},
 			expectedServices: map[reflect.Type]constructor{
-				reflection.TypeOf[*SomeService](): {
-					fn: NewSomeService,
+				reflection.TypeOf[*someService](): {
+					fn: newSomeService,
 				},
 			},
 			assertErr: func(t *testing.T, err error) {
@@ -91,10 +83,10 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name:  "success-ctor-non-pointer",
-			ctors: []interface{}{*Construct(Scoped, NewSomeService)},
+			ctors: []interface{}{*Construct(Scoped, newSomeService)},
 			expectedServices: map[reflect.Type]constructor{
-				reflection.TypeOf[*SomeService](): {
-					fn: NewSomeService,
+				reflection.TypeOf[*someService](): {
+					fn: newSomeService,
 				},
 			},
 			assertErr: func(t *testing.T, err error) {
@@ -103,14 +95,14 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name:  "invalid-ctor-func",
-			ctors: []interface{}{NewSomeService, ""},
+			ctors: []interface{}{newSomeService, ""},
 			assertErr: func(t *testing.T, err error) {
 				assert.Equal(t, ErrCtorNotFunc, err)
 			},
 		},
 		{
 			name:  "invalid-ctor-signature",
-			ctors: []interface{}{NewSomeService, func() {}},
+			ctors: []interface{}{newSomeService, func() {}},
 			assertErr: func(t *testing.T, err error) {
 				assert.Equal(t, ErrWrongCtorSignature, err)
 			},
@@ -118,14 +110,14 @@ func TestRegister(t *testing.T) {
 		// Validation
 		{
 			name:  "success-no-pointer-single-dep",
-			ctors: []any{NewSomeServiceNonPointerDep, NewSomeDependency},
+			ctors: []any{newSomeServiceNonPointerDep, newSomeDependency},
 			expectedServices: map[reflect.Type]constructor{
-				reflection.TypeOf[*SomeDependency](): {
-					fn: NewSomeDependency,
+				reflection.TypeOf[*someDependency](): {
+					fn: newSomeDependency,
 				},
-				reflection.TypeOf[SomeService](): {
-					fn:     NewSomeServiceNonPointerDep,
-					params: []reflect.Type{reflect.TypeOf(NewSomeDependency())},
+				reflection.TypeOf[someService](): {
+					fn:     newSomeServiceNonPointerDep,
+					params: []reflect.Type{reflect.TypeOf(newSomeDependency())},
 				},
 			},
 			assertErr: func(t *testing.T, err error) {
@@ -134,24 +126,24 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name:  "invalid-missing-single-dep",
-			ctors: []any{NewSomeServiceWithDep},
+			ctors: []any{newSomeServiceWithDep},
 			assertErr: func(t *testing.T, err error) {
-				assert.ErrorWith(t, err, "'dependency is not registered': 'di.SomeDependency'")
+				assert.ErrorWith(t, err, "'dependency is not registered': 'di.someDependency'")
 			},
 		},
 		{
 			name:  "invalid-missing-two-deps",
-			ctors: []any{NewSomeServiceWithTwoDeps},
+			ctors: []any{newSomeServiceWithTwoDeps},
 			assertErr: func(t *testing.T, err error) {
-				assert.ErrorWith(t, err, "dependency is not registered': 'di.SomeDependency")
-				assert.ErrorWith(t, err, "dependency is not registered': 'di.SomeOtherDependency")
+				assert.ErrorWith(t, err, "dependency is not registered': 'di.someDependency")
+				assert.ErrorWith(t, err, "dependency is not registered': 'di.someOtherDependency")
 			},
 		},
 		{
 			name:  "invalid-cyclic-dependency",
-			ctors: []any{NewSomeServiceWithCyclicDep},
+			ctors: []any{newSomeServiceWithCyclicDep},
 			assertErr: func(t *testing.T, err error) {
-				assert.ErrorWith(t, err, "cyclic dependency detected': 'di.SomeService")
+				assert.ErrorWith(t, err, "cyclic dependency detected': 'di.someService")
 			},
 		},
 	}
@@ -194,43 +186,43 @@ func TestProvide(t *testing.T) {
 		{
 			name: "success-interface-no-deps",
 			container: func(t *testing.T) (*container, error) {
-				return Register(NewSomeService)
+				return Register(newSomeService)
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service SomeInterface
+				var service someInterface
 				provider(&service)
 				return service
 			},
-			expectedType: reflection.TypeOf[*SomeService](),
+			expectedType: reflection.TypeOf[*someService](),
 		},
 		{
 			name: "success-service-no-deps",
 			container: func(t *testing.T) (*container, error) {
-				return Register(NewSomeService)
+				return Register(newSomeService)
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service SomeService
+				var service someService
 				provider(&service)
 				return service
 			},
-			expectedType: reflection.TypeOf[SomeService](),
+			expectedType: reflection.TypeOf[someService](),
 		},
 		{
 			name: "success-service-pointer-no-deps",
 			container: func(t *testing.T) (*container, error) {
-				return Register(NewSomeService)
+				return Register(newSomeService)
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service *SomeService
+				var service *someService
 				provider(&service)
 				return service
 			},
-			expectedType: reflection.TypeOf[*SomeService](),
+			expectedType: reflection.TypeOf[*someService](),
 		},
 		{
 			name: "invalid-service-pointer-to-pointer-dep",
 			container: func(t *testing.T) (*container, error) {
-				return Register(NewSomeServiceWithDep, NewSomeDependency)
+				return Register(newSomeServiceWithDep, newSomeDependency)
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
 				defer func() {
@@ -238,16 +230,16 @@ func TestProvide(t *testing.T) {
 					t.SkipNow()
 				}()
 
-				var service *SomeService
+				var service *someService
 				provider(&service)
 				return service
 			},
-			expectedType: reflection.TypeOf[*SomeService](),
+			expectedType: reflection.TypeOf[*someService](),
 		},
 		{
 			name: "invalid-service-pointer-no-addresable-no-deps",
 			container: func(t *testing.T) (*container, error) {
-				return Register(NewSomeService)
+				return Register(newSomeService)
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
 				defer func() {
@@ -255,11 +247,11 @@ func TestProvide(t *testing.T) {
 					t.SkipNow()
 				}()
 
-				var service *SomeService
+				var service *someService
 				provider(service)
 				return service
 			},
-			expectedType: reflection.TypeOf[*SomeService](),
+			expectedType: reflection.TypeOf[*someService](),
 		},
 		{
 			name: "invalid-service-not-registered-no-deps",
@@ -273,11 +265,11 @@ func TestProvide(t *testing.T) {
 					t.SkipNow()
 				}()
 
-				var service SomeService
+				var service someService
 				provider(&service)
 				return service
 			},
-			expectedType: reflection.TypeOf[*SomeService](),
+			expectedType: reflection.TypeOf[*someService](),
 		},
 	}
 
@@ -308,10 +300,10 @@ func TestProvideCache(t *testing.T) {
 		{
 			name: "success-transient-root-no-cached",
 			container: func(t *testing.T) (*container, error) {
-				return Register(NewSomeService)
+				return Register(newSomeService)
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service SomeService
+				var service someService
 				provider(&service)
 				return service
 			},
@@ -320,10 +312,10 @@ func TestProvideCache(t *testing.T) {
 		{
 			name: "success-singleton-root-cached",
 			container: func(t *testing.T) (*container, error) {
-				return Register(Construct(Singleton, NewSomeService))
+				return Register(Construct(Singleton, newSomeService))
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service SomeService
+				var service someService
 				provider(&service)
 				return service
 			},
@@ -332,10 +324,10 @@ func TestProvideCache(t *testing.T) {
 		{
 			name: "success-scoped-root-no-cached",
 			container: func(t *testing.T) (*container, error) {
-				return Register(Construct(Scoped, NewSomeService))
+				return Register(Construct(Scoped, newSomeService))
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service SomeService
+				var service someService
 				provider(&service)
 				return service
 			},
@@ -344,14 +336,14 @@ func TestProvideCache(t *testing.T) {
 		{
 			name: "success-scoped-scope-cached",
 			container: func(t *testing.T) (*container, error) {
-				c, err := Register(Construct(Scoped, NewSomeService))
+				c, err := Register(Construct(Scoped, newSomeService))
 				if err != nil {
 					return nil, err
 				}
 				return c.Scope(), nil
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service SomeService
+				var service someService
 				provider(&service)
 				return service
 			},
@@ -360,14 +352,14 @@ func TestProvideCache(t *testing.T) {
 		{
 			name: "success-singleton-scope-cached",
 			container: func(t *testing.T) (*container, error) {
-				c, err := Register(Construct(Singleton, NewSomeService))
+				c, err := Register(Construct(Singleton, newSomeService))
 				if err != nil {
 					return nil, err
 				}
 				return c.Scope(), nil
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service SomeService
+				var service someService
 				provider(&service)
 				return service
 			},
@@ -376,14 +368,14 @@ func TestProvideCache(t *testing.T) {
 		{
 			name: "success-transient-scope-no-cached",
 			container: func(t *testing.T) (*container, error) {
-				c, err := Register(Construct(Transient, NewSomeService))
+				c, err := Register(Construct(Transient, newSomeService))
 				if err != nil {
 					return nil, err
 				}
 				return c.Scope(), nil
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service SomeService
+				var service someService
 				provider(&service)
 				return &service
 			},

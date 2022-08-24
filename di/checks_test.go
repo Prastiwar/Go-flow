@@ -57,9 +57,9 @@ func TestCheckRegistered(t *testing.T) {
 	}{
 		{
 			name: "success-found-service",
-			typ:  reflection.TypeOf[SomeService](),
+			typ:  reflection.TypeOf[someService](),
 			services: map[reflect.Type]constructor{
-				reflection.TypeOf[SomeService](): *Construct(Singleton, NewSomeService),
+				reflection.TypeOf[someService](): *Construct(Singleton, newSomeService),
 			},
 			expected: true,
 		},
