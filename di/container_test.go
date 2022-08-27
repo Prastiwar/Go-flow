@@ -220,14 +220,29 @@ func TestProvide(t *testing.T) {
 			expectedType: reflection.TypeOf[*someService](),
 		},
 		{
-			name: "invalid-service-pointer-to-pointer-dep",
+			name: "success-service-dep-pointer-to-non-pointer",
 			container: func(t *testing.T) (*container, error) {
 				return Register(newSomeServiceWithDep, newSomeDependency)
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
 				defer func() {
-					assert.Equal(t, ErrNotPointer, recover())
-					t.SkipNow()
+					assert.Equal(t, nil, recover())
+				}()
+
+				var service someService
+				provider(&service)
+				return service
+			},
+			expectedType: reflection.TypeOf[someService](),
+		},
+		{
+			name: "success-service-pointer-to-pointer-dep",
+			container: func(t *testing.T) (*container, error) {
+				return Register(newSomeServiceWithDep, newSomeDependency)
+			},
+			provideFn: func(t *testing.T, provider func(any)) any {
+				defer func() {
+					assert.Equal(t, nil, recover())
 				}()
 
 				var service *someService

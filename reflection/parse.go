@@ -21,6 +21,10 @@ func Parse(s string, target interface{}) (interface{}, error) {
 			val = val.Elem()
 		}
 
+		if !val.IsValid() {
+			return nil, ErrNotSupportedType
+		}
+
 		target = val.Interface()
 	}
 

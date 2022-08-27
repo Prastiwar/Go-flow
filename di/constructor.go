@@ -77,8 +77,13 @@ func (c *constructor) Create(provider func(reflect.Type) interface{}) interface{
 	for i := 0; i < len(c.params); i++ {
 		t := c.params[i]
 		object := provider(t)
-		// TODO: Fix bug with pointer - non pointer
-		paramValues[i] = reflect.ValueOf(object)
+
+		v, err := reflection.GetFieldValueFor(t, object)
+		if err != nil {
+			panic(err)
+		}
+
+		paramValues[i] = v
 	}
 
 	method := reflect.ValueOf(c.fn)

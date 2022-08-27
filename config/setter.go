@@ -57,40 +57,10 @@ func (s *fieldSetter) SetFields(v any, findFn FieldValueFinder) error {
 			continue
 		}
 
-		val, ok := rawValue.(reflect.Value)
-		if !ok {
-			val = reflect.ValueOf(rawValue)
-		}
-
-		if val.Kind() == reflect.Pointer {
-			val = val.Elem()
-		}
-
-		fieldType := field.Type()
-
-		if field.Kind() == reflect.Pointer {
-			fieldNonPointer := fieldType.Elem()
-			if val.Type().ConvertibleTo(fieldNonPointer) {
-				p := reflect.New(fieldNonPointer)
-				val = val.Convert(fieldNonPointer)
-				p.Elem().Set(val)
-				field.Set(p)
-				continue
-			}
-		}
-
-		if val.Type().ConvertibleTo(fieldType) {
-			val = val.Convert(fieldType)
-			field.Set(val)
-			continue
-		}
-
-		vv, err := reflection.Parse(val.String(), field.Interface())
+		err = reflection.SetFieldValue(field, rawValue)
 		if err != nil {
 			return err
 		}
-
-		field.Set(reflect.ValueOf(vv))
 	}
 
 	return nil

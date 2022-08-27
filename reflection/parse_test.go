@@ -173,6 +173,13 @@ func TestParse(t *testing.T) {
 			want:    nil,
 			wantErr: true,
 		},
+		{
+			name:    "invalid-reflect-value",
+			str:     "{}",
+			target:  reflect.Zero(reflect.TypeOf(ptr(""))),
+			want:    nil,
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
