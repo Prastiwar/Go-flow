@@ -18,3 +18,9 @@ Always use clear and concise title for your request to allow easier identificati
 ## Coding convention
 
 Make sure your code follows the code style of this project. Always format your code accordingly to shared .editorconfig in repository.
+
+## Pull request
+
+In order to review pull request it must match coding convention, be properly described and recommended to be disscussed earlier.
+Most of things should be automatically check with CI jobs like build, linter or test coverage so make sure to pass the checks before submitting
+your pull request from draft state to ready for review.
