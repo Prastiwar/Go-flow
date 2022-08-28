@@ -6,8 +6,10 @@ on:
   pull_request:
     branches: [ "main" ]
 
-jobs:
+permissions:
+  contents: read
 
+jobs:
   build:
     runs-on: ubuntu-latest
     steps:
@@ -16,11 +18,8 @@ jobs:
       with:
         go-version-file: 'go.mod'
         cache: true
-    - name: Install golangci-lint
-      run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-
-    - name: Run golangci-lint
-      run: golangci-lint run --version --verbose --out-format=github-actions
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v3
 
     - name: Build
       run: go build -v ./...
