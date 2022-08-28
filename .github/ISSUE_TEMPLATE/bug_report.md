@@ -1,3 +1,12 @@
+---
+name: Bug report
+about: Report a bug or unexpected behavior to help us improve the project
+title: "[BUG]"
+labels: bug
+assignees: ''
+
+---
+
 <!--- Provide a more detailed introduction to the issue itself, and why you consider it to be a bug -->
 ## Description
 
