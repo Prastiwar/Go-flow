@@ -6,12 +6,13 @@ Framework for Go services in go with zero dependency rule, so you can use it in 
 
 - [Go-flow](#go-flow)
   - [Library purpose](#library-purpose)
-  - [config](#config)
-  - [di](#di)
-  - [exception](#exception)
-  - [logging](#logging)
-  - [middleware](#middleware)
-  - [reflection](#reflection)
+  - [Packages](#packages)
+    - [config](#config)
+    - [di](#di)
+    - [exception](#exception)
+    - [logging](#logging)
+    - [middleware](#middleware)
+    - [reflection](#reflection)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -23,14 +24,16 @@ This framework's mission is to extend the built-in GO standard library in a non-
 meaning it should have feeling like it's part of standard one but it should not give up on simplifying building systems by adding GOs like boilerplate.
 Writing production-ready system developer often must make decision which will not change and will not apply to every possible case but still should be modifiable enough to make development easier not harder.
 
-## config
+## Packages
+
+### config
 
 Configuration module wchich provides functionality to load configuration from file, environment variables and command line arguments with binding to a struct functionality.
 It allows to extend the behavior with interfaces for providers and KeyInterceptor option to change the way it looks for matching key for field name.
 
 See [example file](config\example_test.go) for runnable examples.
 
-## di
+### di
 
 Dependency injection module with container. This pattern is encouraged to use in large projects where dependency hierarchy is deep and complex and cannot be improved by design decisions.
 In such case dependency maintenance can be a problem that container can solve.
@@ -41,13 +44,13 @@ while working with dependency container. The other common mistakes like cyclic d
 
 See [example file](di\example_test.go) for runnable examples.
 
-## exception
+### exception
 
 It provides helper functions to facilitate work with errors. It allows to handle panic with ensured error (when panic is commonly mixed strings or errors), aggregate the errors and more.
 
 See [example file](exception\example_test.go) for runnable examples.
 
-## logging
+### logging
 
 Logf package is very simple wrapper over io.Writer with provided Formatter and scope(Fields) added. It provides leveling printing as Info, Error and Debug.
 As far as you could add custom level, because it's just a field variable, it's not recommended until it's necessary.
@@ -58,14 +61,14 @@ The global printing should be used only for testing or playground cases where fm
 
 See [example file](logf\example_test.go) for runnable examples.
 
-## middleware
+### middleware
 
 Generic middleware implements middleware architecture pattern to use in generic way. It's used to create delegates for processing the request or response and handle common tasks like
 logging, authentication, compressing data in single contact point which is called pipeline. The pattern is commonly used in http packages.
 
 See [example file](middleware\example_test.go) for runnable examples.
 
-## reflection
+### reflection
 
 Extended package for standard "reflect" package. Provides functions to help with tasks where reflection is needed like parsing, setting field values or casting an array.
 
