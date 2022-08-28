@@ -14,7 +14,6 @@ jobs:
     - uses: actions/setup-go@v3
       with:
         go-version-file: 'go.mod'
-        cache: true
     - name: Install golangci-lint
       run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
