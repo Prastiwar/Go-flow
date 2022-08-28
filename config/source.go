@@ -1,3 +1,7 @@
+// Package config provides single source of configuration management. The default providers are
+// file, environment and command line (flag) configuration. You can set default values for specified key
+// which will be loaded at first place and can be overriden by one of providers during loading process.
+// The package contains also helpers to pass one struct fields to another struct to easily bind values to it.
 package config
 
 import (
@@ -32,7 +36,7 @@ func Opt(key string, value any) opt {
 	}
 }
 
-// Provide creates an instance of Source. The order of passed providers matters in terms of
+// Provide returns a Source of configuration. The order of passed providers matters in terms of
 // overriding field value since each provider will be Load'ed in the same order as they were
 // passed to this function
 func Provide(providers ...Provider) *Source {

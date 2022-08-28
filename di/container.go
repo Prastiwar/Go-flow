@@ -1,3 +1,7 @@
+// Package di provides a dependency container where all dependencies can be registered and cached with different
+// lifetime scope. It adds validation for common mistakes like missing or cyclic dependency.
+// Container allows to provide service implementation without knowing how to construct it. The container is
+// responsible for caching, managing dependencies and creating the objects.
 package di
 
 import (

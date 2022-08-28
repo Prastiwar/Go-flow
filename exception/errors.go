@@ -1,3 +1,4 @@
+// Package exception provides helper functions to facilitate work with errors, stack traces or handling panics.
 package exception
 
 import (

@@ -1,3 +1,6 @@
+// Package reflection extends reflect package with functions commonly used
+// while using reflection functionality making it easier to call reflect method, set values,
+// parse/convert values or use generic TypeOf.
 package reflection
 
 import "reflect"

@@ -1,3 +1,6 @@
+// Package logf provides logging functionality with small scope of features like
+// custom shared formatting, scopes (fields) and levels (info, error, debug).
+// This is very simple wrapper over io.Writer with provided Formatter and scope added.
 package logf
 
 import (

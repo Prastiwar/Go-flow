@@ -1,3 +1,5 @@
+// Package cast provides helpful functions for casting.
+// It includes casting between different (castable)types for slice.
 package cast
 
 // As creates new slice instance and casts from elements to result slice.

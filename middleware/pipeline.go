@@ -1,3 +1,6 @@
+// Package middleware implements middleware architecture pattern to use in generic way.
+// It's used to create delegates for processing the request or response and handle common tasks like
+// logging, authentication, compressing data in single contact point which is called pipeline.
 package middleware
 
 // Middleware is implemented by any value that has a Wrap and Use method.
