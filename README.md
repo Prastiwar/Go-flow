@@ -45,6 +45,8 @@ See [example file](di\example_test.go) for runnable examples.
 
 It provides helper functions to facilitate work with errors. It allows to handle panic with ensured error (when panic is commonly mixed strings or errors), aggregate the errors and more.
 
+See [example file](exception\example_test.go) for runnable examples.
+
 ## logging
 
 Logf package is very simple wrapper over io.Writer with provided Formatter and scope(Fields) added. It provides leveling printing as Info, Error and Debug.
