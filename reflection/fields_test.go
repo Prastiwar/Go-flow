@@ -1,9 +1,10 @@
 package reflection
 
 import (
-	"goflow/tests/assert"
 	"reflect"
 	"testing"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 func TestSetFieldValue(t *testing.T) {
@@ -55,6 +56,20 @@ func TestSetFieldValue(t *testing.T) {
 			},
 			rawValue: reflect.ValueOf(nil),
 			want:     reflect.ValueOf(nilBool),
+			wantErr:  false,
+		},
+		{
+			name: "success-not-pointer-convertible-pointer",
+			field: func() reflect.Value {
+				v := struct {
+					Num *bool
+				}{
+					Num: ptr(false),
+				}
+				return reflect.ValueOf(&v).Elem().Field(0)
+			},
+			rawValue: "true",
+			want:     reflect.ValueOf(ptr(true)),
 			wantErr:  false,
 		},
 		{

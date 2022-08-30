@@ -2,8 +2,9 @@ package di
 
 import (
 	"errors"
-	"goflow/reflection"
 	"reflect"
+
+	"github.com/Prastiwar/Go-flow/reflection"
 )
 
 type LifeTime int

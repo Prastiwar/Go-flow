@@ -3,13 +3,14 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"goflow/config/decoders"
-	"goflow/tests/assert"
 	"os"
 	"reflect"
 	"strings"
 	"testing"
 	"unicode"
+
+	"github.com/Prastiwar/Go-flow/config/decoders"
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 var (
@@ -160,7 +161,7 @@ func TestSourceLoad(t *testing.T) {
 				s := Provide(
 					NewFlagProvider(
 						StringFlag("flagKey", "just a string"),
-						StringFlag("overriden", "just a string"),
+						StringFlag("ci", "just a string"),
 						StringFlag("notOverriden", "just a string"),
 					),
 					NewEnvProvider(),
@@ -185,32 +186,26 @@ func TestSourceLoad(t *testing.T) {
 
 				v := struct {
 					DefaultKey   string
-					EnvKey       string
 					FlagKey      string
-					Overriden    string
+					CI           *bool
 					NotOverriden string
 				}{}
-				v.Overriden = "to-override"
+				v.CI = nil
 				v.NotOverriden = "not-overriden"
 
-				assert.NilError(t, os.Setenv("ENVKEY", "envved"))
-				assert.NilError(t, os.Setenv("OVERRIDEN", "overriden"))
+				os.Setenv("CI", "true")
 
 				setArgs(
 					"-flagKey=flagged",
-					"-overriden=yes",
+					"-ci=false",
 				)
 
 				return s, &v, func(err error) {
 					assert.NilError(t, err)
 					assert.Equal(t, "1234567890", v.DefaultKey)
-					assert.Equal(t, "envved", v.EnvKey)
 					assert.Equal(t, "flagged", v.FlagKey)
-					assert.Equal(t, "overriden", v.Overriden)
+					assert.Equal(t, true, *v.CI)
 					assert.Equal(t, "not-overriden", v.NotOverriden)
-
-					assert.NilError(t, os.Unsetenv("ENVKEY"))
-					assert.NilError(t, os.Unsetenv("OVERRIDEN"))
 				}
 			},
 		},

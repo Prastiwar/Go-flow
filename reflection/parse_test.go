@@ -2,10 +2,11 @@ package reflection
 
 import (
 	"errors"
-	"goflow/tests/assert"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 func TestParse(t *testing.T) {

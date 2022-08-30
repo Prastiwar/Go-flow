@@ -2,10 +2,11 @@ package di
 
 import (
 	"fmt"
-	"goflow/reflection"
-	"goflow/tests/assert"
 	"reflect"
 	"testing"
+
+	"github.com/Prastiwar/Go-flow/reflection"
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 func TestCheckInterface(t *testing.T) {

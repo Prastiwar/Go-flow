@@ -1,8 +1,9 @@
 package cast
 
 import (
-	"goflow/tests/assert"
 	"testing"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 type customString string

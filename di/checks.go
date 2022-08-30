@@ -1,8 +1,9 @@
 package di
 
 import (
-	"goflow/reflection"
 	"reflect"
+
+	"github.com/Prastiwar/Go-flow/reflection"
 )
 
 // checkInterface returns constructor found from services for service which implements typ

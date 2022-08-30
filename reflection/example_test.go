@@ -2,7 +2,8 @@ package reflection_test
 
 import (
 	"fmt"
-	"goflow/reflection"
+
+	"github.com/Prastiwar/Go-flow/reflection"
 )
 
 func ExampleTypeOf() {

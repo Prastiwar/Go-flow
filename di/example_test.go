@@ -2,7 +2,8 @@ package di_test
 
 import (
 	"fmt"
-	"goflow/di"
+
+	"github.com/Prastiwar/Go-flow/di"
 )
 
 type Dependency interface{}

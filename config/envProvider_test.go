@@ -1,14 +1,16 @@
 package config
 
 import (
-	"goflow/tests/assert"
+	"fmt"
 	"os"
 	"testing"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 func TestEnvProviderLoad(t *testing.T) {
 	if err := os.Setenv("test_check", "valid"); err != nil {
-		t.Skip("cannot set environment value on this machine")
+		t.Skip(fmt.Errorf("cannot set environment value on this machine: %w", err))
 		return
 	}
 	os.Unsetenv("test_check")

@@ -1,8 +1,9 @@
 package config
 
 import (
-	"goflow/reflection"
 	"reflect"
+
+	"github.com/Prastiwar/Go-flow/reflection"
 )
 
 // FieldValueFinder defines function which should return field value or error for named key
