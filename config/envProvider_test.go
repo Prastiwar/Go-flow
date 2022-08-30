@@ -40,18 +40,19 @@ func TestEnvProviderLoad(t *testing.T) {
 			prefix: "DEV_",
 			init: func(t *testing.T) (any, func()) {
 				assert.NilError(t, os.Setenv("DEV_CI", "true"))
-				assert.NilError(t, os.Setenv("DEV_PATH", "./tests"))
+				assert.NilError(t, os.Setenv("DEV_VAR", "str"))
 				v := struct {
 					CI      bool
-					Path    string
+					Var     string
 					NotUsed string
 				}{
-					CI: false,
+					CI:  false,
+					Var: "not-overriden",
 				}
 
 				return &v, func() {
 					assert.Equal(t, v.CI, true)
-					assert.Equal(t, v.Path, "./tests")
+					assert.Equal(t, v.Var, "str")
 					assert.NilError(t, os.Unsetenv("DEV_CI"))
 					assert.NilError(t, os.Unsetenv("DEV_PATH"))
 				}
