@@ -1,9 +1,10 @@
 package reflection
 
 import (
-	"goflow/tests/assert"
 	"reflect"
 	"testing"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 type Foo struct{}

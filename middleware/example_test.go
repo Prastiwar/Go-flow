@@ -3,7 +3,8 @@ package middleware_test
 import (
 	"errors"
 	"fmt"
-	"goflow/middleware"
+
+	"github.com/Prastiwar/Go-flow/middleware"
 )
 
 func Example() {

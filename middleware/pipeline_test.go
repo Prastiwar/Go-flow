@@ -2,8 +2,9 @@ package middleware
 
 import (
 	"errors"
-	"goflow/tests/assert"
 	"testing"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 type pipeRequest string

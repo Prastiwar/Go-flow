@@ -2,9 +2,10 @@ package config
 
 import (
 	"flag"
-	"goflow/tests/assert"
 	"testing"
 	"time"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 func TestNewFlag(t *testing.T) {

@@ -3,7 +3,8 @@ package exception_test
 import (
 	"errors"
 	"fmt"
-	"goflow/exception"
+
+	"github.com/Prastiwar/Go-flow/exception"
 )
 
 func ExampleAggregate() {

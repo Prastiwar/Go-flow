@@ -1,10 +1,11 @@
 package decoders
 
 import (
-	"goflow/tests/assert"
 	"io"
 	"strings"
 	"testing"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 func TestJsonDecoderDecode(t *testing.T) {

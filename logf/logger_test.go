@@ -1,9 +1,10 @@
 package logf
 
 import (
-	"goflow/tests/assert"
-	"goflow/tests/mocks"
 	"testing"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
+	"github.com/Prastiwar/Go-flow/tests/mocks"
 )
 
 type formatterTestCase struct {

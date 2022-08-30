@@ -1,11 +1,12 @@
 package config
 
 import (
-	"goflow/config/decoders"
-	"goflow/tests/assert"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/Prastiwar/Go-flow/config/decoders"
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 // createTempContentFile creates temporary file in temporary directory and returns its filename

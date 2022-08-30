@@ -3,7 +3,7 @@ package config
 import (
 	"testing"
 
-	"goflow/tests/assert"
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 func TestSetFields(t *testing.T) {

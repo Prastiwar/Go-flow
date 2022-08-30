@@ -50,7 +50,10 @@ func GetFieldValueFor(fieldType reflect.Type, rawValue any) (reflect.Value, erro
 		if err != nil {
 			return reflect.Value{}, err
 		}
-		return reflect.ValueOf(&vv), nil
+		vvValue := reflect.ValueOf(vv)
+		p := reflect.New(vvValue.Type())
+		p.Elem().Set(vvValue)
+		return p, nil
 	}
 
 	defaultValue := reflect.Zero(fieldType)

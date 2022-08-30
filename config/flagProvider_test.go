@@ -3,12 +3,13 @@ package config
 import (
 	"errors"
 	"flag"
-	"goflow/tests/assert"
 	"os"
 	"reflect"
 	"testing"
 	"time"
 	"unicode"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 type notGetterStringValue string

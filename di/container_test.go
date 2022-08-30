@@ -1,11 +1,12 @@
 package di
 
 import (
-	"goflow/reflection"
-	"goflow/tests/assert"
 	"math/rand"
 	"reflect"
 	"testing"
+
+	"github.com/Prastiwar/Go-flow/reflection"
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 type someInterface interface{}

@@ -2,7 +2,8 @@ package cast_test
 
 import (
 	"fmt"
-	"goflow/reflection/cast"
+
+	"github.com/Prastiwar/Go-flow/reflection/cast"
 )
 
 func ExampleAs() {

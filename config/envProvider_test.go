@@ -1,12 +1,34 @@
 package config
 
 import (
-	"goflow/tests/assert"
+	"fmt"
 	"os"
 	"testing"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
+// checkEnvironment skips testing if it's not possible to set env value
+func checkEnvironment(t *testing.T) {
+	const checkMachineKey = "TEST_MACHINE_ENVIRONMENT_CHECK"
+
+	if err := os.Setenv(checkMachineKey, "ok"); err != nil {
+		t.Skip(fmt.Errorf("unable to set environment value on this machine: %w", err))
+		return
+	}
+
+	v, ok := os.LookupEnv(checkMachineKey)
+	if !ok || v != "ok" {
+		t.Skip("unable to set environment value on this machine")
+		return
+	}
+
+	os.Unsetenv(checkMachineKey)
+}
+
 func TestEnvProviderLoad(t *testing.T) {
+	checkEnvironment(t)
+
 	tests := []struct {
 		name    string
 		prefix  string
@@ -14,24 +36,21 @@ func TestEnvProviderLoad(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:   "succes-with-prefix",
+			name:   "success-with-prefix",
 			prefix: "DEV_",
 			init: func(t *testing.T) (any, func()) {
-				os.Setenv("DEV_CI", "true")
-				os.Setenv("DEV_PATH", "./tests")
+				assert.NilError(t, os.Setenv("DEV_CI", "true"))
 				v := struct {
 					CI      bool
-					Path    string
 					NotUsed string
 				}{
 					CI: false,
 				}
 
 				return &v, func() {
-					assert.Equal(t, v.CI, true)
-					assert.Equal(t, v.Path, "./tests")
-					os.Unsetenv("DEV_CI")
-					os.Unsetenv("DEV_PATH")
+					assert.Equal(t, true, v.CI)
+					assert.Equal(t, "", v.NotUsed)
+					assert.NilError(t, os.Unsetenv("DEV_CI"))
 				}
 			},
 			wantErr: false,
@@ -39,7 +58,7 @@ func TestEnvProviderLoad(t *testing.T) {
 		{
 			name: "success-unexported-field",
 			init: func(t *testing.T) (any, func()) {
-				os.Setenv("Obj", "true")
+				assert.NilError(t, os.Setenv("Obj", "true"))
 				v := struct {
 					obj struct{}
 				}{
@@ -47,7 +66,7 @@ func TestEnvProviderLoad(t *testing.T) {
 				}
 
 				return &v, func() {
-					os.Unsetenv("Obj")
+					assert.NilError(t, os.Unsetenv("Obj"))
 				}
 			},
 			wantErr: false,
@@ -55,7 +74,7 @@ func TestEnvProviderLoad(t *testing.T) {
 		{
 			name: "invalid-non-pointer",
 			init: func(t *testing.T) (any, func()) {
-				os.Setenv("CI", "true")
+				assert.NilError(t, os.Setenv("CI", "true"))
 				v := struct {
 					CI bool
 				}{
@@ -63,7 +82,7 @@ func TestEnvProviderLoad(t *testing.T) {
 				}
 
 				return v, func() {
-					os.Unsetenv("CI")
+					assert.NilError(t, os.Unsetenv("CI"))
 				}
 			},
 			wantErr: true,
@@ -71,7 +90,7 @@ func TestEnvProviderLoad(t *testing.T) {
 		{
 			name: "invalid-not-parsable",
 			init: func(t *testing.T) (any, func()) {
-				os.Setenv("Obj", "true")
+				assert.NilError(t, os.Setenv("Obj", "true"))
 				v := struct {
 					Obj struct{}
 				}{
@@ -79,7 +98,7 @@ func TestEnvProviderLoad(t *testing.T) {
 				}
 
 				return &v, func() {
-					os.Unsetenv("CI")
+					assert.NilError(t, os.Unsetenv("CI"))
 				}
 			},
 			wantErr: true,
@@ -87,11 +106,11 @@ func TestEnvProviderLoad(t *testing.T) {
 		{
 			name: "invalid-not-struct",
 			init: func(t *testing.T) (any, func()) {
-				os.Setenv("CI", "true")
+				assert.NilError(t, os.Setenv("CI", "true"))
 				var v *bool
 
 				return &v, func() {
-					os.Unsetenv("CI")
+					assert.NilError(t, os.Unsetenv("CI"))
 				}
 			},
 			wantErr: true,

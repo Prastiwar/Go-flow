@@ -2,8 +2,9 @@ package logf_test
 
 import (
 	"errors"
-	"goflow/logf"
 	"os"
+
+	"github.com/Prastiwar/Go-flow/logf"
 )
 
 func Example() {

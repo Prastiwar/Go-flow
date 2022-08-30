@@ -2,10 +2,11 @@ package config_test
 
 import (
 	"fmt"
-	"goflow/config"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/Prastiwar/Go-flow/config"
 )
 
 func Example() {

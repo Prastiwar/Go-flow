@@ -1,9 +1,10 @@
 package di
 
 import (
-	"goflow/tests/assert"
 	"reflect"
 	"testing"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 func TestCache(t *testing.T) {

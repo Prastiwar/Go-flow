@@ -7,8 +7,9 @@ package di
 import (
 	"errors"
 	"fmt"
-	"goflow/exception"
 	"reflect"
+
+	"github.com/Prastiwar/Go-flow/exception"
 )
 
 // Container is implemented by any value that has a Validate, Provide and Register method.
