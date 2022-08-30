@@ -8,7 +8,8 @@ import (
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
-func TestEnvProviderLoad(t *testing.T) {
+// checkEnvironment skips testing if it's not possible to set env value
+func checkEnvironment(t *testing.T) {
 	const checkMachineKey = "test_machine_environment_check"
 
 	if err := os.Setenv(checkMachineKey, "ok"); err != nil {
@@ -22,7 +23,11 @@ func TestEnvProviderLoad(t *testing.T) {
 		return
 	}
 
-	os.Unsetenv("test_check")
+	os.Unsetenv(checkMachineKey)
+}
+
+func TestEnvProviderLoad(t *testing.T) {
+	checkEnvironment(t)
 
 	tests := []struct {
 		name    string
