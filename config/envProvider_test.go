@@ -9,10 +9,19 @@ import (
 )
 
 func TestEnvProviderLoad(t *testing.T) {
-	if err := os.Setenv("test_check", "valid"); err != nil {
-		t.Skip(fmt.Errorf("cannot set environment value on this machine: %w", err))
+	const checkMachineKey = "test_machine_environment_check"
+
+	if err := os.Setenv(checkMachineKey, "ok"); err != nil {
+		t.Skip(fmt.Errorf("unable to set environment value on this machine: %w", err))
 		return
 	}
+
+	v, ok := os.LookupEnv(checkMachineKey)
+	if !ok || v != "ok" {
+		t.Skip("unable to set environment value on this machine")
+		return
+	}
+
 	os.Unsetenv("test_check")
 
 	tests := []struct {
