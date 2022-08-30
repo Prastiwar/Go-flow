@@ -10,7 +10,7 @@ import (
 
 // checkEnvironment skips testing if it's not possible to set env value
 func checkEnvironment(t *testing.T) {
-	const checkMachineKey = "test_machine_environment_check"
+	const checkMachineKey = "TEST_MACHINE_ENVIRONMENT_CHECK"
 
 	if err := os.Setenv(checkMachineKey, "ok"); err != nil {
 		t.Skip(fmt.Errorf("unable to set environment value on this machine: %w", err))
@@ -40,21 +40,17 @@ func TestEnvProviderLoad(t *testing.T) {
 			prefix: "DEV_",
 			init: func(t *testing.T) (any, func()) {
 				assert.NilError(t, os.Setenv("DEV_CI", "true"))
-				assert.NilError(t, os.Setenv("DEV_VAR", "str"))
 				v := struct {
 					CI      bool
-					Var     string
 					NotUsed string
 				}{
-					CI:  false,
-					Var: "not-overriden",
+					CI: false,
 				}
 
 				return &v, func() {
-					assert.Equal(t, v.CI, true)
-					assert.Equal(t, v.Var, "str")
+					assert.Equal(t, true, v.CI)
+					assert.Equal(t, "", v.NotUsed)
 					assert.NilError(t, os.Unsetenv("DEV_CI"))
-					assert.NilError(t, os.Unsetenv("DEV_PATH"))
 				}
 			},
 			wantErr: false,
