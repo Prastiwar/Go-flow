@@ -22,7 +22,16 @@ jobs:
       run: go build -v ./...
 
     - name: Test
-      run: go test -v ./... -json -cover -coverprofile=coverage.out > result.json
+      run: |
+        mkdir -p bin
+        go test -coverprofile=bin/cov.out `go list ./... | grep -v vendor/`
+        go tool cover -func=bin/cov.out
+
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-coverage-report
+        path: bin
 
   lint:
     runs-on: ubuntu-latest
@@ -38,10 +47,18 @@ jobs:
   sonarcloud:
     name: SonarCloud
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Download code coverage results
+        uses: actions/download-artifact@v3
+        with:
+          name: code-coverage-report
+          path: bin
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
