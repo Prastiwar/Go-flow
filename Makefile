@@ -1,15 +1,9 @@
-.PHONY: default
-default: build
+SHELL := /bin/bash
 
-all: clean get-deps build test
+default: build
 
 build:
 	go build -v ./...
 
 test: build
-	mkdir bin
-	go test -short -coverprofile=bin/cov.out `go list ./... | grep -v vendor/`
-	go tool cover -func=bin/cov.out
-
-clean:
-	rm -rf ./bin
+	go test -v -coverprofile=cov.out `go list ./... | grep -v vendor/`
