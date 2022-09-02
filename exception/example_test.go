@@ -7,8 +7,8 @@ import (
 	"github.com/Prastiwar/Go-flow/exception"
 )
 
-func ExampleAggregate() {
-	aggErr := exception.Aggregate(
+func ExampleAggregatef() {
+	aggErr := exception.Aggregatef(
 		errors.New("'' is not valid value for title"),
 		errors.New("title is required"),
 	)

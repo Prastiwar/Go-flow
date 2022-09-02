@@ -9,6 +9,8 @@ import (
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
+type convertibleString string
+
 func TestParse(t *testing.T) {
 	b := true
 	validTime, _ := time.Parse(time.RFC3339, "2030-10-12T00:00:00.00Z")
@@ -165,6 +167,13 @@ func TestParse(t *testing.T) {
 			str:     "text",
 			target:  errors.New(""),
 			want:    errors.New("text"),
+			wantErr: false,
+		},
+		{
+			name:    "success-convertible-int",
+			str:     "1",
+			target:  convertibleString("2"),
+			want:    convertibleString("1"),
 			wantErr: false,
 		},
 		{

@@ -287,6 +287,23 @@ func TestProvide(t *testing.T) {
 			},
 			expectedType: reflection.TypeOf[*someService](),
 		},
+		{
+			name: "invalid-service-not-pointer",
+			container: func(t *testing.T) (*container, error) {
+				return &container{}, nil
+			},
+			provideFn: func(t *testing.T, provider func(any)) any {
+				defer func() {
+					err, _ := recover().(error)
+					assert.ErrorWith(t, err, ErrNotPointer.Error())
+					t.SkipNow()
+				}()
+
+				var service someService
+				provider(service)
+				return service
+			},
+		},
 	}
 
 	for _, tt := range tests {
