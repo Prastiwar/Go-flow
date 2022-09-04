@@ -302,6 +302,28 @@ func TestBind(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "invalid-non-struct",
+			init: func(t *testing.T) (any, any, func(error)) {
+				from := "string"
+				to := 1
+
+				return &from, &to, func(err error) {
+					assert.ErrorIs(t, err, ErrNonStruct)
+				}
+			},
+		},
+		{
+			name: "invalid-to-non-struct",
+			init: func(t *testing.T) (any, any, func(error)) {
+				from := struct{}{}
+				to := 1
+
+				return &from, &to, func(err error) {
+					assert.ErrorIs(t, err, ErrNonStruct)
+				}
+			},
+		},
 	}
 
 	for _, tt := range tests {

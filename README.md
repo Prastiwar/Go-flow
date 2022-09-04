@@ -13,6 +13,7 @@ Framework for Go services in go with zero dependency rule, so you can use it in 
     - [logging](#logging)
     - [middleware](#middleware)
     - [reflection](#reflection)
+    - [tests](#tests)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -75,6 +76,12 @@ Extended package for standard "reflect" package. Provides functions to help with
 See [example file](reflection\example_test.go) for runnable reflection examples.
 
 See [example file](reflection\cast\example_test.go) for runnable casting examples.
+
+### tests
+
+Package contains assertions for equality, matching slice, map elements and counter for asserting function call. The amount of assert features are very limited due to its convention to provide only mostly used functions based on this particular project. It can be extended with any additional reasonable assertions in future. Currently the most used library is [github.com/stretchr/testify](https://github.com/stretchr/testify/) which I'd recommend read about if your project requires complex and lots more features in assertions or mocking.
+
+See any test files to discover usage.
 
 ## Contributing
 

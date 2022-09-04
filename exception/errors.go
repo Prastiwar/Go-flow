@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-// Aggregate returns formatted array of errors as single error.
-func Aggregate(errors ...error) error {
+// Aggregatef returns formatted array of errors as single error.
+func Aggregatef(errors ...error) error {
 	count := len(errors)
 	if count == 0 {
 		return nil

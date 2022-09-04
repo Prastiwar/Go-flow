@@ -204,6 +204,13 @@ func TestGetFieldValueFor(t *testing.T) {
 			want:      reflect.ValueOf(0),
 			wantErr:   false,
 		},
+		{
+			name:      "invalid-pointer-not-parsable",
+			fieldType: reflect.TypeOf(ptr(struct{}{})),
+			rawValue:  ptr("1"),
+			want:      reflect.Value{},
+			wantErr:   true,
+		},
 	}
 
 	for _, tt := range tests {

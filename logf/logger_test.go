@@ -107,8 +107,8 @@ func TestPrinting(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			writerCounter := assert.Count(1)
-			formatCounter := assert.Count(1)
+			writerCounter := assert.Count(t, 1)
+			formatCounter := assert.Count(t, 1)
 			writerMock := mocks.NewWriterMock(func(p []byte) (n int, err error) {
 				writerCounter.Inc()
 				return 0, nil
@@ -125,6 +125,7 @@ func TestPrinting(t *testing.T) {
 			tt.print(loggerMock, "%v", "test")
 
 			writerCounter.Assert(t)
+			formatCounter.Assert(t)
 		})
 	}
 }

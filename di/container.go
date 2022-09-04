@@ -10,6 +10,7 @@ import (
 	"reflect"
 
 	"github.com/Prastiwar/Go-flow/exception"
+	"github.com/Prastiwar/Go-flow/reflection"
 )
 
 // Container is implemented by any value that has a Validate, Provide and Register method.
@@ -31,6 +32,10 @@ var (
 	ErrCyclicDependency = errors.New("cyclic dependency detected")
 	ErrNotAddresable    = errors.New("need to pass address")
 	ErrNotPointer       = errors.New("must be a pointer")
+)
+
+const (
+	formatErrorArg = "'%w': '%v'"
 )
 
 // Register returns a new container instance with constructor services. Construct or func constructor
@@ -79,29 +84,23 @@ func (c *container) Validate() error {
 		for _, dependencyType := range serviceCtor.params {
 			cyclic := serviceType == dependencyType
 			if !cyclic {
-				var otherType reflect.Type
-				if serviceType.Kind() == reflect.Pointer {
-					otherType = serviceType.Elem()
-				} else {
-					otherType = reflect.PointerTo(serviceType)
-				}
-
+				otherType := reflection.TogglePointer(serviceType)
 				cyclic = otherType == dependencyType
 			}
 
 			if cyclic {
-				errs = append(errs, fmt.Errorf("'%w': '%v'", ErrCyclicDependency, dependencyType))
+				errs = append(errs, fmt.Errorf(formatErrorArg, ErrCyclicDependency, dependencyType))
 				continue
 			}
 
 			_, ok := checkRegistered(dependencyType, c.services)
 			if !ok {
-				errs = append(errs, fmt.Errorf("'%w': '%v'", ErrNotRegistered, dependencyType))
+				errs = append(errs, fmt.Errorf(formatErrorArg, ErrNotRegistered, dependencyType))
 			}
 		}
 	}
 
-	return exception.Aggregate(errs...)
+	return exception.Aggregatef(errs...)
 }
 
 // Scope returns a new scoped container which will cache scoped lifetime services.
@@ -159,7 +158,7 @@ func (c *container) setValue(v interface{}, service interface{}) {
 func (c *container) get(typ reflect.Type) interface{} {
 	ctor, ok := checkRegistered(typ, c.services)
 	if !ok {
-		panic(fmt.Errorf("'%w': '%v'", ErrNotRegistered, typ))
+		panic(fmt.Errorf(formatErrorArg, ErrNotRegistered, typ))
 	}
 
 	service, ok := c.cache.Get(ctor.life, ctor.typ)
