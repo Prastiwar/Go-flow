@@ -7,6 +7,8 @@ import (
 	"testing"
 )
 
+// ElementsMatch asserts both slices have the same amount and equal elements. Any extra items
+// will be listed in error log.
 func ElementsMatch[T any](t *testing.T, arrA, arrB []T) {
 	extraA, extraB := diffLists(arrA, arrB)
 

@@ -51,6 +51,7 @@ func Error(t *testing.T, err error) {
 	}
 }
 
+// ErrorWith asserts err does contain target content within error string representation.
 func ErrorWith(t *testing.T, err error, content string) {
 	errFormat := "expected error with content: '%v', error: '%v'"
 	if err == nil {
@@ -64,12 +65,14 @@ func ErrorWith(t *testing.T, err error, content string) {
 	}
 }
 
+// ErrorIs asserts whether error in err's chain matches target.
 func ErrorIs(t *testing.T, err error, target error) {
 	if !errors.Is(err, target) {
 		t.Errorf("expected '%#v' error but got '%#v'", target, err)
 	}
 }
 
+// ErrorType matches just type of error.
 func ErrorType(t *testing.T, err error, target error) {
 	if reflect.TypeOf(err) != reflect.TypeOf(target) {
 		t.Errorf("expected '%#v' error but got '%#v'", target, err)

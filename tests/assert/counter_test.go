@@ -4,6 +4,12 @@ import (
 	"testing"
 )
 
+func TestCounterAutoAssert(t *testing.T) {
+	// there is no way to assert if t.Cleanup was called or to remove
+	// failed status, so need to look for coverage if this passes correctly
+	Count(t, 0)
+}
+
 func TestCounterAssert(t *testing.T) {
 	tests := []struct {
 		name string
@@ -13,14 +19,14 @@ func TestCounterAssert(t *testing.T) {
 		{
 			name: "success-zero-assertion",
 			c: func(t *testing.T) *Counter {
-				return Count(0)
+				return Count(t, 0)
 			},
 			fail: false,
 		},
 		{
 			name: "success-assertion",
 			c: func(t *testing.T) *Counter {
-				c := Count(1)
+				c := Count(t, 1)
 				c.Inc()
 				return c
 			},
@@ -29,7 +35,7 @@ func TestCounterAssert(t *testing.T) {
 		{
 			name: "fail-assertion",
 			c: func(t *testing.T) *Counter {
-				return Count(1)
+				return Count(t, 1)
 			},
 			fail: true,
 		},
@@ -38,7 +44,9 @@ func TestCounterAssert(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			test := &testing.T{}
-			tt.c(t).Assert(test)
+
+			tt.c(test).Assert(test)
+
 			Equal(t, tt.fail, test.Failed())
 		})
 	}

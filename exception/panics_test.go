@@ -5,15 +5,8 @@ import (
 	"testing"
 
 	"github.com/Prastiwar/Go-flow/tests/assert"
+	"github.com/Prastiwar/Go-flow/tests/mocks"
 )
-
-type stringerMock struct {
-	name string
-}
-
-func (s stringerMock) String() string {
-	return s.name
-}
 
 var (
 	errShared = errors.New("invalid")
@@ -48,7 +41,7 @@ func TestConvertToError(t *testing.T) {
 		},
 		{
 			name: "success-from-stringer",
-			e:    stringerMock{name: "smth"},
+			e:    mocks.Stringer{Value: "smth"},
 			assertErr: func(t *testing.T, err error) {
 				assert.Equal(t, "smth", err.Error())
 			},
@@ -95,7 +88,7 @@ func TestHandlePanicError(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			counter := assert.Count(tt.count)
+			counter := assert.Count(t, tt.count)
 
 			defer HandlePanicError(func(err error) {
 				tt.onPanic(t, counter)(err)

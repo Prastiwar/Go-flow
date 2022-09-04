@@ -2,6 +2,7 @@ package assert
 
 import "testing"
 
+// MapMatch asserts all keys and corresponding values are applied to both map.
 func MapMatch[K comparable, V any](t *testing.T, mapA, mapB map[K]V) {
 	if len(mapA) != len(mapB) {
 		t.Errorf("expected same map length: mapA: '%v', mapB: '%v'", len(mapA), len(mapB))
