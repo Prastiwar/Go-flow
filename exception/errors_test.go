@@ -2,12 +2,13 @@ package exception
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
-func TestAggregate(t *testing.T) {
+func TestAggregatef(t *testing.T) {
 	tests := []struct {
 		name    string
 		errors  []error
@@ -33,4 +34,23 @@ func TestAggregate(t *testing.T) {
 			assert.Equal(t, tt.wantErr, err)
 		})
 	}
+}
+
+func TestStackTrace(t *testing.T) {
+	got := StackTrace()
+
+	lines := strings.Split(got, "\n")
+	if len(lines) < 6 {
+		t.Error("too few lines")
+	}
+
+	const expected = "exception.TestStackTrace"
+	contains := false
+	for _, v := range lines {
+		if strings.Contains(v, expected) {
+			contains = true
+			break
+		}
+	}
+	assert.Equal(t, true, contains, "stack trace does not contain current function path")
 }
