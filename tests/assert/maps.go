@@ -23,6 +23,7 @@ func MapMatch[K comparable, V any](t *testing.T, mapA, mapB map[K]V, prefixes ..
 	}
 }
 
+// MapHas asserts that map contains specified key with equal value.
 func MapHas[K comparable, V any](t *testing.T, m map[K]V, key K, val V, prefixes ...string) {
 	v, ok := m[key]
 	if !ok {
