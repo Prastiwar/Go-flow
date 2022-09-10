@@ -1,6 +1,7 @@
 package assert
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -27,8 +28,8 @@ func (c *Counter) Inc() {
 }
 
 // Assert checks for count expectation.
-func (c *Counter) Assert(t *testing.T) {
+func (c *Counter) Assert(t *testing.T, prefixes ...string) {
 	if c.expectedCount != c.counter {
-		t.Errorf("expected call count: '%v' actual: '%v'", c.expectedCount, c.counter)
+		errorf(t, fmt.Sprintf("expected call count: '%v', actual: '%v'", c.expectedCount, c.counter), prefixes...)
 	}
 }
