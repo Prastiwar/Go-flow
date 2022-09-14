@@ -100,7 +100,11 @@ func (c *container) Validate() error {
 		}
 	}
 
-	return exception.Aggregate(errs...)
+	if len(errs) > 0 {
+		return exception.Aggregate(errs...)
+	}
+
+	return nil
 }
 
 // Scope returns a new scoped container which will cache scoped lifetime services.
