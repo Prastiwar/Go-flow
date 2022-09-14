@@ -8,7 +8,7 @@ import (
 )
 
 func ExampleAggregatef() {
-	aggErr := exception.Aggregatef(
+	aggErr := exception.Aggregatedf(
 		errors.New("'' is not valid value for title"),
 		errors.New("title is required"),
 	)
