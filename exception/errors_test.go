@@ -8,6 +8,69 @@ import (
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
+func TestAggregate(t *testing.T) {
+	tests := []struct {
+		name string
+		errs []error
+		want AggregatedError
+	}{
+		{
+			name: "success-nested-flat",
+			errs: []error{
+				errors.New("1"),
+				Aggregate(errors.New("2"), errors.New("3"), errors.New("4")),
+				Aggregate(errors.New("5")),
+				errors.New("6"),
+			},
+			want: Aggregate(
+				errors.New("1"),
+				errors.New("2"),
+				errors.New("3"),
+				errors.New("4"),
+				errors.New("5"),
+				errors.New("6"),
+			),
+		},
+		{
+			name: "success-flat-flat",
+			errs: []error{
+				errors.New("1"),
+				errors.New("2"),
+				errors.New("3"),
+			},
+			want: Aggregate(
+				errors.New("1"),
+				errors.New("2"),
+				errors.New("3"),
+			),
+		},
+		{
+			name: "success-shuffled",
+			errs: []error{
+				Aggregate(errors.New("2"), errors.New("3"), errors.New("4")),
+				errors.New("1"),
+				errors.New("6"),
+				Aggregate(errors.New("5")),
+			},
+			want: Aggregate(
+				errors.New("2"),
+				errors.New("3"),
+				errors.New("4"),
+				errors.New("1"),
+				errors.New("6"),
+				errors.New("5"),
+			),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := Aggregate(tt.errs...).Flat()
+			assert.Equal(t, tt.want.Error(), got.Error())
+		})
+	}
+}
+
 func TestAggregatef(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -30,7 +93,7 @@ func TestAggregatef(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Aggregatef(tt.errors...)
+			err := Aggregatedf(tt.errors...)
 			assert.Equal(t, tt.wantErr, err)
 		})
 	}

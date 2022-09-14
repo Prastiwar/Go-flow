@@ -7,16 +7,16 @@ import (
 	"github.com/Prastiwar/Go-flow/exception"
 )
 
-func ExampleAggregatef() {
-	aggErr := exception.Aggregatef(
+func ExampleAggregatedError() {
+	aggErr := exception.Aggregate(
 		errors.New("'' is not valid value for title"),
 		errors.New("title is required"),
 	)
-	err := fmt.Errorf("validation: %w", aggErr)
+	err := fmt.Errorf("(%v) validation errors: %w", len(aggErr), aggErr)
 	fmt.Println(err)
 
 	// Output:
-	// validation: ["'' is not valid value for title", "title is required"]
+	// (2) validation errors: ["'' is not valid value for title", "title is required"]
 }
 
 func ExampleHandlePanicError() {
