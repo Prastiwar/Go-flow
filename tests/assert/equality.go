@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 type ErrorFunc func(t *testing.T, err error)
@@ -77,5 +78,12 @@ func ErrorIs(t *testing.T, err error, target error, prefixes ...string) {
 func ErrorType(t *testing.T, err error, target error, prefixes ...string) {
 	if reflect.TypeOf(err) != reflect.TypeOf(target) {
 		errorf(t, fmt.Sprintf("expected '%#v' error but got '%#v'", target, err), prefixes...)
+	}
+}
+
+// Approximately asserts actual duration is approximately(within delta difference) equal to expected duration.
+func Approximately(t *testing.T, expected time.Duration, actual time.Duration, delta time.Duration, prefixes ...string) {
+	if expected < actual-delta || expected > actual+delta {
+		errorf(t, fmt.Sprintf("expected approximately '%v' duration but got '%v'", expected, actual), prefixes...)
 	}
 }
