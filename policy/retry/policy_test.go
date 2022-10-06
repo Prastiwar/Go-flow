@@ -39,13 +39,13 @@ func TestPolicy_Execute(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		p        func(t *testing.T) *Policy
+		p        func(t *testing.T) *policy
 		fn       func() error
 		asserter assert.ErrorFunc
 	}{
 		{
 			name: "success-after-single-retry",
-			p: func(t *testing.T) *Policy {
+			p: func(t *testing.T) *policy {
 				c := assert.Count(t, 1, "failed retry call")
 				return NewPolicy(
 					WithCount(1),
@@ -68,7 +68,7 @@ func TestPolicy_Execute(t *testing.T) {
 		},
 		{
 			name: "success-3-retries-cancel",
-			p: func(t *testing.T) *Policy {
+			p: func(t *testing.T) *policy {
 				c := assert.Count(t, 3, "failed retry call")
 				return NewPolicy(
 					WithCount(5),
@@ -87,7 +87,7 @@ func TestPolicy_Execute(t *testing.T) {
 		},
 		{
 			name: "success-no-cancel-no-error",
-			p: func(t *testing.T) *Policy {
+			p: func(t *testing.T) *policy {
 				return NewPolicy(
 					WithCount(5),
 				)
@@ -105,7 +105,7 @@ func TestPolicy_Execute(t *testing.T) {
 		},
 		{
 			name: "success-wait-times",
-			p: func(t *testing.T) *Policy {
+			p: func(t *testing.T) *policy {
 				return NewPolicy(
 					WithCount(3),
 					WithWaitTimes(firstAttemptTime, secondAttemptTime),
@@ -121,7 +121,7 @@ func TestPolicy_Execute(t *testing.T) {
 		},
 		{
 			name: "success-waiter",
-			p: func(t *testing.T) *Policy {
+			p: func(t *testing.T) *policy {
 				return NewPolicy(
 					WithCount(3),
 					WithWaiter(func(attempt int, err error) time.Duration {
@@ -147,7 +147,7 @@ func TestPolicy_Execute(t *testing.T) {
 		},
 		{
 			name: "success-default-cancel",
-			p: func(t *testing.T) *Policy {
+			p: func(t *testing.T) *policy {
 				return NewPolicy(
 					WithCount(1),
 				)

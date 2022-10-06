@@ -15,6 +15,8 @@ Framework for Go services in go with zero dependency rule, so you can use it in 
     - [exception](#exception)
     - [logging](#logging)
     - [middleware](#middleware)
+    - [policy](#policy)
+      - [retry](#retry)
     - [reflection](#reflection)
     - [tests](#tests)
   - [Contributing](#contributing)
@@ -71,6 +73,16 @@ Generic middleware implements middleware architecture pattern to use in generic 
 logging, authentication, compressing data in single contact point which is called pipeline. The pattern is commonly used in http packages.
 
 See [example file](middleware\example_test.go) for runnable examples.
+
+### policy
+
+Defines policies that could help developers to handle gracefully faults like retry.
+
+#### retry
+
+Policy helps to handle transient errors by repeating the function call. It includes configuration features like retry count, wait time before next retry execution or cancellation control which can be used to stop retry execution on error which is not transient.
+
+See [example file](policy\retry\example_test.go) for runnable retry policy examples.
 
 ### reflection
 
