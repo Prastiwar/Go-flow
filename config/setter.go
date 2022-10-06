@@ -38,14 +38,16 @@ func (s *fieldSetter) SetFields(v any, findFn FieldValueFinder) error {
 		return err
 	}
 
-	for i := 0; i < toVal.NumField(); i++ {
+	count := toVal.NumField()
+	toValType := toVal.Type()
+	for i := 0; i < count; i++ {
 		field := toVal.Field(i)
 
 		if !field.CanSet() {
 			continue
 		}
 
-		sf := toVal.Type().Field(i)
+		sf := toValType.Field(i)
 		key := s.options.Intercept(s.name, sf)
 		rawValue, err := findFn(key)
 		if err != nil {

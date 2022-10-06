@@ -29,9 +29,15 @@ func GetFieldValueFor(fieldType reflect.Type, rawValue any) (reflect.Value, erro
 		val = val.Elem()
 	}
 
-	if fieldType.Kind() == reflect.Pointer {
+	valType := val.Type()
+	if valType.AssignableTo(fieldType) {
+		return val, nil
+	}
+
+	isFieldTypePointer := fieldType.Kind() == reflect.Pointer
+	if isFieldTypePointer {
 		fieldNonPointer := fieldType.Elem()
-		if val.Type().ConvertibleTo(fieldNonPointer) {
+		if valType.ConvertibleTo(fieldNonPointer) {
 			p := reflect.New(fieldNonPointer)
 			val = val.Convert(fieldNonPointer)
 			p.Elem().Set(val)
@@ -39,12 +45,12 @@ func GetFieldValueFor(fieldType reflect.Type, rawValue any) (reflect.Value, erro
 		}
 	}
 
-	if val.Type().ConvertibleTo(fieldType) {
+	if valType.ConvertibleTo(fieldType) {
 		val = val.Convert(fieldType)
 		return val, nil
 	}
 
-	if fieldType.Kind() == reflect.Pointer {
+	if isFieldTypePointer {
 		defaultValue := reflect.Zero(fieldType.Elem())
 		vv, err := Parse(val.String(), defaultValue)
 		if err != nil {
