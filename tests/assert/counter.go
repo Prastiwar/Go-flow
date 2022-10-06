@@ -13,10 +13,10 @@ type Counter struct {
 // Count returns a Counter with expected n count to be asserted. Use Inc() to mark a call.
 // Assert() will be called on test cleanup, so it's not necessary to call it manually but recommended
 // due to convention to not hide any test side effects.
-func Count(t *testing.T, n int) *Counter {
+func Count(t *testing.T, n int, prefixes ...string) *Counter {
 	c := &Counter{expectedCount: n}
 	t.Cleanup(func() {
-		c.Assert(t)
+		c.Assert(t, prefixes...)
 	})
 
 	return c

@@ -21,13 +21,15 @@ const (
 	DebugLevel = "DEBUG" // diagnostics log level.
 )
 
-// FieldSetter is implemented by any value that has a Format method.
+// Formatter is implemented by any value that has a Format method.
 // The implementation controls how to format message with Fields as
 // an output string.
 type Formatter interface {
 	Format(msg string, fields Fields) string
 }
 
+// Logger is implemented by any value that has a defined methods for logging, output, scope and formatter.
+// The implementation controls which how specified levels are printed into output.
 type Logger interface {
 	// Output returns writer used as a logger output.
 	Output() io.Writer
