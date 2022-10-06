@@ -20,7 +20,9 @@ func WithCount(count int) Option {
 func WithWaitTimes(waitTimes ...time.Duration) Option {
 	l := len(waitTimes)
 	if l == 0 {
-		panic("cant do that")
+		return WithWaiter(func(attempt int, err error) time.Duration {
+			return 0
+		})
 	}
 
 	return WithWaiter(func(attempt int, err error) time.Duration {

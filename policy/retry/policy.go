@@ -22,7 +22,9 @@ func (p *Policy) Execute(fn func() error) error {
 	cancel := p.cancel
 
 	if cancel == nil {
-		cancel = func(attempt int, err error) bool { return false }
+		cancel = func(attempt int, err error) bool {
+			return false
+		}
 	}
 
 	for i := 1; i <= attempts; i++ {

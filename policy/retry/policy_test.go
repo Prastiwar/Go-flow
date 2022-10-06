@@ -145,6 +145,20 @@ func TestPolicy_Execute(t *testing.T) {
 				assert.Error(t, err)
 			},
 		},
+		{
+			name: "success-default-cancel",
+			p: func(t *testing.T) *Policy {
+				return NewPolicy(
+					WithCount(1),
+				)
+			},
+			fn: func() error {
+				return errors.New("invalid")
+			},
+			asserter: func(t *testing.T, err error) {
+				assert.Error(t, err)
+			},
+		},
 	}
 
 	for _, tt := range tests {
