@@ -37,7 +37,7 @@ Writing production-ready system developer often must make decision which will no
 Configuration module wchich provides functionality to load configuration from file, environment variables and command line arguments with binding to a struct functionality.
 It allows to extend the behavior with interfaces for providers and KeyInterceptor option to change the way it looks for matching key for field name.
 
-See [example file](config\example_test.go) for runnable examples.
+See [example file](config/example_test.go) for runnable examples.
 
 ### di
 
@@ -48,13 +48,13 @@ Try to use dependency injection without container first and then use container i
 Providing a service implementation does not return error - it panics instead. User is responsible for verifying if service he wants to use is registered - this is the easiest problem user need to deal with
 while working with dependency container. The other common mistakes like cyclic dependency or missing dependency is solved by validating the container registration and returning and error at this point.
 
-See [example file](di\example_test.go) for runnable examples.
+See [example file](di/example_test.go) for runnable examples.
 
 ### exception
 
 It provides helper functions to facilitate work with errors. It allows to handle panic with ensured error (when panic is commonly mixed strings or errors), aggregate the errors and more.
 
-See [example file](exception\example_test.go) for runnable examples.
+See [example file](exception/example_test.go) for runnable examples.
 
 ### logging
 
@@ -65,14 +65,14 @@ Warning is not common and mostly used in wrong way since it's just an informatio
 which should be considered as anti-pattern due to hidden dependency and lack of way to encapsulate(mock) its behavior.
 The global printing should be used only for testing or playground cases where fmt.Print suits best but due to global logging existence it often encourages to use it in actual project where correct way would be to use logger as dependency.
 
-See [example file](logf\example_test.go) for runnable examples.
+See [example file](logf/example_test.go) for runnable examples.
 
 ### middleware
 
 Generic middleware implements middleware architecture pattern to use in generic way. It's used to create delegates for processing the request or response and handle common tasks like
 logging, authentication, compressing data in single contact point which is called pipeline. The pattern is commonly used in http packages.
 
-See [example file](middleware\example_test.go) for runnable examples.
+See [example file](middleware/example_test.go) for runnable examples.
 
 ### policy
 
@@ -82,15 +82,15 @@ Defines policies that could help developers to handle gracefully faults like ret
 
 Policy helps to handle transient errors by repeating the function call. It includes configuration features like retry count, wait time before next retry execution or cancellation control which can be used to stop retry execution on error which is not transient.
 
-See [example file](policy\retry\example_test.go) for runnable retry policy examples.
+See [example file](policy/retry/example_test.go) for runnable retry policy examples.
 
 ### reflection
 
 Extended package for standard "reflect" package. Provides functions to help with tasks where reflection is needed like parsing, setting field values or casting an array.
 
-See [example file](reflection\example_test.go) for runnable reflection examples.
+See [example file](reflection/example_test.go) for runnable reflection examples.
 
-See [example file](reflection\cast\example_test.go) for runnable casting examples.
+See [example file](reflection/cast/example_test.go) for runnable casting examples.
 
 ### tests
 
