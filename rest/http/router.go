@@ -1,7 +1,8 @@
-package net
+package http
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/Prastiwar/Go-flow/rest"
 )
@@ -12,15 +13,26 @@ type router struct {
 
 func (r *router) Register(pattern string, h rest.HttpHandler) {
 	r.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
-		req := &request{req: r}
+		req := rest.NewRequest(r.Method, r.URL.RawPath, r.Body, r.Header)
 
 		resp := h.Handle(req)
 
+		for key, values := range resp.Headers() {
+			for _, val := range values {
+				w.Header().Add(key, val)
+			}
+		}
 		w.WriteHeader(resp.StatusCode())
 
-		// TODO: improve
-		b, _ := resp.Body()
-		_, _ = w.Write(b)
+		contentLengthHeader := resp.Headers().Get(rest.ContentLengthHeader)
+		contentLength, _ := strconv.ParseInt(contentLengthHeader, 10, 0)
+		bytes := make([]byte, 0, contentLength)
+
+		// TODO: handle errors
+		_, err := resp.Body().Read(bytes)
+		if err == nil {
+			_, _ = w.Write(bytes)
+		}
 	})
 }
 

@@ -1,40 +1,40 @@
+// rest package abstracts REST communication.
 package rest
 
 import (
 	"context"
 	"io"
-	"net/http"
 	"net/url"
 )
 
 type HttpClient interface {
-	// TODO: handle headers and body io.Reader
-	Send(ctx context.Context, method string, url string) (HttpResponse, error)
+	Send(ctx context.Context, req HttpRequest) (HttpResponse, error)
 }
 
-// TODO: Improve name
-type Convention struct {
+type FluentClient struct {
 	c HttpClient
 }
 
-func (c *Convention) Get(ctx context.Context, url string) (HttpResponse, error) {
-	return c.c.Send(ctx, http.MethodGet, url)
+func NewFluentClient(c HttpClient) *FluentClient {
+	return &FluentClient{c: c}
 }
 
-func (c *Convention) Post(ctx context.Context, url string, body io.Reader) (HttpResponse, error) {
-	return c.c.Send(ctx, http.MethodPost, url)
+func (c *FluentClient) Get(ctx context.Context, url string) (HttpResponse, error) {
+	return c.c.Send(ctx, NewGetRequest(url))
 }
 
-func (c *Convention) PostForm(ctx context.Context, url string, form url.Values) (HttpResponse, error) {
-	// body := strings.NewReader(form.Encode())
-	// contentType := "application/x-www-form-urlencoded"
-	return c.c.Send(ctx, http.MethodPost, url)
+func (c *FluentClient) Post(ctx context.Context, url string, body io.Reader) (HttpResponse, error) {
+	return c.c.Send(ctx, NewPostRequest(url, io.NopCloser(body)))
 }
 
-func (c *Convention) Put(ctx context.Context, url string, body io.Reader) (HttpResponse, error) {
-	return c.c.Send(ctx, http.MethodPut, url)
+func (c *FluentClient) PostForm(ctx context.Context, url string, form url.Values) (HttpResponse, error) {
+	return c.c.Send(ctx, NewPostFormRequest(url, form))
 }
 
-func (c *Convention) Delete(ctx context.Context, url string) (HttpResponse, error) {
-	return c.c.Send(ctx, http.MethodDelete, url)
+func (c *FluentClient) Put(ctx context.Context, url string, body io.Reader) (HttpResponse, error) {
+	return c.c.Send(ctx, NewPutRequest(url, io.NopCloser(body)))
+}
+
+func (c *FluentClient) Delete(ctx context.Context, url string) (HttpResponse, error) {
+	return c.c.Send(ctx, NewDeleteRequest(url))
 }

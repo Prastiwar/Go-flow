@@ -1,15 +1,28 @@
 package rest
 
-import "net/http"
+import (
+	"io"
+	"net/http"
+)
+
+var (
+	defaultHeaders = http.Header{}
+)
+
+type HttpResponse interface {
+	Body() io.ReadCloser
+	StatusCode() int
+	Headers() http.Header
+}
 
 type response struct {
 	code    int
-	body    []byte
+	body    io.ReadCloser
 	headers http.Header
 }
 
-func (r *response) Body() ([]byte, error) {
-	return r.body, nil
+func (r *response) Body() io.ReadCloser {
+	return r.body
 }
 
 func (r *response) Headers() http.Header {
@@ -20,17 +33,46 @@ func (r *response) StatusCode() int {
 	return r.code
 }
 
-func newResponse(code int, body []byte, h http.Header) *response {
+func NewResponse(code int, body io.ReadCloser, headers http.Header) *response {
 	return &response{
 		code:    code,
 		body:    body,
-		headers: h,
+		headers: headers,
 	}
 }
 
-func NotFound() HttpResponse {
-	// TODO: Default headers
-	return newResponse(http.StatusNotFound, []byte{}, http.Header{})
+func Ok() HttpResponse {
+	return NewResponse(http.StatusOK, http.NoBody, defaultHeaders)
 }
 
-// TODO: BadRequest, Forbidden, InternalServerError
+func Created() HttpResponse {
+	return NewResponse(http.StatusCreated, http.NoBody, defaultHeaders)
+}
+
+func NoContent() HttpResponse {
+	return NewResponse(http.StatusNoContent, http.NoBody, defaultHeaders)
+}
+
+func BadRequest() HttpResponse {
+	return NewResponse(http.StatusBadRequest, http.NoBody, defaultHeaders)
+}
+
+func Unprocessable() HttpResponse {
+	return NewResponse(http.StatusUnprocessableEntity, http.NoBody, defaultHeaders)
+}
+
+func NotFound() HttpResponse {
+	return NewResponse(http.StatusNotFound, http.NoBody, defaultHeaders)
+}
+
+func Forbidden() HttpResponse {
+	return NewResponse(http.StatusForbidden, http.NoBody, defaultHeaders)
+}
+
+func Unathorized() HttpResponse {
+	return NewResponse(http.StatusUnauthorized, http.NoBody, defaultHeaders)
+}
+
+func InternalServerError() HttpResponse {
+	return NewResponse(http.StatusInternalServerError, http.NoBody, defaultHeaders)
+}
