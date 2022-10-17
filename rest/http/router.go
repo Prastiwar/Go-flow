@@ -11,6 +11,11 @@ type router struct {
 	mux *http.ServeMux
 }
 
+func (r *router) Handle(req rest.HttpRequest) rest.HttpResponse {
+	httpReq, _ := http.NewRequestWithContext(req.Context(), req.Method(), req.Url(), req.Body())
+	r.mux.ServeHTTP(writer, httpReq)
+}
+
 func (r *router) Register(pattern string, h rest.HttpHandler) {
 	r.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 		req := rest.NewRequest(r.Method, r.URL.RawPath, r.Body, r.Header)

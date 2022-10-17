@@ -18,6 +18,7 @@ Framework for Go services in go with zero dependency rule, so you can use it in 
     - [policy](#policy)
       - [retry](#retry)
     - [reflection](#reflection)
+    - [rest](#rest)
     - [tests](#tests)
   - [Contributing](#contributing)
   - [License](#license)
@@ -91,6 +92,12 @@ Extended package for standard "reflect" package. Provides functions to help with
 See [example file](reflection/example_test.go) for runnable reflection examples.
 
 See [example file](reflection/cast/example_test.go) for runnable casting examples.
+
+### rest
+
+net/http abstration
+
+See [example file](rest/example_test.go) for runnable examples.
 
 ### tests
 

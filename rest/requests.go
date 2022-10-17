@@ -2,6 +2,7 @@ package rest
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"net/url"
@@ -12,6 +13,7 @@ import (
 )
 
 type HttpRequest interface {
+	Context() context.Context
 	Method() string
 	Url() string
 	Headers() http.Header
@@ -22,6 +24,7 @@ type HttpRequest interface {
 }
 
 type request struct {
+	ctx           context.Context
 	method        string
 	url           string
 	contentLength int64
@@ -29,6 +32,10 @@ type request struct {
 	headers       http.Header
 	query         url.Values
 	timestamp     time.Time
+}
+
+func (r request) Context() context.Context {
+	return r.ctx
 }
 
 func (r request) Body() io.ReadCloser {
@@ -57,6 +64,11 @@ func (r request) Timestamp() time.Time {
 
 func (r request) Url() string {
 	return r.url
+}
+
+func (r request) WithContext(ctx context.Context) request {
+	r.ctx = ctx
+	return r
 }
 
 func NewRequest(method string, url string, body io.ReadCloser, headers http.Header) *request {
