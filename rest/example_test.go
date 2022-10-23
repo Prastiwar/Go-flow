@@ -10,6 +10,42 @@ import (
 	"github.com/Prastiwar/Go-flow/rest/http"
 )
 
+func ExampleXD() {
+	rawRouter := http.NewHttpRouter()
+	router := rest.NewFluentRouter(rawRouter)
+	router.RegisterFunc("/api/test", func(req rest.HttpRequest) rest.HttpResponse {
+		fmt.Println("printed from api endpoint")
+		return rest.Ok()
+	})
+
+	server := &stdHttp.Server{}
+	s := http.NewServer(server, router)
+
+	go func() {
+		s.Run("localhost:8080", router)
+	}()
+
+	stdClient := &stdHttp.Client{}
+	rawClient := http.NewHttpClient(stdClient)
+	client := rest.NewFluentClient(rawClient)
+
+	resp, err := client.Get(context.Background(), "http://localhost:8080/api/test")
+	if err != nil {
+		panic(err)
+	}
+
+	if resp.StatusCode() >= 400 {
+		panic(fmt.Errorf("unsuccessfull http request: %v", resp))
+	}
+
+	if err := s.Shutdown(context.Background()); err != nil {
+		panic(err)
+	}
+
+	// Output:
+	// printed from api endpoint
+}
+
 func Example() {
 	stdClient := &stdHttp.Client{}
 	rawClient := http.NewHttpClient(stdClient)
@@ -17,7 +53,6 @@ func Example() {
 
 	resp, err := client.Get(context.Background(), "https://jsonplaceholder.typicode.com/todos/1")
 	if err != nil {
-		// cannot send request
 		panic(err)
 	}
 
@@ -29,7 +64,6 @@ func Example() {
 
 	decoder := json.NewDecoder(resp.Body())
 	if err := decoder.Decode(&result); err != nil {
-		// cannot decode
 		panic(err)
 	}
 

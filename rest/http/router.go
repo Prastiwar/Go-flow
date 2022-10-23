@@ -12,8 +12,9 @@ type router struct {
 }
 
 func (r *router) Handle(req rest.HttpRequest) rest.HttpResponse {
-	httpReq, _ := http.NewRequestWithContext(req.Context(), req.Method(), req.Url(), req.Body())
-	r.mux.ServeHTTP(writer, httpReq)
+	// httpReq, _ := http.NewRequestWithContext(req.Context(), req.Method(), req.Url(), req.Body())
+	// r.mux.ServeHTTP(nil, httpReq)
+	return rest.Ok()
 }
 
 func (r *router) Register(pattern string, h rest.HttpHandler) {

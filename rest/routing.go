@@ -44,7 +44,10 @@ func (r *FluentRouter) Handle(req HttpRequest) HttpResponse {
 
 	handler, ok := handlers[req.Method()]
 	if !ok {
-		return NewResponse(http.StatusMethodNotAllowed, http.NoBody, defaultHeaders)
+		handler, ok = handlers["*"]
+		if !ok {
+			return NewResponse(http.StatusMethodNotAllowed, http.NoBody, defaultHeaders)
+		}
 	}
 
 	return handler.Handle(req)
@@ -52,24 +55,35 @@ func (r *FluentRouter) Handle(req HttpRequest) HttpResponse {
 
 func (r *FluentRouter) Register(pattern string, h HttpHandler) {
 	r.r.Register(pattern, h)
+	r.registerMethod(pattern, "*", h)
 }
 
 func (r *FluentRouter) RegisterFunc(pattern string, h func(req HttpRequest) HttpResponse) {
 	r.r.RegisterFunc(pattern, h)
+	r.registerMethod(pattern, "*", HttpHandlerFunc(h))
 }
 
 func (r *FluentRouter) Get(url string, h HttpHandler) {
-	r.patterns[url][http.MethodGet] = h
+	r.registerMethod(url, http.MethodGet, h)
 }
 
 func (r *FluentRouter) Post(url string, h HttpHandler) {
-	r.patterns[url][http.MethodPost] = h
+	r.registerMethod(url, http.MethodPost, h)
 }
 
 func (r *FluentRouter) Delete(url string, h HttpHandler) {
-	r.patterns[url][http.MethodDelete] = h
+	r.registerMethod(url, http.MethodDelete, h)
 }
 
 func (r *FluentRouter) Put(url string, h HttpHandler) {
-	r.patterns[url][http.MethodPut] = h
+	r.registerMethod(url, http.MethodPut, h)
+}
+
+func (r *FluentRouter) registerMethod(url string, method string, h HttpHandler) {
+	p := r.patterns[url]
+	if p == nil {
+		p = make(map[string]HttpHandler)
+	}
+	p[method] = h
+	r.patterns[url] = p
 }
