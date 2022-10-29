@@ -41,6 +41,13 @@ func NewResponse(code int, body io.ReadCloser, headers http.Header) *response {
 	}
 }
 
+// TODO:
+// func WithBody(body io.ReadCloser) Option {
+// 	return func(resp *response) {
+// 		resp.body = body
+// 	}
+// }
+
 func Ok() HttpResponse {
 	return NewResponse(http.StatusOK, http.NoBody, defaultHeaders)
 }

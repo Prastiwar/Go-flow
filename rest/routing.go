@@ -29,13 +29,11 @@ type HttpRouter interface {
 type FluentRouter struct {
 	mu sync.RWMutex
 
-	router   HttpRouter
 	patterns map[string]map[string]HttpHandler
 }
 
-func NewFluentRouter(r HttpRouter) HttpRouter {
+func NewFluentRouter() HttpRouter {
 	return &FluentRouter{
-		router:   r,
 		patterns: make(map[string]map[string]HttpHandler),
 	}
 }

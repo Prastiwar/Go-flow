@@ -11,8 +11,7 @@ import (
 )
 
 func ExampleNewFluentRouter() {
-	rawRouter := http.NewHttpRouter()
-	router := rest.NewFluentRouter(rawRouter)
+	router := rest.NewFluentRouter()
 	router.RegisterFunc("/api/test", func(req rest.HttpRequest) rest.HttpResponse {
 		fmt.Println("printed from api endpoint")
 		return rest.Ok()
