@@ -1,20 +1,72 @@
 package http
 
 import (
+	"bytes"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/Prastiwar/Go-flow/rest"
 )
 
+type responseWriter struct {
+	data       *bytes.Buffer
+	headers    http.Header
+	statusCode int
+}
+
+func (r *responseWriter) Header() http.Header {
+	if r.headers == nil {
+		r.headers = make(http.Header)
+	}
+	return r.headers
+}
+
+func (r *responseWriter) Write(data []byte) (int, error) {
+	if r.data == nil {
+		r.data = bytes.NewBuffer(data)
+		return len(data), nil
+	}
+	return r.data.Write(data)
+}
+
+func (r *responseWriter) WriteHeader(statusCode int) {
+	if statusCode < 100 || statusCode > 999 {
+		panic(fmt.Sprintf("invalid WriteHeader code %v", statusCode))
+	}
+	r.statusCode = statusCode
+}
+
+func (r *responseWriter) Read(p []byte) (n int, err error) {
+	return r.data.Read(p)
+}
+
+func (r *responseWriter) Close() error {
+	return nil
+}
+
 type router struct {
 	mux *http.ServeMux
 }
 
 func (r *router) Handle(req rest.HttpRequest) rest.HttpResponse {
-	// httpReq, _ := http.NewRequestWithContext(req.Context(), req.Method(), req.Url(), req.Body())
-	// r.mux.ServeHTTP(nil, httpReq)
-	return rest.Ok()
+	httpReq, err := http.NewRequestWithContext(req.Context(), req.Method(), req.Url(), req.Body())
+	if err != nil {
+		panic(fmt.Errorf("cannot handle request: %w", err))
+	}
+
+	responseRw := &responseWriter{}
+	r.mux.ServeHTTP(responseRw, httpReq)
+
+	if responseRw.data == nil {
+		responseRw.data = bytes.NewBuffer([]byte{})
+	}
+
+	if responseRw.statusCode == 0 {
+		responseRw.statusCode = 200
+	}
+
+	return rest.NewResponse(responseRw.statusCode, responseRw, responseRw.headers)
 }
 
 func (r *router) Register(pattern string, h rest.HttpHandler) {

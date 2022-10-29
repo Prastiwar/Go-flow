@@ -10,7 +10,7 @@ import (
 	"github.com/Prastiwar/Go-flow/rest/http"
 )
 
-func ExampleXD() {
+func ExampleNewFluentRouter() {
 	rawRouter := http.NewHttpRouter()
 	router := rest.NewFluentRouter(rawRouter)
 	router.RegisterFunc("/api/test", func(req rest.HttpRequest) rest.HttpResponse {
@@ -22,7 +22,7 @@ func ExampleXD() {
 	s := http.NewServer(server, router)
 
 	go func() {
-		s.Run("localhost:8080", router)
+		_ = s.Run("localhost:8080", router)
 	}()
 
 	stdClient := &stdHttp.Client{}
@@ -46,7 +46,7 @@ func ExampleXD() {
 	// printed from api endpoint
 }
 
-func Example() {
+func ExampleNewFluentClient() {
 	stdClient := &stdHttp.Client{}
 	rawClient := http.NewHttpClient(stdClient)
 	client := rest.NewFluentClient(rawClient)

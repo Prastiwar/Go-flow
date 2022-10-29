@@ -1,6 +1,9 @@
 package rest
 
-import "net/http"
+import (
+	"net/http"
+	"sync"
+)
 
 type httpHandlerFunc func(req HttpRequest) HttpResponse
 
@@ -24,14 +27,16 @@ type HttpRouter interface {
 }
 
 type FluentRouter struct {
+	mu sync.RWMutex
+
+	router   HttpRouter
 	patterns map[string]map[string]HttpHandler
-	r        HttpRouter
 }
 
 func NewFluentRouter(r HttpRouter) HttpRouter {
 	return &FluentRouter{
+		router:   r,
 		patterns: make(map[string]map[string]HttpHandler),
-		r:        r,
 	}
 }
 
@@ -54,12 +59,10 @@ func (r *FluentRouter) Handle(req HttpRequest) HttpResponse {
 }
 
 func (r *FluentRouter) Register(pattern string, h HttpHandler) {
-	r.r.Register(pattern, h)
 	r.registerMethod(pattern, "*", h)
 }
 
 func (r *FluentRouter) RegisterFunc(pattern string, h func(req HttpRequest) HttpResponse) {
-	r.r.RegisterFunc(pattern, h)
 	r.registerMethod(pattern, "*", HttpHandlerFunc(h))
 }
 
@@ -80,6 +83,9 @@ func (r *FluentRouter) Put(url string, h HttpHandler) {
 }
 
 func (r *FluentRouter) registerMethod(url string, method string, h HttpHandler) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	p := r.patterns[url]
 	if p == nil {
 		p = make(map[string]HttpHandler)

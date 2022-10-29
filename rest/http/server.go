@@ -16,7 +16,7 @@ type httpServer struct {
 func (s *httpServer) Run(addr string, h rest.HttpHandler) error {
 	s.server.Addr = addr
 	s.server.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req := rest.NewRequest(r.Method, r.URL.Path, r.Body, r.Header)
+		req := rest.NewRequest(r.Method, r.URL.Path, r.Body, r.Header).WithContext(r.Context())
 
 		resp := h.Handle(req)
 
