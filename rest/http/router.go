@@ -16,7 +16,7 @@ func (r *router) Handle(req rest.HttpRequest) rest.HttpResponse {
 
 	r.mux.ServeHTTP(w, httpReq)
 
-	return rest.NewResponse(w.StatusCode(), w, w.Header())
+	return rest.NewResponse(w.StatusCode(), rest.WithBody(w), rest.WithHeaders(w.Header()))
 }
 
 func (r *router) createRequest(req rest.HttpRequest) (responseReaderWriter, *http.Request) {

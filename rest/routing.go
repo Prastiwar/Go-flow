@@ -2,6 +2,7 @@ package rest
 
 import (
 	"net/http"
+	"strings"
 	"sync"
 )
 
@@ -39,7 +40,9 @@ func NewFluentRouter() HttpRouter {
 }
 
 func (r *FluentRouter) Handle(req HttpRequest) HttpResponse {
-	pattern := req.Url() // TODO: extract pattern
+	url := r.normalizeUrl(req.Url())
+	pattern := url // TODO: extract pattern
+
 	handlers, ok := r.patterns[pattern]
 	if !ok {
 		return NotFound()
@@ -49,7 +52,7 @@ func (r *FluentRouter) Handle(req HttpRequest) HttpResponse {
 	if !ok {
 		handler, ok = handlers["*"]
 		if !ok {
-			return NewResponse(http.StatusMethodNotAllowed, http.NoBody, defaultHeaders)
+			return NewResponse(http.StatusMethodNotAllowed)
 		}
 	}
 
@@ -84,10 +87,16 @@ func (r *FluentRouter) registerMethod(url string, method string, h HttpHandler) 
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
+	url = r.normalizeUrl(url)
+
 	p := r.patterns[url]
 	if p == nil {
 		p = make(map[string]HttpHandler)
 	}
 	p[method] = h
 	r.patterns[url] = p
+}
+
+func (r *FluentRouter) normalizeUrl(url string) string {
+	return strings.Trim(url, "/")
 }

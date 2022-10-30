@@ -23,7 +23,7 @@ func (c *client) Send(ctx context.Context, req rest.HttpRequest) (rest.HttpRespo
 		return nil, err
 	}
 
-	return rest.NewResponse(resp.StatusCode, resp.Body, resp.Header), nil
+	return rest.NewResponse(resp.StatusCode, rest.WithBody(resp.Body), rest.WithHeaders(resp.Header)), nil
 }
 
 // NewHttpClient returns rest.HttpClient adapter for http.Client.
