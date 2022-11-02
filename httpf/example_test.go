@@ -50,11 +50,6 @@ func Example() {
 	}))
 
 	mux.Post("/api/test/", httpf.HandlerFunc(func(w http.ResponseWriter, r *http.Request) error {
-		err := errors.New("lel")
-		if err != nil {
-			return err
-		}
-
 		result := struct {
 			Id string `json:"id"`
 		}{
@@ -77,7 +72,7 @@ func Example() {
 
 	fmt.Println(resp.StatusCode)
 	body, _ := io.ReadAll(resp.Body)
-	fmt.Println(body)
+	fmt.Println(string(body))
 
 	// output:
 	// 201

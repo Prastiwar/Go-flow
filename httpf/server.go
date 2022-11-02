@@ -20,6 +20,7 @@ type Server interface {
 
 func NewServer(addr string, router Router) *http.Server {
 	return &http.Server{
+		Addr:    addr,
 		Handler: router,
 	}
 }

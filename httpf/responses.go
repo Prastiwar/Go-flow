@@ -6,6 +6,11 @@ import (
 )
 
 func Json(w http.ResponseWriter, status int, data interface{}) error {
+	if data == nil {
+		w.WriteHeader(status)
+		return nil
+	}
+
 	v, err := json.Marshal(data)
 	if err != nil {
 		return err

@@ -56,12 +56,13 @@ func (b *serveMuxBuilder) Build() Router {
 				http.Error(w, "", http.StatusMethodNotAllowed)
 				return
 			}
-			err := h.ServeHTTP(w, r)
 
-			if b.errorHandler != nil {
-				b.errorHandler.Handle(w, r, err)
-			} else {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if err := h.ServeHTTP(w, r); err != nil {
+				if b.errorHandler != nil {
+					b.errorHandler.Handle(w, r, err)
+				} else {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+				}
 			}
 		})
 	}
