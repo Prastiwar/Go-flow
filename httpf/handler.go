@@ -2,12 +2,31 @@ package httpf
 
 import "net/http"
 
-type Handler interface {
-	ServeHTTP(w http.ResponseWriter, r *http.Request) error
+type ResponseWriter interface {
+	http.ResponseWriter
+
+	Response(code int, data interface{}) error
 }
 
-type HandlerFunc func(w http.ResponseWriter, r *http.Request) error
+type jsonWriterDecorator struct {
+	http.ResponseWriter
+}
 
-func (h HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) error {
+func (d *jsonWriterDecorator) Response(code int, data interface{}) error {
+	return Json(d, code, data)
+}
+
+type Request interface {
+	// TODO: implement
+	PathParam(key string)
+}
+
+type Handler interface {
+	ServeHTTP(w ResponseWriter, r *http.Request) error
+}
+
+type HandlerFunc func(w ResponseWriter, r *http.Request) error
+
+func (h HandlerFunc) ServeHTTP(w ResponseWriter, r *http.Request) error {
 	return h(w, r)
 }

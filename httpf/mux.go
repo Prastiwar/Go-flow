@@ -8,8 +8,9 @@ import (
 type serveMuxBuilder struct {
 	mu sync.RWMutex
 
-	routes       map[string]map[string]Handler
-	errorHandler ErrorHandler
+	routes          map[string]map[string]Handler
+	errorHandler    ErrorHandler
+	writerDecorator func(http.ResponseWriter) ResponseWriter
 }
 
 func NewServeMuxBuilder() *serveMuxBuilder {
@@ -47,6 +48,11 @@ func (b *serveMuxBuilder) WithErrorHandler(handler ErrorHandler) RouteBuilder {
 	return b
 }
 
+func (b *serveMuxBuilder) WithWriterDecorator(decorator func(http.ResponseWriter) ResponseWriter) RouteBuilder {
+	b.writerDecorator = decorator
+	return b
+}
+
 func (b *serveMuxBuilder) Build() Router {
 	mux := http.NewServeMux()
 	for route, handlers := range b.routes {
@@ -57,7 +63,14 @@ func (b *serveMuxBuilder) Build() Router {
 				return
 			}
 
-			if err := h.ServeHTTP(w, r); err != nil {
+			var writer ResponseWriter
+			if b.writerDecorator == nil {
+				writer = &jsonWriterDecorator{w}
+			} else {
+				writer = b.writerDecorator(w)
+			}
+
+			if err := h.ServeHTTP(writer, r); err != nil {
 				if b.errorHandler != nil {
 					b.errorHandler.Handle(w, r, err)
 				} else {

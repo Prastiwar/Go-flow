@@ -49,14 +49,14 @@ func Example() {
 		}
 	}))
 
-	mux.Post("/api/test/", httpf.HandlerFunc(func(w http.ResponseWriter, r *http.Request) error {
+	mux.Post("/api/test/", httpf.HandlerFunc(func(w httpf.ResponseWriter, r *http.Request) error {
 		result := struct {
 			Id string `json:"id"`
 		}{
 			Id: "1234",
 		}
 
-		return httpf.Json(w, http.StatusCreated, result)
+		return w.Response(http.StatusCreated, result)
 	}))
 
 	go func() {

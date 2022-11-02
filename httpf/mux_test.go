@@ -14,7 +14,7 @@ func TestServeMux(t *testing.T) {
 
 	handlerFunc := func(name string) Handler {
 		counter := assert.Count(t, 1, name+" route was not called")
-		return HandlerFunc(func(w http.ResponseWriter, r *http.Request) error {
+		return HandlerFunc(func(w ResponseWriter, r *http.Request) error {
 			counter.Inc()
 			return nil
 		})
@@ -54,7 +54,7 @@ func TestErrorHandler(t *testing.T) {
 	router := mux.WithErrorHandler(ErrorHandlerFunc(func(w http.ResponseWriter, r *http.Request, err error) {
 		errorCounter.Inc()
 		assert.Equal(t, errHandler, err)
-	})).Get("/api/albums/", HandlerFunc(func(w http.ResponseWriter, r *http.Request) error {
+	})).Get("/api/albums/", HandlerFunc(func(w ResponseWriter, r *http.Request) error {
 		return errHandler
 	})).Build()
 
@@ -159,7 +159,7 @@ func TestServeMuxHandleGetError(t *testing.T) {
 			mux := NewServeMuxBuilder()
 
 			router := mux.WithErrorHandler(tt.errHandler(t)).
-				Get("/api/albums/", HandlerFunc(func(w http.ResponseWriter, r *http.Request) error {
+				Get("/api/albums/", HandlerFunc(func(w ResponseWriter, r *http.Request) error {
 					return errHandle
 				})).Build()
 
@@ -167,6 +167,62 @@ func TestServeMuxHandleGetError(t *testing.T) {
 			assert.NilError(t, err)
 
 			router.ServeHTTP(tt.writer(t), r)
+		})
+	}
+}
+
+func TestWriterDecoration(t *testing.T) {
+	tests := []struct {
+		name      string
+		code      int
+		data      interface{}
+		decorator func(t *testing.T) func(http.ResponseWriter) ResponseWriter
+	}{
+		{
+			name: "succes-default-writer",
+			code: 201,
+			data: struct {
+				Id string `json:"id"`
+			}{Id: "123"},
+			decorator: func(t *testing.T) func(http.ResponseWriter) ResponseWriter {
+				return nil
+			},
+		},
+		{
+			name: "succes-custom-writer",
+			code: 204,
+			data: nil,
+			decorator: func(t *testing.T) func(http.ResponseWriter) ResponseWriter {
+				callCounter := assert.Count(t, 1)
+				return func(w http.ResponseWriter) ResponseWriter {
+					return &mocks.ResponseWriter{
+						OnResponse: func(code int, data interface{}) error {
+							callCounter.Inc()
+							return nil
+						},
+					}
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mux := NewServeMuxBuilder()
+
+			router := mux.WithWriterDecorator(tt.decorator(t)).
+				Get("/api/albums/", HandlerFunc(func(w ResponseWriter, r *http.Request) error {
+					return w.Response(tt.code, tt.data)
+				})).Build()
+
+			r, err := http.NewRequest(http.MethodGet, "http://localhost/api/albums/", nil)
+			assert.NilError(t, err)
+
+			router.ServeHTTP(&mocks.ResponseWriter{
+				OnHeader:      func() http.Header { return http.Header{} },
+				OnWriteHeader: func(statusCode int) {},
+				OnWrite:       func(b []byte) (int, error) { return 0, err },
+			}, r)
 		})
 	}
 }

@@ -8,14 +8,7 @@ type ResponseWriter struct {
 	OnHeader      func() http.Header
 	OnWrite       func([]byte) (int, error)
 	OnWriteHeader func(int)
-}
-
-func NewResponseWriter(header func() http.Header, write func([]byte) (int, error), writeHeader func(int)) *ResponseWriter {
-	return &ResponseWriter{
-		OnHeader:      header,
-		OnWrite:       write,
-		OnWriteHeader: writeHeader,
-	}
+	OnResponse    func(int, interface{}) error
 }
 
 func (w *ResponseWriter) Header() http.Header {
@@ -28,4 +21,8 @@ func (w *ResponseWriter) Write(b []byte) (int, error) {
 
 func (w *ResponseWriter) WriteHeader(statusCode int) {
 	w.OnWriteHeader(statusCode)
+}
+
+func (w *ResponseWriter) Response(code int, data interface{}) error {
+	return w.OnResponse(code, data)
 }
