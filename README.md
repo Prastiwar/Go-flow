@@ -13,6 +13,7 @@ Framework for Go services in go with zero dependency rule, so you can use it in 
     - [config](#config)
     - [di](#di)
     - [exception](#exception)
+    - [httpf](#httpf)
     - [logging](#logging)
     - [middleware](#middleware)
     - [policy](#policy)
@@ -55,6 +56,12 @@ See [example file](di/example_test.go) for runnable examples.
 It provides helper functions to facilitate work with errors. It allows to handle panic with ensured error (when panic is commonly mixed strings or errors), aggregate the errors and more.
 
 See [example file](exception/example_test.go) for runnable examples.
+
+### httpf
+
+httpf package provides abstraction over standard net/http to introduce dependency inversion rule. Mosly routing and server are abstracted which should help with mocking and facilitate using it without mistakes while providing harder to misuse API.
+
+See [example file](httpf/example_test.go) for runnable examples.
 
 ### logging
 
