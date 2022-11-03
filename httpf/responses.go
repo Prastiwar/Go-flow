@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// Json marshals the data and writes it to http.ResponseWriter with given status code.
 func Json(w http.ResponseWriter, status int, data interface{}) error {
 	if data == nil {
 		w.WriteHeader(status)

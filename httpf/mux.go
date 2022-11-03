@@ -5,6 +5,8 @@ import (
 	"sync"
 )
 
+// serveMuxBuilder implements RouterBuilder interface with
+// building the http.ServeMux router.
 type serveMuxBuilder struct {
 	mu sync.RWMutex
 
@@ -13,46 +15,61 @@ type serveMuxBuilder struct {
 	writerDecorator func(http.ResponseWriter) ResponseWriter
 }
 
+// NewServeMuxBuilder returns RouterBuilder which build results in adapting
+// http.ServeMux implementation to handle errors and decorates http.ResponseWriter
 func NewServeMuxBuilder() *serveMuxBuilder {
 	return &serveMuxBuilder{
 		routes: make(map[string]map[string]Handler),
 	}
 }
 
+// Get registers handler to pattern using GET method
 func (b *serveMuxBuilder) Get(pattern string, handler Handler) RouteBuilder {
 	return b.handle(http.MethodGet, pattern, handler)
 }
 
+// Post registers handler to pattern using POST method
 func (b *serveMuxBuilder) Post(pattern string, handler Handler) RouteBuilder {
 	return b.handle(http.MethodPost, pattern, handler)
 }
 
+// Put registers handler to pattern using PUT method
 func (b *serveMuxBuilder) Put(pattern string, handler Handler) RouteBuilder {
 	return b.handle(http.MethodPut, pattern, handler)
 }
 
+// Delete registers handler to pattern using DELETE method
 func (b *serveMuxBuilder) Delete(pattern string, handler Handler) RouteBuilder {
 	return b.handle(http.MethodDelete, pattern, handler)
 }
 
+// Patch registers handler to pattern using PATCH method
 func (b *serveMuxBuilder) Patch(pattern string, handler Handler) RouteBuilder {
 	return b.handle(http.MethodPatch, pattern, handler)
 }
 
+// Options registers handler to pattern using OPTIONS method
 func (b *serveMuxBuilder) Options(pattern string, handler Handler) RouteBuilder {
 	return b.handle(http.MethodOptions, pattern, handler)
 }
 
+// WithErrorHandler sets ErrorHandler used in Build
 func (b *serveMuxBuilder) WithErrorHandler(handler ErrorHandler) RouteBuilder {
 	b.errorHandler = handler
 	return b
 }
 
+// WithWriterDecorator sets function which should decorate http.ResponseWriter coming from handler
 func (b *serveMuxBuilder) WithWriterDecorator(decorator func(http.ResponseWriter) ResponseWriter) RouteBuilder {
 	b.writerDecorator = decorator
 	return b
 }
 
+// Build registers the registered handlers in builder to http.ServeMux using mux.HandleFunc
+// which matches accurate HTTP method or returns MethodNotAllowed status. It also wraps handler with
+// proper error handling and decorating incoming http.ResponseWriter.
+// If ResponseWriter decorator was not set jsonWriterDecorator is used instead.
+// If ErrorHandler was not set just http.Error is called with Internal Server status.
 func (b *serveMuxBuilder) Build() Router {
 	mux := http.NewServeMux()
 	for route, handlers := range b.routes {
@@ -82,6 +99,7 @@ func (b *serveMuxBuilder) Build() Router {
 	return mux
 }
 
+// handle registers handler to given pattern with method
 func (b *serveMuxBuilder) handle(method string, pattern string, h Handler) RouteBuilder {
 	b.mu.Lock()
 	defer b.mu.Unlock()

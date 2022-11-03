@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// A Server defines functionality for running an HTTP server.
 type Server interface {
 	Close() error
 	Shutdown(ctx context.Context) error
@@ -18,6 +19,7 @@ type Server interface {
 	ServeTLS(l net.Listener, certFile, keyFile string) error
 }
 
+// NewServer returns a new instance of Server
 func NewServer(addr string, router Router) *http.Server {
 	return &http.Server{
 		Addr:    addr,
