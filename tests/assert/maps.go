@@ -7,6 +7,7 @@ import (
 
 // MapMatch asserts all keys and corresponding values are applied to both map.
 func MapMatch[K comparable, V any](t *testing.T, mapA, mapB map[K]V, prefixes ...string) {
+	t.Helper()
 	if len(mapA) != len(mapB) {
 		errorf(t, fmt.Sprintf("expected same map length: mapA: '%v', mapB: '%v'", len(mapA), len(mapB)), prefixes...)
 	}
@@ -25,6 +26,7 @@ func MapMatch[K comparable, V any](t *testing.T, mapA, mapB map[K]V, prefixes ..
 
 // MapHas asserts that map contains specified key with equal value.
 func MapHas[K comparable, V any](t *testing.T, m map[K]V, key K, val V, prefixes ...string) {
+	t.Helper()
 	v, ok := m[key]
 	if !ok {
 		errorf(t, fmt.Sprintf("not found key: '%v'", key), prefixes...)

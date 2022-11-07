@@ -29,6 +29,7 @@ func (c *Counter) Inc() {
 
 // Assert checks for count expectation.
 func (c *Counter) Assert(t *testing.T, prefixes ...string) {
+	t.Helper()
 	if c.expectedCount != c.counter {
 		errorf(t, fmt.Sprintf("expected call count: '%v', actual: '%v'", c.expectedCount, c.counter), prefixes...)
 	}
