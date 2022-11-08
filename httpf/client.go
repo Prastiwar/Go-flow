@@ -142,7 +142,7 @@ func (c *client) Put(ctx context.Context, url string, body io.Reader) (*http.Res
 
 // Delete sends DELETE request
 func (c *client) Delete(ctx context.Context, url string) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodPost, url, nil)
+	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		return nil, err
 	}

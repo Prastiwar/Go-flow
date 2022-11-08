@@ -1,8 +1,10 @@
 package httpf
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"net/url"
 	"testing"
@@ -108,35 +110,71 @@ func TestClientSend(t *testing.T) {
 func TestClientConenientMethods(t *testing.T) {
 	tests := []struct {
 		name      string
-		run       func(t *testing.T, c Client) (*http.Response, error)
+		run       func(t *testing.T, c Client, url string) (*http.Response, error)
 		assertion func(t *testing.T, req *http.Request)
 	}{
 		{
 			name: http.MethodGet,
-			run: func(t *testing.T, c Client) (*http.Response, error) {
-				return c.Get(context.TODO(), "test")
+			run: func(t *testing.T, c Client, url string) (*http.Response, error) {
+				return c.Get(context.TODO(), url)
 			},
 			assertion: func(t *testing.T, req *http.Request) {
 				assert.NotNil(t, req)
 			},
 		},
-		// TODO: implement
-		// {
-		// 	name: http.MethodPost,
-		// 	// Post(ctx context.Context, url string, body io.Reader) (*http.Response, error)
-		// },
-		// {
-		// 	name: http.MethodPost,
-		// 	// PostForm(ctx context.Context, url string, form url.Values) (*http.Response, error)
-		// },
-		// {
-		// 	name: http.MethodPut,
-		// 	// Put(ctx context.Context, url string, body io.Reader) (*http.Response, error)
-		// },
-		// {
-		// 	name: http.MethodDelete,
-		// 	// Delete(ctx context.Context, url string) (*http.Response, error)
-		// },
+		{
+			name: http.MethodPost,
+			run: func(t *testing.T, c Client, url string) (*http.Response, error) {
+				body := bytes.NewBufferString("test-body")
+				return c.Post(context.TODO(), url, body)
+			},
+			assertion: func(t *testing.T, req *http.Request) {
+				assert.NotNil(t, req)
+
+				data, err := io.ReadAll(req.Body)
+				assert.NilError(t, err)
+				assert.Equal(t, "test-body", string(data))
+			},
+		},
+		{
+			name: http.MethodPost,
+			run: func(t *testing.T, c Client, urlPath string) (*http.Response, error) {
+				form := url.Values{
+					"test": []string{"form"},
+				}
+				return c.PostForm(context.TODO(), urlPath, form)
+			},
+			assertion: func(t *testing.T, req *http.Request) {
+				assert.NotNil(t, req)
+
+				data, err := io.ReadAll(req.Body)
+				assert.NilError(t, err)
+				assert.Equal(t, "test=form", string(data))
+			},
+		},
+		{
+			name: http.MethodPut,
+			run: func(t *testing.T, c Client, url string) (*http.Response, error) {
+				body := bytes.NewBufferString("test-body")
+				return c.Put(context.TODO(), url, body)
+			},
+			assertion: func(t *testing.T, req *http.Request) {
+				assert.NotNil(t, req)
+
+				data, err := io.ReadAll(req.Body)
+				assert.NilError(t, err)
+				assert.Equal(t, "test-body", string(data))
+			},
+		},
+		{
+			name: http.MethodDelete,
+			run: func(t *testing.T, c Client, url string) (*http.Response, error) {
+				return c.Delete(context.TODO(), url)
+			},
+			assertion: func(t *testing.T, req *http.Request) {
+				assert.NotNil(t, req)
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -150,7 +188,15 @@ func TestClientConenientMethods(t *testing.T) {
 			}
 			c := NewClient(WithTransport(rt))
 
-			_, _ = tt.run(t, c)
+			_, _ = tt.run(t, c, "test")
+		})
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name+"-error", func(t *testing.T) {
+			c := NewClient()
+
+			_, _ = tt.run(t, c, "!@#$%^&*()")
 		})
 	}
 }
