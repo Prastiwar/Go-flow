@@ -50,7 +50,7 @@ func TestClientSend(t *testing.T) {
 			ctx:  context.TODO(),
 			req:  &http.Request{URL: googleUrl},
 			client: func(t *testing.T) Client {
-				return NewClient(WithTimeout(200 * time.Millisecond))
+				return NewClient(WithTimeout(time.Millisecond))
 			},
 			assertion: func(t *testing.T, result *http.Response, err error) {
 				assert.ErrorWith(t, err, context.DeadlineExceeded.Error())
@@ -62,14 +62,14 @@ func TestClientSend(t *testing.T) {
 			ctx:  context.TODO(),
 			req:  &http.Request{URL: googleUrl},
 			client: func(t *testing.T) Client {
-				counter1 := assert.Count(t, 2, "SetCookies was expected to be called")
-				counter2 := assert.Count(t, 2, "Cookies was expected to be called")
+				setCookiesCounter := assert.Count(t, 1, "SetCookies was expected to be called").AtLeast()
+				cookiesCounter := assert.Count(t, 1, "Cookies was expected to be called").AtLeast()
 				cookies := &mocks.CookiesJar{
 					OnSetCookies: func(u *url.URL, cookies []*http.Cookie) {
-						counter1.Inc()
+						setCookiesCounter.Inc()
 					},
 					OnCookies: func(u *url.URL) []*http.Cookie {
-						counter2.Inc()
+						cookiesCounter.Inc()
 						return nil
 					},
 				}
