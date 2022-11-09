@@ -49,6 +49,7 @@ type RouteBuilder interface {
 
 	WithErrorHandler(handler ErrorHandler) RouteBuilder
 	WithWriterDecorator(decorator func(http.ResponseWriter) ResponseWriter) RouteBuilder
+	WithParamsParser(parser ParamsParser) RouteBuilder
 
 	Build() Router
 }

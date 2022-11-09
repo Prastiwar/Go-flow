@@ -226,3 +226,32 @@ func TestWriterDecoration(t *testing.T) {
 		})
 	}
 }
+
+func TestWithParamsParser(t *testing.T) {
+	mux := NewServeMuxBuilder()
+
+	mux.WithParamsParser(ParamsParserFunc(func(r *http.Request) map[string]string {
+		return map[string]string{"id": "1234"}
+	}))
+
+	mux.Get("/api/albums/", HandlerFunc(func(w ResponseWriter, r *http.Request) error {
+		id := Param(r, "id")
+		return w.Response(201, id)
+	}))
+
+	router := mux.Build()
+
+	r, err := http.NewRequest(http.MethodGet, "http://localhost/api/albums/1234", nil)
+	assert.NilError(t, err)
+
+	writeCounter := assert.Count(t, 1, "expected writer to be used")
+	router.ServeHTTP(&mocks.ResponseWriter{
+		OnHeader:      func() http.Header { return http.Header{} },
+		OnWriteHeader: func(statusCode int) {},
+		OnWrite: func(b []byte) (int, error) {
+			assert.Equal(t, `"1234"`, string(b))
+			writeCounter.Inc()
+			return 0, err
+		},
+	}, r)
+}

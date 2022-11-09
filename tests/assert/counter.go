@@ -14,8 +14,10 @@ type Counter struct {
 // Assert() will be called on test cleanup, so it's not necessary to call it manually but recommended
 // due to convention to not hide any test side effects.
 func Count(t *testing.T, n int, prefixes ...string) *Counter {
+	t.Helper()
 	c := &Counter{expectedCount: n}
 	t.Cleanup(func() {
+		t.Helper()
 		c.Assert(t, prefixes...)
 	})
 

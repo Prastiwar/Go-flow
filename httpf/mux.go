@@ -13,10 +13,12 @@ type serveMuxBuilder struct {
 	routes          map[string]map[string]Handler
 	errorHandler    ErrorHandler
 	writerDecorator func(http.ResponseWriter) ResponseWriter
+	paramsParser    ParamsParser
 }
 
 // NewServeMuxBuilder returns RouterBuilder which build results in adapting
-// http.ServeMux implementation to handle errors and decorates http.ResponseWriter
+// http.ServeMux implementation to handle errors, decorate http.ResponseWriter or use ParamsParser.
+// Note http.ServeMux does not support defining parameters in pattern
 func NewServeMuxBuilder() *serveMuxBuilder {
 	return &serveMuxBuilder{
 		routes: make(map[string]map[string]Handler),
@@ -65,6 +67,12 @@ func (b *serveMuxBuilder) WithWriterDecorator(decorator func(http.ResponseWriter
 	return b
 }
 
+// WithWriterDecorator sets function which should decorate http.ResponseWriter coming from handler
+func (b *serveMuxBuilder) WithParamsParser(parser ParamsParser) RouteBuilder {
+	b.paramsParser = parser
+	return b
+}
+
 // Build registers the registered handlers in builder to http.ServeMux using mux.HandleFunc
 // which matches accurate HTTP method or returns MethodNotAllowed status. It also wraps handler with
 // proper error handling and decorating incoming http.ResponseWriter.
@@ -85,6 +93,11 @@ func (b *serveMuxBuilder) Build() Router {
 				writer = &jsonWriterDecorator{w}
 			} else {
 				writer = b.writerDecorator(w)
+			}
+
+			if b.paramsParser != nil {
+				pathParams := b.paramsParser.ParseParams(r)
+				r = WithParams(r, pathParams)
 			}
 
 			if err := h.ServeHTTP(writer, r); err != nil {
