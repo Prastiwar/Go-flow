@@ -39,6 +39,23 @@ func TestCounterAssert(t *testing.T) {
 			},
 			fail: true,
 		},
+		{
+			name: "at-least-assertion-with-more",
+			c: func(t *testing.T) *Counter {
+				c := Count(t, 1).AtLeast()
+				c.Inc()
+				c.Inc()
+				return c
+			},
+			fail: false,
+		},
+		{
+			name: "at-least-assertion-with-less",
+			c: func(t *testing.T) *Counter {
+				return Count(t, 1).AtLeast()
+			},
+			fail: true,
+		},
 	}
 
 	for _, tt := range tests {

@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"reflect"
 	"testing"
 	"time"
 )
 
 func TestNotEqualAndEqual(t *testing.T) {
+	var pointer *http.Response
 	tests := []struct {
 		name     string
 		expected any
@@ -33,6 +35,12 @@ func TestNotEqualAndEqual(t *testing.T) {
 			expected: "test",
 			actual:   "test",
 			fails:    true,
+		},
+		{
+			name:     "interface-pointer-nil",
+			expected: nil,
+			actual:   pointer,
+			fails:    false,
 		},
 	}
 

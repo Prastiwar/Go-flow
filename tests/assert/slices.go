@@ -10,6 +10,7 @@ import (
 // ElementsMatch asserts both slices have the same amount and equal elements. Any extra items
 // will be listed in error log.
 func ElementsMatch[T any](t *testing.T, arrA, arrB []T) {
+	t.Helper()
 	extraA, extraB := diffLists(arrA, arrB)
 
 	if len(extraA) == 0 && len(extraB) == 0 {
