@@ -170,11 +170,11 @@ func TestFlagProviderLoad(t *testing.T) {
 					overriddenEmptyString string
 				}{}
 
-				v.NotOverrideString = "not-ovveridden"
-				v.overriddenEmptyString = "not-ovveridden"
+				v.NotOverrideString = "not-overridden"
+				v.overriddenEmptyString = "not-overridden"
 
 				return &v, func() {
-					assert.Equal(t, "not-ovveridden", v.NotOverrideString, "not override expectation failed")
+					assert.Equal(t, "not-overridden", v.NotOverrideString, "not override expectation failed")
 					assert.Equal(t, "overridden", v.overriddenEmptyString, "nil override expectation failed")
 				}
 			},
