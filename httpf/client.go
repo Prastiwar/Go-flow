@@ -108,7 +108,7 @@ func (c *client) Get(ctx context.Context, url string) (*http.Response, error) {
 }
 
 // Post sends POST request using application/json Content-Type as default value. To use different type
-// use Send with request containing appropiate Content-Type header
+// use Send with request containing appropriate Content-Type header
 func (c *client) Post(ctx context.Context, url string, body io.Reader) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodPost, url, body)
 	if err != nil {
@@ -130,7 +130,7 @@ func (c *client) PostForm(ctx context.Context, url string, form url.Values) (*ht
 }
 
 // Put sends PUT request using application/json Content-Type as default value. To use different type
-// use Send with request containing appropiate Content-Type header
+// use Send with request containing appropriate Content-Type header
 func (c *client) Put(ctx context.Context, url string, body io.Reader) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodPut, url, body)
 	if err != nil {

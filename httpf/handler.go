@@ -25,7 +25,7 @@ func (d *jsonWriterDecorator) Response(code int, data interface{}) error {
 // A Handler responds to an HTTP request
 //
 // ServeHTTP should write reply headers and data to the ResponseWriter
-// and then return any occuring error. The error should be handler by
+// and then return any occurring error. The error should be handler by
 // Router which should finish request process
 type Handler interface {
 	ServeHTTP(w ResponseWriter, r *http.Request) error

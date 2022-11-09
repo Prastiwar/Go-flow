@@ -15,4 +15,4 @@ Please include the requested information listed below (as much as you can provid
 
 This information will help to triage your report more quickly.
 
-Prefered langueage for any kind of communication is English (or Polish).
+Preferred language for any kind of communication is English (or Polish).

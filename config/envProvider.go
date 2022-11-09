@@ -23,7 +23,7 @@ func NewEnvProviderWith(prefix string) *envProvider {
 }
 
 // Load lookups os environment variables for each field name from v value and store result in matching v field.
-// If there is no matching field it will be ignored and it's value will not be overriden.
+// If there is no matching field it will be ignored and it's value will not be overridden.
 func (p *envProvider) Load(v any, opts ...LoadOption) (err error) {
 	options := NewLoadOptions(opts...)
 	setter := NewFieldSetter(EnvProviderName, *options)

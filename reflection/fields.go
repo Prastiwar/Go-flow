@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	ErrNotAddresable = errors.New("field is not addresable")
+	ErrNotAddresable = errors.New("field is not addressable")
 )
 
 // GetFieldValueFor returns a reflect.Value which matches fieldType and value of rawValue.
@@ -70,7 +70,7 @@ func GetFieldValueFor(fieldType reflect.Type, rawValue any) (reflect.Value, erro
 	return reflect.ValueOf(vv), nil
 }
 
-// SetFieldValue calls GetFieldValueFor and sets got value directly to field or error if occured.
+// SetFieldValue calls GetFieldValueFor and sets got value directly to field or error if occurred.
 // If rawValue is nil - it will not set nil value to field - use reflect.ValueOf(nil) in this case.
 func SetFieldValue(field reflect.Value, rawValue any) error {
 	if !field.CanSet() {

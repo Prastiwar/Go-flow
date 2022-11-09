@@ -27,7 +27,7 @@ func NewReaderProvider(r io.Reader, d ReaderDecoder) *readerProvider {
 
 // Load parses flag definitions from the argument list, which should not include the command name.
 // Parsed flag value results are stored in matching v fields. If there is no matching field it
-// will be ignored and it's value will not be overriden.
+// will be ignored and it's value will not be overridden.
 func (p *readerProvider) Load(v any, opts ...LoadOption) error {
 	return p.decoder.Decode(p.reader, v)
 }

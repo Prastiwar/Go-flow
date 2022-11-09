@@ -113,12 +113,12 @@ func TestSourceDefault(t *testing.T) {
 					Key            string `json:"key"`
 					NotOverrideKey string
 				}{}
-				v.NotOverrideKey = "not-overriden"
+				v.NotOverrideKey = "not-overridden"
 
 				return s, &v, func(err error) {
 					assert.NilError(t, err)
 					assert.Equal(t, "value", v.Key)
-					assert.Equal(t, "not-overriden", v.NotOverrideKey)
+					assert.Equal(t, "not-overridden", v.NotOverrideKey)
 				}
 			},
 		},
@@ -162,7 +162,7 @@ func TestSourceLoad(t *testing.T) {
 					NewFlagProvider(
 						StringFlag("flagKey", "just a string"),
 						StringFlag("ci", "just a string"),
-						StringFlag("notOverriden", "just a string"),
+						StringFlag("notOverridden", "just a string"),
 					),
 					NewEnvProvider(),
 				)
@@ -185,13 +185,13 @@ func TestSourceLoad(t *testing.T) {
 				)
 
 				v := struct {
-					DefaultKey   string
-					FlagKey      string
-					CI           *bool
-					NotOverriden string
+					DefaultKey    string
+					FlagKey       string
+					CI            *bool
+					NotOverridden string
 				}{}
 				v.CI = nil
-				v.NotOverriden = "not-overriden"
+				v.NotOverridden = "not-overridden"
 
 				os.Setenv("CI", "true")
 
@@ -205,7 +205,7 @@ func TestSourceLoad(t *testing.T) {
 					assert.Equal(t, "1234567890", v.DefaultKey)
 					assert.Equal(t, "flagged", v.FlagKey)
 					assert.Equal(t, true, *v.CI)
-					assert.Equal(t, "not-overriden", v.NotOverriden)
+					assert.Equal(t, "not-overridden", v.NotOverridden)
 				}
 			},
 		},
