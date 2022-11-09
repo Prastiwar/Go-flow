@@ -167,15 +167,15 @@ func TestFlagProviderLoad(t *testing.T) {
 
 				v := struct {
 					NotOverrideString     string
-					overriddenEmptyString string
+					OverriddenEmptyString string
 				}{}
 
 				v.NotOverrideString = "not-overridden"
-				v.overriddenEmptyString = "not-overridden"
+				v.OverriddenEmptyString = "not-overridden"
 
 				return &v, func() {
 					assert.Equal(t, "not-overridden", v.NotOverrideString, "not override expectation failed")
-					assert.Equal(t, "overridden", v.overriddenEmptyString, "nil override expectation failed")
+					assert.Equal(t, "overridden", v.OverriddenEmptyString, "override expectation failed")
 				}
 			},
 			options: optionsWithLowerFirtCase,

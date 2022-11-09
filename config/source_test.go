@@ -162,7 +162,7 @@ func TestSourceLoad(t *testing.T) {
 					NewFlagProvider(
 						StringFlag("flagKey", "just a string"),
 						StringFlag("ci", "just a string"),
-						StringFlag("notoverridden", "just a string"),
+						StringFlag("notOverridden", "just a string"),
 					),
 					NewEnvProvider(),
 				)
@@ -188,10 +188,10 @@ func TestSourceLoad(t *testing.T) {
 					DefaultKey    string
 					FlagKey       string
 					CI            *bool
-					Notoverridden string
+					NotOverridden string
 				}{}
 				v.CI = nil
-				v.Notoverridden = "not-overridden"
+				v.NotOverridden = "not-overridden"
 
 				os.Setenv("CI", "true")
 
@@ -205,7 +205,7 @@ func TestSourceLoad(t *testing.T) {
 					assert.Equal(t, "1234567890", v.DefaultKey)
 					assert.Equal(t, "flagged", v.FlagKey)
 					assert.Equal(t, true, *v.CI)
-					assert.Equal(t, "not-overridden", v.Notoverridden)
+					assert.Equal(t, "not-overridden", v.NotOverridden)
 				}
 			},
 		},
