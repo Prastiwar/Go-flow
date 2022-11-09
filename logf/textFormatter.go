@@ -13,14 +13,14 @@ type TextFormatter struct {
 }
 
 // NewTextFormatter returns a new Text Formatter with Level and LogTime as field keys which
-// values will be outputed on the left side of message.
+// values will be outputted on the left side of message.
 func NewTextFormatter() *TextFormatter {
 	return &TextFormatter{
 		leftFieldKeys: []string{Level, LogTime},
 	}
 }
 
-// NewTextFormatterWith returns a new Text Formatter with field keys which are outputed on the left side of message.
+// NewTextFormatterWith returns a new Text Formatter with field keys which are outputted on the left side of message.
 func NewTextFormatterWith(leftFieldNames ...string) *TextFormatter {
 	return &TextFormatter{
 		leftFieldKeys: leftFieldNames,

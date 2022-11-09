@@ -1,6 +1,6 @@
 // Package config provides single source of configuration management. The default providers are
 // file, environment and command line (flag) configuration. You can set default values for specified key
-// which will be loaded at first place and can be overriden by one of providers during loading process.
+// which will be loaded at first place and can be overridden by one of providers during loading process.
 // The package contains also helpers to pass one struct fields to another struct to easily bind values to it.
 package config
 
@@ -84,7 +84,7 @@ func (s *Source) Load(v any) error {
 
 // LoadWithOptions calls Load method on each provider which binds matching v fields by
 // corresponding key value. LoadWithOptions can return ErrNonPointer or ErrNonStruct if v is not valid.
-// If field was not found in provider - it will not override the value. But it can be overriden by
+// If field was not found in provider - it will not override the value. But it can be overridden by
 // provider which will be called as next in order if the value can be found.
 func (s *Source) LoadWithOptions(v any, opts ...LoadOption) error {
 	if _, err := valueLoadOf(v); err != nil {

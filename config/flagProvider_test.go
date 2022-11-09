@@ -158,24 +158,24 @@ func TestFlagProviderLoad(t *testing.T) {
 			name: "success-overriding",
 			flags: []flag.Flag{
 				StringFlag("notOverrideString", desc),
-				StringFlag("overridenEmptyString", desc),
+				StringFlag("overriddenEmptyString", desc),
 			},
 			init: func(t *testing.T) (any, func()) {
 				setArgs(
-					"-overridenEmptyString=overriden",
+					"-overriddenEmptyString=overridden",
 				)
 
 				v := struct {
-					NotOverrideString    string
-					OverridenEmptyString string
+					NotOverrideString     string
+					overriddenEmptyString string
 				}{}
 
 				v.NotOverrideString = "not-ovveridden"
-				v.OverridenEmptyString = "not-ovveridden"
+				v.overriddenEmptyString = "not-ovveridden"
 
 				return &v, func() {
 					assert.Equal(t, "not-ovveridden", v.NotOverrideString, "not override expectation failed")
-					assert.Equal(t, "overriden", v.OverridenEmptyString, "nil override expectation failed")
+					assert.Equal(t, "overridden", v.overriddenEmptyString, "nil override expectation failed")
 				}
 			},
 			options: optionsWithLowerFirtCase,

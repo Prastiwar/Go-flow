@@ -24,7 +24,7 @@ func Example() {
 	)
 
 	logger.Error("error message")
-	logger.Errorf("error occured: %v", errors.New("invalid call"))
+	logger.Errorf("error occurred: %v", errors.New("invalid call"))
 
 	logger.Info("info message")
 	logger.Infof("count: %v", 1)
@@ -34,7 +34,7 @@ func Example() {
 
 	// Output:
 	// [ERR] error message {"children":true}
-	// [ERR] error occured: invalid call {"children":true}
+	// [ERR] error occurred: invalid call {"children":true}
 	// [INFO] info message {"children":true}
 	// [INFO] count: 1 {"children":true}
 	// [DEBUG] debug message {"children":true}

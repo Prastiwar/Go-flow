@@ -253,7 +253,7 @@ func TestProvide(t *testing.T) {
 			expectedType: reflection.TypeOf[*someService](),
 		},
 		{
-			name: "invalid-service-pointer-no-addresable-no-deps",
+			name: "invalid-service-pointer-no-addressable-no-deps",
 			container: func(t *testing.T) (*container, error) {
 				return Register(newSomeService)
 			},

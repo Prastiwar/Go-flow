@@ -85,7 +85,7 @@ func TestSetFieldValue(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "invalid-unaddresable-bool",
+			name:    "invalid-unaddressable-bool",
 			field:   func() reflect.Value { return reflect.ValueOf(1) },
 			wantErr: true,
 		},

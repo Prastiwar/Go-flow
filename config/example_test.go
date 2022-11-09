@@ -60,8 +60,8 @@ func Example() {
 	var dbOptions DbOptions
 
 	// dbOptions will be loaded starting from the first passed provider up to the last one.
-	// All values will be also overriden by each provider in this order.
-	// The default value is not overriden by provider if it doesn't exist in it.
+	// All values will be also overridden by each provider in this order.
+	// The default value is not overridden by provider if it doesn't exist in it.
 	err = cfg.Load(&dbOptions)
 	if err != nil {
 		// One of the providers failed to load config values
