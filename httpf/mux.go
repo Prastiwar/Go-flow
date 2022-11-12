@@ -5,6 +5,33 @@ import (
 	"sync"
 )
 
+type routeHandler struct {
+	pattern         string
+	handlers        map[string]Handler
+	writerDecorator func(http.ResponseWriter) ResponseWriter
+	paramsParser    ParamsParser
+	errorHandler    ErrorHandler
+}
+
+func (r *routeHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	h, ok := r.handlers[req.Method]
+	if !ok {
+		http.Error(w, "", http.StatusMethodNotAllowed)
+		return
+	}
+
+	writer := r.writerDecorator(w)
+
+	if r.paramsParser != nil {
+		pathParams := r.paramsParser.ParseParams(req)
+		req = WithParams(req, pathParams)
+	}
+
+	if err := h.ServeHTTP(writer, req); err != nil {
+		r.errorHandler.Handle(w, req, err)
+	}
+}
+
 // serveMuxBuilder implements RouterBuilder interface with
 // building the http.ServeMux router.
 type serveMuxBuilder struct {
@@ -83,35 +110,26 @@ func (b *serveMuxBuilder) WithParamsParser(parser ParamsParser) RouteBuilder {
 // If ResponseWriter decorator was not set jsonWriterDecorator is used instead.
 // If ErrorHandler was not set just http.Error is called with Internal Server status.
 func (b *serveMuxBuilder) Build() Router {
+	if b.writerDecorator == nil {
+		b.writerDecorator = func(w http.ResponseWriter) ResponseWriter { return &jsonWriterDecorator{w} }
+	}
+
+	if b.errorHandler == nil {
+		b.errorHandler = ErrorHandlerFunc(func(w http.ResponseWriter, r *http.Request, err error) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		})
+	}
+
 	mux := http.NewServeMux()
 	for route, handlers := range b.routes {
-		mux.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
-			h, ok := handlers[r.Method]
-			if !ok {
-				http.Error(w, "", http.StatusMethodNotAllowed)
-				return
-			}
-
-			var writer ResponseWriter
-			if b.writerDecorator == nil {
-				writer = &jsonWriterDecorator{w}
-			} else {
-				writer = b.writerDecorator(w)
-			}
-
-			if b.paramsParser != nil {
-				pathParams := b.paramsParser.ParseParams(r)
-				r = WithParams(r, pathParams)
-			}
-
-			if err := h.ServeHTTP(writer, r); err != nil {
-				if b.errorHandler != nil {
-					b.errorHandler.Handle(w, r, err)
-				} else {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-				}
-			}
-		})
+		r := &routeHandler{
+			pattern:         route,
+			handlers:        handlers,
+			writerDecorator: b.writerDecorator,
+			paramsParser:    b.paramsParser,
+			errorHandler:    b.errorHandler,
+		}
+		mux.Handle(route, r)
 	}
 	return mux
 }
