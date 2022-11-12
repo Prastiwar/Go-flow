@@ -7,10 +7,7 @@ import (
 
 // Json marshals the data and writes it to http.ResponseWriter with given status code.
 func Json(w http.ResponseWriter, status int, data interface{}) error {
-	if data == nil {
-		w.WriteHeader(status)
-		return nil
-	}
+	w.Header().Add(ContentTypeHeader, ApplicationJsonType)
 
 	v, err := json.Marshal(data)
 	if err != nil {
