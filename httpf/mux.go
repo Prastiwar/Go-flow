@@ -18,7 +18,8 @@ type serveMuxBuilder struct {
 
 // NewServeMuxBuilder returns RouterBuilder which build results in adapting
 // http.ServeMux implementation to handle errors, decorate http.ResponseWriter or use ParamsParser.
-// Note http.ServeMux does not support defining parameters in pattern
+// Note http.ServeMux does not support defining parameters in pattern.
+// For default behaviour of corresponding With.. option can be found in option func comment.
 func NewServeMuxBuilder() *serveMuxBuilder {
 	return &serveMuxBuilder{
 		routes: make(map[string]map[string]Handler),
@@ -55,19 +56,22 @@ func (b *serveMuxBuilder) Options(pattern string, handler Handler) RouteBuilder 
 	return b.handle(http.MethodOptions, pattern, handler)
 }
 
-// WithErrorHandler sets ErrorHandler used in Build
+// WithErrorHandler sets ErrorHandler used in Build. If will not be provided Router will
+// write response using http.Error with http.StatusInternalServerError
 func (b *serveMuxBuilder) WithErrorHandler(handler ErrorHandler) RouteBuilder {
 	b.errorHandler = handler
 	return b
 }
 
-// WithWriterDecorator sets function which should decorate http.ResponseWriter coming from handler
+// WithWriterDecorator sets function which should decorate http.ResponseWriter coming from handler. If will not be provided
+// Router will use json writer decorator
 func (b *serveMuxBuilder) WithWriterDecorator(decorator func(http.ResponseWriter) ResponseWriter) RouteBuilder {
 	b.writerDecorator = decorator
 	return b
 }
 
-// WithWriterDecorator sets function which should decorate http.ResponseWriter coming from handler
+// WithParamsParser sets parser which which should inject parsed path parameters to http request. If will not be provided
+// httpf.Params will always return empty map without error
 func (b *serveMuxBuilder) WithParamsParser(parser ParamsParser) RouteBuilder {
 	b.paramsParser = parser
 	return b

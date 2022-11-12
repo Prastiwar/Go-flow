@@ -25,11 +25,16 @@ func TestJson(t *testing.T) {
 			}{Id: "123"},
 			writer: func(t *testing.T) http.ResponseWriter {
 				writeCounter := assert.Count(t, 1)
+				headerCounter := assert.Count(t, 1)
 				writeHeaderCounter := assert.Count(t, 1)
 				m := &mocks.ResponseWriter{
 					OnHeader: func() http.Header {
-						t.Fatal("unexpected Header() function call")
-						return nil
+						headerCounter.Inc()
+						headers := http.Header{}
+						t.Cleanup(func() {
+							assert.Equal(t, []string{ApplicationJsonType}, headers[ContentTypeHeader])
+						})
+						return headers
 					},
 					OnWrite: func(b []byte) (int, error) {
 						assert.Equal(t, `{"id":"123"}`, string(b))
@@ -52,14 +57,19 @@ func TestJson(t *testing.T) {
 			status: 204,
 			data:   nil,
 			writer: func(t *testing.T) http.ResponseWriter {
+				headerCounter := assert.Count(t, 1)
 				writeHeaderCounter := assert.Count(t, 1)
 				m := &mocks.ResponseWriter{
 					OnHeader: func() http.Header {
-						t.Fatal("unexpected Header() function call")
-						return nil
+						headerCounter.Inc()
+						headers := http.Header{}
+						t.Cleanup(func() {
+							assert.Equal(t, []string{ApplicationJsonType}, headers[ContentTypeHeader])
+						})
+						return headers
 					},
 					OnWrite: func(b []byte) (int, error) {
-						t.Fatal("unexpected Write() function call")
+						assert.Equal(t, []byte(`null`), b)
 						return 0, nil
 					},
 					OnWriteHeader: func(code int) {
@@ -78,17 +88,22 @@ func TestJson(t *testing.T) {
 			status: 204,
 			data:   &struct{ Chan chan (int) }{},
 			writer: func(t *testing.T) http.ResponseWriter {
+				headerCounter := assert.Count(t, 1)
 				m := &mocks.ResponseWriter{
 					OnHeader: func() http.Header {
-						t.Fatal("unexpected Header() function call")
-						return nil
+						headerCounter.Inc()
+						headers := http.Header{}
+						t.Cleanup(func() {
+							assert.Equal(t, []string{ApplicationJsonType}, headers[ContentTypeHeader])
+						})
+						return headers
 					},
 					OnWrite: func(b []byte) (int, error) {
 						t.Fatal("unexpected Write() function call")
 						return 0, nil
 					},
 					OnWriteHeader: func(code int) {
-						t.Fatal("unexpected Write() function call")
+						t.Fatal("unexpected WriteHeader() function call")
 					},
 				}
 				return m
