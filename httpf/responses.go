@@ -6,6 +6,7 @@ import (
 )
 
 // Json marshals the data and writes it to http.ResponseWriter with given status code.
+// "Content-Type" header is set to "application/json".
 func Json(w http.ResponseWriter, status int, data interface{}) error {
 	w.Header().Add(ContentTypeHeader, ApplicationJsonType)
 
