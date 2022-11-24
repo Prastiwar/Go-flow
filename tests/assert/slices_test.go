@@ -22,7 +22,17 @@ func TestElementsMatch(t *testing.T) {
 			fails: false,
 		},
 		{
-			name: "not-matches",
+			name: "not-matches-similiar",
+			arrA: []any{
+				1, 2, 3,
+			},
+			arrB: []any{
+				1, 2, 3, 1,
+			},
+			fails: true,
+		},
+		{
+			name: "not-matches-totally-different",
 			arrA: []any{
 				1, 2, 3, 6, 7,
 			},
@@ -39,7 +49,7 @@ func TestElementsMatch(t *testing.T) {
 
 			ElementsMatch(test, tt.arrA, tt.arrB)
 
-			Equal(test, tt.fails, test.Failed())
+			Equal(t, tt.fails, test.Failed())
 		})
 	}
 }

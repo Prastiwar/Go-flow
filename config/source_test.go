@@ -139,9 +139,10 @@ func TestSourceLoad(t *testing.T) {
 	tests := []struct {
 		name string
 		init func(t *testing.T) (*Source, any, func(error))
+		opts []LoadOption
 	}{
 		{
-			name: "success-empty",
+			name: "success-empty-shared-options",
 			init: func(t *testing.T) (*Source, any, func(error)) {
 				s := Provide()
 				v := struct {
@@ -154,6 +155,22 @@ func TestSourceLoad(t *testing.T) {
 					assert.Equal(t, "test", v.Key)
 				}
 			},
+		},
+		{
+			name: "success-empty-no-shared-options",
+			init: func(t *testing.T) (*Source, any, func(error)) {
+				s := Provide()
+				v := struct {
+					Key string
+				}{}
+				v.Key = "test"
+
+				return s, &v, func(err error) {
+					assert.NilError(t, err)
+					assert.Equal(t, "test", v.Key)
+				}
+			},
+			opts: []LoadOption{WithIgnoreGlobalOptions()},
 		},
 		{
 			name: "success-complex",
@@ -258,7 +275,7 @@ func TestSourceLoad(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			source, v, asserts := tt.init(t)
 
-			err := source.Load(v)
+			err := source.Load(v, tt.opts...)
 
 			asserts(err)
 		})
