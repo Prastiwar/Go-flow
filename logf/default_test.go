@@ -8,6 +8,10 @@ import (
 )
 
 func TestDefault(t *testing.T) {
+	t.Cleanup(func() {
+		SetDefault(nil)
+	})
+
 	l := Default()
 	assert.Equal(t, NewLogger(), l)
 
