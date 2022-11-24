@@ -7,7 +7,7 @@ import (
 // A ErrorHandler handles error returned from Handler
 //
 // Handle should write response to the ResponseWriter in common
-// used format with proper mapped error
+// used format with proper mapped error.
 type ErrorHandler interface {
 	Handle(w http.ResponseWriter, r *http.Request, err error)
 }

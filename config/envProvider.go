@@ -15,7 +15,7 @@ func NewEnvProvider() *envProvider {
 
 // NewEnvProviderWith returns a new environment provider with prefix
 // used to load environments variables. Prefix is used to distinguish variables in
-// different environments. Mostly used ones are "DEV_", "PROD_"
+// different environments. Mostly used ones are "DEV_", "PROD_".
 func NewEnvProviderWith(prefix string) *envProvider {
 	p := NewEnvProvider()
 	p.prefix = prefix

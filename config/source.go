@@ -10,7 +10,7 @@ import (
 )
 
 // Provider is implemented by any value that has a Load method, which loads
-// configuration and overrides if applicable matching field values for v
+// configuration and overrides if applicable matching field values for v.
 type Provider interface {
 	Load(v any, opts ...LoadOption) error
 }
@@ -28,7 +28,7 @@ type opt struct {
 	value any
 }
 
-// Opts creates an instance used for initializing default value for named key
+// Opts creates an instance used for initializing default value for named key.
 func Opt(key string, value any) opt {
 	return opt{
 		key:   key,
@@ -38,17 +38,17 @@ func Opt(key string, value any) opt {
 
 // Provide returns a Source of configuration. The order of passed providers matters in terms of
 // overriding field value since each provider will be Load'ed in the same order as they were
-// passed to this function
+// passed to this function.
 func Provide(providers ...Provider) *Source {
 	return &Source{providers: providers}
 }
 
-// ShareOptions shares provided options to be used across each call to Load
+// ShareOptions shares provided options to be used across each call to Load.
 func (s *Source) ShareOptions(options ...LoadOption) {
 	s.options = options
 }
 
-// SetDefault sets default values in json format to be easily unmarshaled by Default method
+// SetDefault sets default values in json format to be easily unmarshaled by Default method.
 func (s *Source) SetDefault(defaults ...opt) error {
 	opts := make(map[string]interface{}, len(defaults))
 	for _, opt := range defaults {

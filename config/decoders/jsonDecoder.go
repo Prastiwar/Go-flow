@@ -7,6 +7,7 @@ import (
 
 type jsonDecoder struct{}
 
+// NewJson returns json decoder which is implementation from encoding/json.
 func NewJson() *jsonDecoder {
 	return &jsonDecoder{}
 }
