@@ -9,6 +9,9 @@ import (
 	"reflect"
 )
 
+// ensure config.Source can be abstracted with config.Provider
+var _ Provider = &Source{}
+
 // Provider is implemented by any value that has a Load method, which loads
 // configuration and overrides if applicable matching field values for v.
 type Provider interface {
@@ -77,9 +80,13 @@ func (s *Source) Default(v any) error {
 	return nil
 }
 
-// Load calls LoadWithOptions with LoadOptions stored by ShareOptions method.
-func (s *Source) Load(v any) error {
-	return s.LoadWithOptions(v, s.options...)
+// Load calls LoadWithOptions with specified opts LoadOptions or if none is probided - it will use options
+// stored by ShareOptions method. To ignore shared options without providing any, use WithIgnoreOptions() option.
+func (s *Source) Load(v any, opts ...LoadOption) error {
+	if len(opts) == 0 {
+		return s.LoadWithOptions(v, s.options...)
+	}
+	return s.LoadWithOptions(v, opts...)
 }
 
 // LoadWithOptions calls Load method on each provider which binds matching v fields by

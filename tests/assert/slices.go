@@ -9,7 +9,7 @@ import (
 
 // ElementsMatch asserts both slices have the same amount and equal elements. Any extra items
 // will be listed in error log.
-func ElementsMatch[T any](t *testing.T, arrA, arrB []T) {
+func ElementsMatch[T any](t *testing.T, arrA, arrB []T, prefixes ...string) {
 	t.Helper()
 	extraA, extraB := diffLists(arrA, arrB)
 
@@ -18,7 +18,8 @@ func ElementsMatch[T any](t *testing.T, arrA, arrB []T) {
 	}
 
 	msg := formatArrDiff(arrA, arrB, extraA, extraB)
-	t.Errorf(msg)
+
+	errorf(t, msg, prefixes...)
 }
 
 // diffLists diffs two arrays/slices and returns slices of elements that are only in A and only in B.
