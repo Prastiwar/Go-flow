@@ -63,7 +63,7 @@ func Example() {
 		_ = httpf.NewServer("localhost:8080", mux.Build()).ListenAndServe()
 	}()
 
-	resp, err := http.Post("http://localhost:8080/api/test/", "application/json", bytes.NewBufferString("{}"))
+	resp, err := http.Post("http://localhost:8080/api/test/", httpf.ApplicationJsonType, bytes.NewBufferString("{}"))
 	if err != nil {
 		fmt.Println(err)
 		return
