@@ -19,7 +19,7 @@ type Server interface {
 	ServeTLS(l net.Listener, certFile, keyFile string) error
 }
 
-// NewServer returns a new instance of Server
+// NewServer returns a new instance of Server.
 func NewServer(addr string, router Router) *http.Server {
 	return &http.Server{
 		Addr:    addr,

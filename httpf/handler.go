@@ -4,7 +4,7 @@ import "net/http"
 
 // A ResponseWriter interface is used by an HTTP handler to
 // construct an HTTP response. It extends http.ResponseWriter with
-// Response function which should be used to share common response format
+// Response function which should be used to share common response format.
 type ResponseWriter interface {
 	http.ResponseWriter
 
@@ -12,12 +12,12 @@ type ResponseWriter interface {
 }
 
 // A jsonWriterDecorator implements ResponseWriter interface and provides
-// json writing for Response
+// json writing for Response.
 type jsonWriterDecorator struct {
 	http.ResponseWriter
 }
 
-// Response calls httpf.Json(d, code, data)
+// Response calls httpf.Json(d, code, data).
 func (d *jsonWriterDecorator) Response(code int, data interface{}) error {
 	return Json(d, code, data)
 }
@@ -26,17 +26,17 @@ func (d *jsonWriterDecorator) Response(code int, data interface{}) error {
 //
 // ServeHTTP should write reply headers and data to the ResponseWriter
 // and then return any occurring error. The error should be handler by
-// Router which should finish request process
+// Router which should finish request process.
 type Handler interface {
 	ServeHTTP(w ResponseWriter, r *http.Request) error
 }
 
 // The HandlerFunc type is an adapter to allow the use of ordinary
 // functions as HTTP handlers. If h is a function with
-// the appropriate signature, HandlerFunc(h) is a Handler that calls h
+// the appropriate signature, HandlerFunc(h) is a Handler that calls h.
 type HandlerFunc func(w ResponseWriter, r *http.Request) error
 
-// ServeHTTP calls h(w, r)
+// ServeHTTP calls h(w, r).
 func (h HandlerFunc) ServeHTTP(w ResponseWriter, r *http.Request) error {
 	return h(w, r)
 }
