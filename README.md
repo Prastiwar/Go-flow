@@ -10,6 +10,7 @@ Framework for Go services in go with zero dependency rule, so you can use it in 
 - [Go-flow](#go-flow)
   - [Library purpose](#library-purpose)
   - [Packages](#packages)
+    - [caching](#caching)
     - [config](#config)
     - [di](#di)
     - [exception](#exception)
@@ -33,9 +34,13 @@ Writing production-ready system developer often must make decision which will no
 
 ## Packages
 
+### caching
+
+Caching package introduces dependency inversion over third-party cache libraries. In case third-party does not follow the contract your infrastructure should implement adapter for this specific library to fulfill Cache interface. In-memory caching interface requires a minimum of TTL support and any storing acceptance for any value. If third-party package does accept only byte slice (e.g [bigcache](https://github.com/allegro/bigcache)) as a value it would need to make use of encoding/decoding internally to fulfill contract.
+
 ### config
 
-Configuration module wchich provides functionality to load configuration from file, environment variables and command line arguments with binding to a struct functionality.
+Configuration module which provides functionality to load configuration from file, environment variables and command line arguments with binding to a struct functionality.
 It allows to extend the behavior with interfaces for providers and KeyInterceptor option to change the way it looks for matching key for field name.
 
 See [example file](config/example_test.go) for runnable examples.
