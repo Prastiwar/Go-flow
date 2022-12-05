@@ -11,9 +11,11 @@ import (
 	"time"
 )
 
-var (
+const (
 	NoExpiration = time.Duration(0)
+)
 
+var (
 	ErrNotFound   = errors.New("cache value was not found for specified key")
 	ErrNotPointer = errors.New("interface value must be a pointer")
 )
