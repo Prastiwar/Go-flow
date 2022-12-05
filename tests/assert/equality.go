@@ -22,7 +22,7 @@ func errorf(t *testing.T, msg string, prefixes ...string) {
 	t.Error(prefix + msg)
 }
 
-// Equal asserts expected and actual values are equal using deep equal from reflection
+// Equal asserts expected and actual values are equal using deep equal from reflection.
 func Equal(t *testing.T, expected interface{}, actual interface{}, prefixes ...string) {
 	t.Helper()
 	if !reflect.DeepEqual(expected, actual) {
@@ -33,7 +33,7 @@ func Equal(t *testing.T, expected interface{}, actual interface{}, prefixes ...s
 	}
 }
 
-// Equal asserts expected and actual values are not equal using equal operator
+// NotEqual asserts expected and actual values are not equal using equal operator.
 func NotEqual(t *testing.T, expected interface{}, actual interface{}, prefixes ...string) {
 	t.Helper()
 	if expected == actual {

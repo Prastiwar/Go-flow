@@ -65,7 +65,7 @@ type wrappedLogger struct {
 	fields    Fields
 }
 
-// NewLogger returns a new Logger which is wrapper for new log.Logger.
+// NewLogger returns a new Logger instance with configured options
 func NewLogger(opts ...LoggerOption) Logger {
 	options := NewLoggerOptions(opts...)
 	return &wrappedLogger{
@@ -75,8 +75,8 @@ func NewLogger(opts ...LoggerOption) Logger {
 	}
 }
 
-// WithScope creates new instance of log.Logger with provided fields.
-// Formatter is preserved or initialized with logf.DefaultFormatter() if not set
+// WithScope returns a copy of Logger with provided scoped fields which are merged together
+// with existing logger fields. In case fields overrides existing field in source, no error is returned
 func WithScope(logger Logger, fields Fields) Logger {
 	return &wrappedLogger{
 		writer:    logger.Output(),

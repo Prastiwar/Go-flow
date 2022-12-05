@@ -29,6 +29,12 @@ func WithInterceptor(i KeyInterceptor) LoadOption {
 	}
 }
 
+// WithIgnoreGlobalOptions returns empty LoadOption to indicate no shared options should be used and
+// no additional configuration is provided. This behaviour applies to Source provider.
+func WithIgnoreGlobalOptions() LoadOption {
+	return func(s *LoadOptions) {}
+}
+
 // Intercept provides default behaviour in case Interceptor is not set the exact field name will be used.
 func (o *LoadOptions) Intercept(providerName string, f reflect.StructField) string {
 	if o.Interceptor == nil {

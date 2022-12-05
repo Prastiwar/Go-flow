@@ -53,52 +53,52 @@ func NewServeMuxBuilder() *serveMuxBuilder {
 	}
 }
 
-// Get registers handler to pattern using GET method
+// Get registers handler to pattern using GET method.
 func (b *serveMuxBuilder) Get(pattern string, handler Handler) RouteBuilder {
 	return b.handle(http.MethodGet, pattern, handler)
 }
 
-// Post registers handler to pattern using POST method
+// Post registers handler to pattern using POST method.
 func (b *serveMuxBuilder) Post(pattern string, handler Handler) RouteBuilder {
 	return b.handle(http.MethodPost, pattern, handler)
 }
 
-// Put registers handler to pattern using PUT method
+// Put registers handler to pattern using PUT method.
 func (b *serveMuxBuilder) Put(pattern string, handler Handler) RouteBuilder {
 	return b.handle(http.MethodPut, pattern, handler)
 }
 
-// Delete registers handler to pattern using DELETE method
+// Delete registers handler to pattern using DELETE method.
 func (b *serveMuxBuilder) Delete(pattern string, handler Handler) RouteBuilder {
 	return b.handle(http.MethodDelete, pattern, handler)
 }
 
-// Patch registers handler to pattern using PATCH method
+// Patch registers handler to pattern using PATCH method.
 func (b *serveMuxBuilder) Patch(pattern string, handler Handler) RouteBuilder {
 	return b.handle(http.MethodPatch, pattern, handler)
 }
 
-// Options registers handler to pattern using OPTIONS method
+// Options registers handler to pattern using OPTIONS method.
 func (b *serveMuxBuilder) Options(pattern string, handler Handler) RouteBuilder {
 	return b.handle(http.MethodOptions, pattern, handler)
 }
 
 // WithErrorHandler sets ErrorHandler used in Build. If will not be provided Router will
-// write response using http.Error with http.StatusInternalServerError
+// write response using http.Error with http.StatusInternalServerError.
 func (b *serveMuxBuilder) WithErrorHandler(handler ErrorHandler) RouteBuilder {
 	b.errorHandler = handler
 	return b
 }
 
 // WithWriterDecorator sets function which should decorate http.ResponseWriter coming from handler. If will not be provided
-// Router will use json writer decorator
+// Router will use json writer decorator.
 func (b *serveMuxBuilder) WithWriterDecorator(decorator func(http.ResponseWriter) ResponseWriter) RouteBuilder {
 	b.writerDecorator = decorator
 	return b
 }
 
 // WithParamsParser sets parser which which should inject parsed path parameters to http request. If will not be provided
-// httpf.Params will always return empty map without error
+// httpf.Params will always return empty map without error.
 func (b *serveMuxBuilder) WithParamsParser(parser ParamsParser) RouteBuilder {
 	b.paramsParser = parser
 	return b
@@ -134,7 +134,7 @@ func (b *serveMuxBuilder) Build() Router {
 	return mux
 }
 
-// handle registers handler to given pattern with method
+// handle registers handler to given pattern with method.
 func (b *serveMuxBuilder) handle(method string, pattern string, h Handler) RouteBuilder {
 	b.mu.Lock()
 	defer b.mu.Unlock()

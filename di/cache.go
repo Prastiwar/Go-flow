@@ -17,7 +17,7 @@ func NewRootCache() *rootCache {
 }
 
 // Get returns a Singleton service if it exist in cache storage. Boolean defines if it was found.
-// Other LifeTime's will always return nil and false
+// Other LifeTime's will always return nil and false.
 func (c *rootCache) Get(life LifeTime, t reflect.Type) (interface{}, bool) {
 	if life == Singleton {
 		v, ok := (*c)[t]
