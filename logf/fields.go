@@ -7,7 +7,7 @@ import (
 // Fields is used to parse scope for each log as key value pair.
 type Fields map[string]interface{}
 
-// MergeFields puts values from fields to source and returns merged Fields.
+// MergeFields returns a new instace of Fields which contains values from source and upserts fields to it.
 func MergeFields(source Fields, fields Fields) Fields {
 	if fields == nil && source == nil {
 		return make(Fields)
@@ -21,11 +21,19 @@ func MergeFields(source Fields, fields Fields) Fields {
 		return fields
 	}
 
-	for k, v := range fields {
-		source[k] = v
+	result := make(Fields, len(source)+len(fields))
+
+	// copy source fields
+	for k, v := range source {
+		result[k] = v
 	}
 
-	return source
+	// upsert new fields
+	for k, v := range fields {
+		result[k] = v
+	}
+
+	return result
 }
 
 type timeField struct {
