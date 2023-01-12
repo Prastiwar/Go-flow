@@ -112,7 +112,7 @@ See [example file](middleware/example_test.go) for runnable examples.
 
 ### policy
 
-Defines policies that could help developers to handle gracefully faults like retry.
+Defines policies that could help developers to handle gracefully faults like retry or any other resilience functionality.
 
 #### retry
 
@@ -124,6 +124,8 @@ See [example file](policy/retry/example_test.go) for runnable retry policy examp
 
 Rate package introduces dependency inversion over third-party rate-limit libraries. In case the third party does not follow the contract your infrastructure should implement an adapter for this specific library to fulfill Limiter interfaces.
 Package contains simple and unified API that can be implemented by any algorithm like token/leaky bucket, fixed/sliding window, and others. There are a few interfaces that extend the standard Limiter interface like BurstLimiter which supports bursting or ReservationLimiter which supports token reservation.
+
+See [example file](rate/example_test.go) for runnable rate examples.
 
 ### reflection
 

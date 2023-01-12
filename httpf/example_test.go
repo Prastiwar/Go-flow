@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Prastiwar/Go-flow/datas"
 	"github.com/Prastiwar/Go-flow/httpf"
 	"github.com/Prastiwar/Go-flow/rate"
 	"github.com/Prastiwar/Go-flow/tests/mocks"
@@ -173,4 +174,87 @@ func ExampleRateLimitMiddleware() {
 	// 200
 	// 429
 	// 200
+}
+
+type DummyJsonProducts struct {
+	Products []DummyJsonProduct `json:"products"`
+}
+
+type DummyJsonProduct struct {
+	ID    int    `json:"id"`
+	Title string `json:"title"`
+	Price int    `json:"price"`
+}
+
+type HttpErr struct {
+	Message string `json:"message"`
+}
+
+func (err *HttpErr) Error() string {
+	return err.Message
+}
+
+type DummyJsonClient struct {
+	unmarshaler httpf.BodyUnmarshaler
+}
+
+func NewDummyJsonClient() *DummyJsonClient {
+	return &DummyJsonClient{
+		unmarshaler: httpf.NewBodyUnmarshalerWithError(datas.Json(), &HttpErr{}),
+	}
+}
+
+func (c *DummyJsonClient) GetProducts() (*DummyJsonProducts, error) {
+	resp, err := http.Get("https://dummyjson.com/products")
+	if err != nil {
+		return nil, err
+	}
+
+	var data DummyJsonProducts
+	if err := c.unmarshaler.Unmarshal(resp, &data); err != nil {
+		if _, ok := err.(*HttpErr); ok {
+			// handle api error
+			return nil, err
+		}
+		return nil, err
+	}
+
+	return &data, nil
+}
+
+func (c *DummyJsonClient) GetProduct(id int) (*DummyJsonProduct, error) {
+	resp, err := http.Get("https://dummyjson.com/products/" + strconv.Itoa(id))
+	if err != nil {
+		return nil, err
+	}
+
+	var data DummyJsonProduct
+	if err := c.unmarshaler.Unmarshal(resp, &data); err != nil {
+		if _, ok := err.(*HttpErr); ok {
+			// handle api error
+			return nil, err
+		}
+		return nil, err
+	}
+
+	return &data, nil
+}
+
+func ExampleNewBodyUnmarshaler() {
+	client := NewDummyJsonClient()
+
+	data, err := client.GetProducts()
+	if err != nil {
+		panic(err)
+	}
+
+	product, err := client.GetProduct(data.Products[0].ID)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(data.Products[0] == *product)
+
+	// output:
+	// true
 }

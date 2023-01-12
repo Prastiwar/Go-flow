@@ -19,3 +19,8 @@ func Json(w http.ResponseWriter, status int, data interface{}) error {
 	_, err = w.Write(v)
 	return err
 }
+
+// IsErrorStatus returns true if status code is greater or equal than 400 and less than 600.
+func IsErrorStatus(code int) bool {
+	return code >= 400 && code < 600
+}
