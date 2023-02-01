@@ -65,6 +65,7 @@ See [example file](exception/example_test.go) for runnable examples.
 ### httpf
 
 httpf package provides abstraction over standard net/http to introduce dependency inversion rule. Mosly routing and server are abstracted which should help with mocking and facilitate using it without mistakes while providing harder to misuse API.
+Additionaly it adds simple configurable rate limiter for request per user/endpoint.
 
 See [example file](httpf/example_test.go) for runnable examples.
 
