@@ -19,6 +19,7 @@ Framework for Go services in go with zero dependency rule, so you can use it in 
     - [middleware](#middleware)
     - [policy](#policy)
       - [retry](#retry)
+    - [rate](#rate)
     - [reflection](#reflection)
     - [tests](#tests)
   - [Contributing](#contributing)
@@ -36,7 +37,7 @@ Writing production-ready system developer often must make decision which will no
 
 ### caching
 
-Caching package introduces dependency inversion over third-party cache libraries. In case third-party does not follow the contract your infrastructure should implement adapter for this specific library to fulfill Cache interface. In-memory caching interface requires a minimum of TTL support and any storing acceptance for any value. If third-party package does accept only byte slice (e.g [bigcache](https://github.com/allegro/bigcache)) as a value it would need to make use of encoding/decoding internally to fulfill contract.
+Caching package introduces dependency inversion over third-party cache libraries. In case the third party does not follow the contract your infrastructure should implement an adapter for this specific library to fulfill Cache interface. In-memory caching interface requires a minimum of TTL support and any storing acceptance for any value. If a third-party package does accept only byte slice (e.g [bigcache](https://github.com/allegro/bigcache)) as a value it would need to make use of encoding/decoding internally to fulfill a contract.
 
 ### config
 
@@ -96,6 +97,11 @@ Defines policies that could help developers to handle gracefully faults like ret
 Policy helps to handle transient errors by repeating the function call. It includes configuration features like retry count, wait time before next retry execution or cancellation control which can be used to stop retry execution on error which is not transient.
 
 See [example file](policy/retry/example_test.go) for runnable retry policy examples.
+
+### rate
+
+Rate package introduces dependency inversion over third-party rate-limit libraries. In case the third party does not follow the contract your infrastructure should implement an adapter for this specific library to fulfill Limiter interfaces.
+Package contains simple and unified API that can be implemented by any algorithm like token/leaky bucket, fixed/sliding window, and others. There are a few interfaces that extend the standard Limiter interface like BurstLimiter which supports bursting or ReservationLimiter which supports token reservation.
 
 ### reflection
 

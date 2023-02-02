@@ -69,27 +69,31 @@ func ComposeRateKeyFactories(factories ...RateHttpKeyFactory) RateHttpKeyFactory
 	}
 }
 
-// RateLimitMiddleware returns httpf.Handler to ...
+// RateLimitMiddleware returns httpf.Handler which used rate-limiting feature to decide if h Handler can be requested.
+// If rate limit exceeds maximum value, the error is returned and should be handled by ErrorHandler to actually
+// return 429 status code with appropiate body. This middleware writes all of
+// "X-Rate-Limit-Limit", "X-Rate-Limit-Remaining" and "X-Rate-Limit-Reset" headers with correct values.
 func RateLimitMiddleware(h Handler, store rate.LimiterStore, keyFactory RateHttpKeyFactory) Handler {
 	return HandlerFunc(func(w ResponseWriter, r *http.Request) error {
 		key := keyFactory(r)
 		limiter := store.Limit(key)
-		if err := limiter.Take(); err != nil {
+		token := limiter.Take()
+		if err := token.Use(); err != nil {
 			headers := w.Header()
-			writeRateLimitHeaders(headers, limiter)
+			writeRateLimitHeaders(headers, limiter, token)
 			return err
 		}
 		return h.ServeHTTP(w, r)
 	})
 }
 
-func writeRateLimitHeaders(headers http.Header, limiter rate.Limiter) {
-	maxRate := strconv.FormatInt(int64(limiter.MaxRate()), 10)
+func writeRateLimitHeaders(headers http.Header, limiter rate.Limiter, token rate.Token) {
+	maxRate := strconv.FormatInt(int64(limiter.Limit()), 10)
 	headers.Add(RateLimitLimitHeader, maxRate)
 
-	remaining := strconv.FormatInt(int64(limiter.Remaining()), 10)
+	remaining := strconv.FormatInt(int64(limiter.Tokens()), 10)
 	headers.Add(RateLimitRemainingHeader, remaining)
 
-	resetsAt := strconv.FormatInt(limiter.ResetsAt().Unix(), 10)
+	resetsAt := strconv.FormatInt(token.ResetsAt().Unix(), 10)
 	headers.Add(RateLimitResetHeader, resetsAt)
 }
