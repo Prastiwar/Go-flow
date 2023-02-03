@@ -9,6 +9,10 @@ import (
 // Wait pauses the current goroutine until deadline returning no error. If passed ctx is done
 // before deadline - context's error is returned.
 func Wait(ctx context.Context, deadline time.Time) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
 	waitCtx, cancel := context.WithDeadline(ctx, deadline)
 	defer cancel()
 

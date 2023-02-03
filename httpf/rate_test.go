@@ -11,7 +11,10 @@ import (
 func TestComposeRateKeyFactories(t *testing.T) {
 	f := ComposeRateKeyFactories(IPRateKey(), PathRateKey())
 	url, _ := url.Parse("https://test.com/api/resource")
-	key := f(&http.Request{Method: http.MethodGet, URL: url})
+	key := f(&http.Request{
+		Method:     http.MethodGet,
+		URL:        url,
+		RemoteAddr: "0.0.0.0"})
 	assert.Equal(t, "0.0.0.0 GET:/api/resource", key)
 
 	defer func() {

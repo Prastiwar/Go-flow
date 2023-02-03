@@ -59,9 +59,10 @@ func ComposeRateKeyFactories(factories ...RateHttpKeyFactory) RateHttpKeyFactory
 
 	return func(r *http.Request) string {
 		str := strings.Builder{}
+		lastIndex := len(factories) - 1
 		for i := 0; i < len(factories); i++ {
 			str.WriteString(factories[i](r))
-			if i < len(factories) {
+			if i != lastIndex {
 				str.WriteString(" ")
 			}
 		}
