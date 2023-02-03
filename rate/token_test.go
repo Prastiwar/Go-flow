@@ -9,7 +9,7 @@ import (
 func TestFalseToken(t *testing.T) {
 	assert.NotNil(t, FalseToken)
 	assert.Equal(t, false, FalseToken.Allow())
-	assert.Equal(t, ErrRateLimitExceeded, FalseToken.Use())
+	assert.Equal(t, ErrInvalidTokenValue, FalseToken.Use())
 	assert.Equal(t, MaxTime, FalseToken.ResetsAt())
 }
 

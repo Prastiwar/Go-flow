@@ -9,6 +9,9 @@ var (
 	// ErrRateLimitExceeded is the error returned by Token.Use when the rate limit exceeds the limit.
 	ErrRateLimitExceeded = errors.New("maximum rate limit exceeded")
 
+	// ErrInvalidTokenValue is the error returned by Token.Use when Token is always falsy.
+	ErrInvalidTokenValue = errors.New("token value exceeds limit")
+
 	// MinTime is minimum time value.
 	MinTime = time.Unix(-2208988800, 0)
 
@@ -23,7 +26,8 @@ var (
 // the actual time that it'll be allowed to be consumed.
 type Token interface {
 	// Use consumes token and returns no error if succeeded. Returns ErrRateLimitExceeded when limit rate was exceeded.
-	// If used with BurstLimiter it will not consume tokens below the limit before returning ErrRateLimitExceeded error.
+	// If used with BurstLimiter it will not consume tokens below the limit before returning error. It will return ErrInvalidTokenValue
+	// when Limiter Limit/Burst is lower than value provided in Take/TakeN.
 	Use() error
 
 	// Allow reports whether an token can be consumed.
@@ -56,9 +60,9 @@ func (*falseToken) ResetsAt() time.Time {
 	return MaxTime
 }
 
-// Use always returns ErrRateLimitExceeded.
+// Use always returns ErrInvalidTokenValue.
 func (*falseToken) Use() error {
-	return ErrRateLimitExceeded
+	return ErrInvalidTokenValue
 }
 
 // Cancel is noop.

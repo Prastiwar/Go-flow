@@ -1,6 +1,7 @@
 package httpf
 
 import (
+	"errors"
 	"net/http"
 	"net/textproto"
 	"strconv"
@@ -80,8 +81,10 @@ func RateLimitMiddleware(h Handler, store rate.LimiterStore, keyFactory RateHttp
 		limiter := store.Limit(key)
 		token := limiter.Take()
 		if err := token.Use(); err != nil {
-			headers := w.Header()
-			writeRateLimitHeaders(headers, limiter, token)
+			if errors.Is(err, rate.ErrRateLimitExceeded) {
+				headers := w.Header()
+				writeRateLimitHeaders(headers, limiter, token)
+			}
 			return err
 		}
 		return h.ServeHTTP(w, r)
