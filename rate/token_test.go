@@ -1,27 +1,45 @@
-package rate
+package rate_test
 
 import (
 	"testing"
+	"time"
 
+	"github.com/Prastiwar/Go-flow/rate"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
+var _ rate.Token = &falseToken{}
+
+type falseToken struct{}
+
+func (*falseToken) Allow() bool {
+	return false
+}
+
+func (*falseToken) ResetsAt() time.Time {
+	return rate.MaxTime
+}
+
+func (*falseToken) Use() error {
+	return rate.ErrInvalidTokenValue
+}
+
 func TestFalseToken(t *testing.T) {
-	assert.NotNil(t, FalseToken)
-	assert.Equal(t, false, FalseToken.Allow())
-	assert.Equal(t, ErrInvalidTokenValue, FalseToken.Use())
-	assert.Equal(t, MaxTime, FalseToken.ResetsAt())
+	assert.NotNil(t, rate.FalseToken)
+	assert.Equal(t, false, rate.FalseToken.Allow())
+	assert.Equal(t, rate.ErrInvalidTokenValue, rate.FalseToken.Use())
+	assert.Equal(t, rate.MaxTime, rate.FalseToken.ResetsAt())
 }
 
 func TestIsFalseToken(t *testing.T) {
 	tests := []struct {
 		name  string
-		token Token
+		token rate.Token
 		want  bool
 	}{
 		{
 			name:  "true",
-			token: FalseToken,
+			token: rate.FalseToken,
 			want:  true,
 		},
 		{
@@ -33,7 +51,7 @@ func TestIsFalseToken(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := IsFalseToken(tt.token)
+			got := rate.IsFalseToken(tt.token)
 			assert.Equal(t, tt.want, got)
 		})
 	}

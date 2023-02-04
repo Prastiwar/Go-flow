@@ -1,33 +1,37 @@
-package rate
+package mocks
 
-import "time"
+import (
+	"time"
+
+	"github.com/Prastiwar/Go-flow/rate"
+)
 
 var (
-	_ LimiterStore     = LimiterStoreMock{}
-	_ Limiter          = LimiterMock{}
-	_ BurstLimiter     = BurstLimiterMock{}
-	_ CancellableToken = TokenMock{}
+	_ rate.LimiterStore     = LimiterStoreMock{}
+	_ rate.Limiter          = LimiterMock{}
+	_ rate.BurstLimiter     = BurstLimiterMock{}
+	_ rate.CancellableToken = TokenMock{}
 )
 
 type LimiterStoreMock struct {
-	OnLimit func(key string) Limiter
+	OnLimit func(key string) rate.Limiter
 }
 
-func (m LimiterStoreMock) Limit(key string) Limiter {
+func (m LimiterStoreMock) Limit(key string) rate.Limiter {
 	return m.OnLimit(key)
 }
 
 type LimiterMock struct {
 	OnLimit  func() uint64
 	OnTokens func() uint64
-	OnTake   func() Token
+	OnTake   func() rate.Token
 }
 
 func (m LimiterMock) Limit() uint64 {
 	return m.OnLimit()
 }
 
-func (m LimiterMock) Take() Token {
+func (m LimiterMock) Take() rate.Token {
 	return m.OnTake()
 }
 
@@ -36,12 +40,13 @@ func (m LimiterMock) Tokens() uint64 {
 }
 
 type BurstLimiterMock struct {
-	Limiter
+	rate.Limiter
+
 	OnBurst func() uint64
-	OnTakeN func(n uint64) Token
+	OnTakeN func(n uint64) rate.Token
 }
 
-func (m BurstLimiterMock) TakeN(n uint64) Token {
+func (m BurstLimiterMock) TakeN(n uint64) rate.Token {
 	return m.OnTakeN(n)
 }
 
