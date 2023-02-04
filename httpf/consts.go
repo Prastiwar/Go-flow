@@ -23,6 +23,7 @@ const (
 	ServerHeader                  = "Server"
 	SetCookieHeader               = "Set-Cookie"
 	UserAgentHeader               = "User-Agent"
+	XForwardedForHeader           = "X-Forwarded-For"
 
 	ApplicationJsonType        = "application/json"
 	ApplicationFormEncodedType = "application/x-www-form-urlencoded"

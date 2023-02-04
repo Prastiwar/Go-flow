@@ -9,9 +9,36 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
+	"sync"
+	"time"
 
 	"github.com/Prastiwar/Go-flow/httpf"
+	"github.com/Prastiwar/Go-flow/rate"
+	"github.com/Prastiwar/Go-flow/tests/mocks"
 )
+
+const (
+	hostPrefix = "localhost:"
+)
+
+var (
+	port     = 8080
+	serverMu = sync.Mutex{}
+)
+
+// runServer creates new server and listens in new goroutine on address that is returned from this function.
+func runServer(router httpf.Router) string {
+	serverMu.Lock()
+	defer serverMu.Unlock()
+
+	port++
+	address := hostPrefix + strconv.Itoa(port)
+	go func() {
+		_ = httpf.NewServer(address, router).ListenAndServe()
+	}()
+	return "http://" + address
+}
 
 func Example() {
 	mux := httpf.NewServeMuxBuilder()
@@ -59,11 +86,9 @@ func Example() {
 		return w.Response(http.StatusCreated, result)
 	}))
 
-	go func() {
-		_ = httpf.NewServer("localhost:8080", mux.Build()).ListenAndServe()
-	}()
+	serverAddress := runServer(mux.Build())
 
-	resp, err := http.Post("http://localhost:8080/api/test/", httpf.ApplicationJsonType, bytes.NewBufferString("{}"))
+	resp, err := http.Post(serverAddress+"/api/test/", httpf.ApplicationJsonType, bytes.NewBufferString("{}"))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -77,4 +102,75 @@ func Example() {
 	// output:
 	// 201
 	// {"id":"1234"}
+}
+
+func ExampleRateLimitMiddleware() {
+	mux := httpf.NewServeMuxBuilder()
+
+	mux.WithErrorHandler(httpf.ErrorHandlerFunc(func(w http.ResponseWriter, r *http.Request, err error) {
+		if errors.Is(err, rate.ErrRateLimitExceeded) {
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
+		}
+		panic(err)
+	}))
+
+	var (
+		resetPeriod time.Duration = time.Second
+		maxTokens   uint64        = 2
+		tokens      uint64        = maxTokens
+	)
+	storeLimiter := mocks.LimiterStoreMock{
+		OnLimit: func(key string) rate.Limiter {
+			return mocks.LimiterMock{
+				OnLimit:  func() uint64 { return maxTokens },
+				OnTokens: func() uint64 { return tokens },
+				OnTake: func() rate.Token {
+					return mocks.TokenMock{
+						OnUse: func() error {
+							if tokens <= 0 {
+								return rate.ErrRateLimitExceeded
+							}
+							tokens--
+							go func() {
+								time.Sleep(resetPeriod)
+								tokens++
+							}()
+							return nil
+						},
+						OnResetsAt: func() time.Time { return time.Now().Add(resetPeriod) },
+					}
+				},
+			}
+		},
+	}
+
+	mux.Get("/api/test/", httpf.RateLimitMiddleware(httpf.HandlerFunc(func(w httpf.ResponseWriter, r *http.Request) error {
+		return w.Response(http.StatusOK, nil)
+	}), storeLimiter, httpf.PathRateKey()))
+
+	serverAddress := runServer(mux.Build())
+
+	callGet := func() {
+		resp, err := http.Get(serverAddress + "/api/test/")
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		fmt.Println(resp.StatusCode)
+	}
+
+	for i := uint64(0); i <= maxTokens; i++ {
+		callGet()
+	}
+
+	time.Sleep(resetPeriod)
+	callGet()
+
+	// output:
+	// 200
+	// 200
+	// 429
+	// 200
 }
