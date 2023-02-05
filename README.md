@@ -8,6 +8,7 @@
 Framework for Go services in go with zero dependency rule, so you can use it in any project without other third-party dependencies or writing your own code for common tasks.
 
 - [Go-flow](#go-flow)
+  - [Download](#download)
   - [Library purpose](#library-purpose)
   - [Packages](#packages)
     - [caching](#caching)
@@ -24,6 +25,14 @@ Framework for Go services in go with zero dependency rule, so you can use it in 
     - [tests](#tests)
   - [Contributing](#contributing)
   - [License](#license)
+
+## Download
+
+See latest version: https://github.com/Prastiwar/Go-flow/releases/latest
+
+```bash
+go get -u github.com/Prastiwar/Go-flow@{version}
+```
 
 ## Library purpose
 
