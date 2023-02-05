@@ -1,9 +1,10 @@
-package reflection
+package reflection_test
 
 import (
 	"reflect"
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/reflection"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
@@ -108,7 +109,7 @@ func TestSetFieldValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			field := tt.field()
-			err := SetFieldValue(field, tt.rawValue)
+			err := reflection.SetFieldValue(field, tt.rawValue)
 			if tt.wantErr {
 				assert.Error(t, err)
 				return
@@ -215,7 +216,7 @@ func TestGetFieldValueFor(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetFieldValueFor(tt.fieldType, tt.rawValue)
+			got, err := reflection.GetFieldValueFor(tt.fieldType, tt.rawValue)
 			if tt.wantErr {
 				assert.Error(t, err)
 				return

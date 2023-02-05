@@ -1,10 +1,11 @@
-package retry
+package retry_test
 
 import (
 	"errors"
 	"testing"
 	"time"
 
+	"github.com/Prastiwar/Go-flow/policy/retry"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
@@ -18,7 +19,7 @@ func TestPolicy_Execute(t *testing.T) {
 	var attempt int
 	var timeStart time.Time
 
-	withTwoAttemptsWaitAssertion := WithCancelPredicate(func(attempt int, err error) bool {
+	withTwoAttemptsWaitAssertion := retry.WithCancelPredicate(func(attempt int, err error) bool {
 		if attempt == 1 {
 			// can't check it now - start timer
 			timeStart = time.Now()
@@ -39,17 +40,17 @@ func TestPolicy_Execute(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		p        func(t *testing.T) *policy
+		p        func(t *testing.T) retry.Policy
 		fn       func() error
 		asserter assert.ErrorFunc
 	}{
 		{
 			name: "success-after-single-retry",
-			p: func(t *testing.T) *policy {
+			p: func(t *testing.T) retry.Policy {
 				c := assert.Count(t, 1, "failed retry call")
-				return NewPolicy(
-					WithCount(1),
-					WithCancelPredicate(func(attempt int, err error) bool {
+				return retry.NewPolicy(
+					retry.WithCount(1),
+					retry.WithCancelPredicate(func(attempt int, err error) bool {
 						c.Inc()
 						return false
 					}),
@@ -68,11 +69,11 @@ func TestPolicy_Execute(t *testing.T) {
 		},
 		{
 			name: "success-3-retries-cancel",
-			p: func(t *testing.T) *policy {
+			p: func(t *testing.T) retry.Policy {
 				c := assert.Count(t, 3, "failed retry call")
-				return NewPolicy(
-					WithCount(5),
-					WithCancelPredicate(func(attempt int, err error) bool {
+				return retry.NewPolicy(
+					retry.WithCount(5),
+					retry.WithCancelPredicate(func(attempt int, err error) bool {
 						c.Inc()
 						return attempt == 3
 					}),
@@ -87,9 +88,9 @@ func TestPolicy_Execute(t *testing.T) {
 		},
 		{
 			name: "success-no-cancel-no-error",
-			p: func(t *testing.T) *policy {
-				return NewPolicy(
-					WithCount(5),
+			p: func(t *testing.T) retry.Policy {
+				return retry.NewPolicy(
+					retry.WithCount(5),
 				)
 			},
 			fn: func() error {
@@ -105,10 +106,10 @@ func TestPolicy_Execute(t *testing.T) {
 		},
 		{
 			name: "success-wait-times",
-			p: func(t *testing.T) *policy {
-				return NewPolicy(
-					WithCount(3),
-					WithWaitTimes(firstAttemptTime, secondAttemptTime),
+			p: func(t *testing.T) retry.Policy {
+				return retry.NewPolicy(
+					retry.WithCount(3),
+					retry.WithWaitTimes(firstAttemptTime, secondAttemptTime),
 					withTwoAttemptsWaitAssertion,
 				)
 			},
@@ -121,10 +122,10 @@ func TestPolicy_Execute(t *testing.T) {
 		},
 		{
 			name: "success-waiter",
-			p: func(t *testing.T) *policy {
-				return NewPolicy(
-					WithCount(3),
-					WithWaiter(func(attempt int, err error) time.Duration {
+			p: func(t *testing.T) retry.Policy {
+				return retry.NewPolicy(
+					retry.WithCount(3),
+					retry.WithWaiter(func(attempt int, err error) time.Duration {
 						if attempt == 1 {
 							return firstAttemptTime
 						}
@@ -147,9 +148,9 @@ func TestPolicy_Execute(t *testing.T) {
 		},
 		{
 			name: "success-default-cancel",
-			p: func(t *testing.T) *policy {
-				return NewPolicy(
-					WithCount(1),
+			p: func(t *testing.T) retry.Policy {
+				return retry.NewPolicy(
+					retry.WithCount(1),
 				)
 			},
 			fn: func() error {

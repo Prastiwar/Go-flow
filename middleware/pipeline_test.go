@@ -1,9 +1,10 @@
-package middleware
+package middleware_test
 
 import (
 	"errors"
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/middleware"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
@@ -16,7 +17,7 @@ func TestPipelineOrder(t *testing.T) {
 	expectedMessages := []string{"log-start", "pre-handler", "handler", "post-handler", "log-end"}
 	actualMessages := make([]string, 0)
 
-	middleware := NewMiddleware[pipeRequest, pipeResponse]()
+	middleware := middleware.NewMiddleware[pipeRequest, pipeResponse]()
 
 	middleware.Use(
 		func(r pipeRequest, next func(r pipeRequest) pipeResponse) pipeResponse {

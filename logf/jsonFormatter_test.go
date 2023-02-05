@@ -1,17 +1,19 @@
-package logf
+package logf_test
 
 import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/Prastiwar/Go-flow/logf"
 )
 
 func TestJsonFormatter_Format(t *testing.T) {
 	const monthCalendarFormat = "2006-01-02"
 	now := time.Now().UTC().Format(monthCalendarFormat)
-	prettyFormatter := NewJsonFormatter(true)
-	compactFormatter := NewJsonFormatter(false)
-	fields := Fields{"count": 1, "version": "1.0"}
+	prettyFormatter := logf.NewJsonFormatter(true)
+	compactFormatter := logf.NewJsonFormatter(false)
+	fields := logf.Fields{"count": 1, "version": "1.0"}
 
 	tests := []formatterTestCase{
 		{
@@ -52,8 +54,8 @@ func TestJsonFormatter_Format(t *testing.T) {
 			name:     "compact-message-with-time-field",
 			f:        compactFormatter,
 			msg:      "test",
-			fields:   Fields{LogTime: NewTimeField(monthCalendarFormat)},
-			expected: fmt.Sprintf("{\"%v\":\"%v\",\"message\":\"test\"}", LogTime, now),
+			fields:   logf.Fields{logf.LogTime: logf.NewTimeField(monthCalendarFormat)},
+			expected: fmt.Sprintf("{\"%v\":\"%v\",\"message\":\"test\"}", logf.LogTime, now),
 		},
 	}
 
