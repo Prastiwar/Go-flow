@@ -1,65 +1,66 @@
-package di
+package di_test
 
 import (
 	"reflect"
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/di"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 func TestCache(t *testing.T) {
 	tests := []struct {
 		name       string
-		cache      Cache
-		life       LifeTime
+		cache      di.Cache
+		life       di.LifeTime
 		typ        reflect.Type
 		val        interface{}
 		expectedOk bool
 	}{
 		{
 			name:       "root-success-singleton",
-			cache:      NewRootCache(),
-			life:       Singleton,
+			cache:      di.NewRootCache(),
+			life:       di.Singleton,
 			typ:        reflect.TypeOf(""),
 			val:        "",
 			expectedOk: true,
 		},
 		{
 			name:       "root-invalid-transient",
-			cache:      NewRootCache(),
-			life:       Transient,
+			cache:      di.NewRootCache(),
+			life:       di.Transient,
 			typ:        reflect.TypeOf(""),
 			val:        "",
 			expectedOk: false,
 		},
 		{
 			name:       "root-invalid-scoped",
-			cache:      NewRootCache(),
-			life:       Scoped,
+			cache:      di.NewRootCache(),
+			life:       di.Scoped,
 			typ:        reflect.TypeOf(""),
 			val:        "",
 			expectedOk: false,
 		},
 		{
 			name:       "scope-success-singleton",
-			cache:      NewScopeCache(NewRootCache()),
-			life:       Singleton,
+			cache:      di.NewScopeCache(di.NewRootCache()),
+			life:       di.Singleton,
 			typ:        reflect.TypeOf(""),
 			val:        "",
 			expectedOk: true,
 		},
 		{
 			name:       "scope-invalid-transient",
-			cache:      NewScopeCache(NewRootCache()),
-			life:       Transient,
+			cache:      di.NewScopeCache(di.NewRootCache()),
+			life:       di.Transient,
 			typ:        reflect.TypeOf(""),
 			val:        "",
 			expectedOk: false,
 		},
 		{
 			name:       "scope-success-scoped",
-			cache:      NewScopeCache(NewRootCache()),
-			life:       Scoped,
+			cache:      di.NewScopeCache(di.NewRootCache()),
+			life:       di.Scoped,
 			typ:        reflect.TypeOf(""),
 			val:        "",
 			expectedOk: true,

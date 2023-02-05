@@ -1,10 +1,11 @@
-package config
+package config_test
 
 import (
 	"fmt"
 	"os"
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/config"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
@@ -119,7 +120,7 @@ func TestEnvProviderLoad(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := NewEnvProviderWith(tt.prefix)
+			p := config.NewEnvProviderWith(tt.prefix)
 			v, asserts := tt.init(t)
 			err := p.Load(v)
 			if tt.wantErr {

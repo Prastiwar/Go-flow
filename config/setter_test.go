@@ -1,8 +1,9 @@
-package config
+package config_test
 
 import (
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/config"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
@@ -10,8 +11,8 @@ func TestSetFields(t *testing.T) {
 	tests := []struct {
 		name    string
 		init    func(t *testing.T) (any, func())
-		opts    LoadOptions
-		findFn  FieldValueFinder
+		opts    config.LoadOptions
+		findFn  config.FieldValueFinder
 		wantErr bool
 	}{
 		{
@@ -24,7 +25,7 @@ func TestSetFields(t *testing.T) {
 					assert.Equal(t, "str", v.Field)
 				}
 			},
-			opts: *NewLoadOptions(),
+			opts: *config.NewLoadOptions(),
 			findFn: func(key string) (any, error) {
 				field := "str"
 				return &field, nil
@@ -36,7 +37,7 @@ func TestSetFields(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v, asserts := tt.init(t)
-			setter := NewFieldSetter("", tt.opts)
+			setter := config.NewFieldSetter("", tt.opts)
 
 			err := setter.SetFields(v, tt.findFn)
 			if tt.wantErr {

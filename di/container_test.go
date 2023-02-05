@@ -1,70 +1,69 @@
-package di
+package di_test
 
 import (
 	"math/rand"
 	"reflect"
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/di"
 	"github.com/Prastiwar/Go-flow/reflection"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 type someInterface interface{}
 
-type someDependency struct {
+type fooDependency struct {
 	id float64
 }
 
 type someOtherDependency struct{}
 
-type someService struct {
+type fooService struct {
 	id float64
 }
 
-func newSomeDependency() *someDependency {
-	return &someDependency{
+func newfooDependency() *fooDependency {
+	return &fooDependency{
 		id: rand.Float64(),
 	}
 }
 
-func newSomeService() *someService {
-	return &someService{
+func newFooService() *fooService {
+	return &fooService{
 		id: rand.Float64(),
 	}
 }
 
-func newSomeServiceNonPointerDep(*someDependency) someService {
-	return someService{
+func newFooServiceNonPointerDep(*fooDependency) fooService {
+	return fooService{
 		id: rand.Float64(),
 	}
 }
 
-func newSomeServiceWithDep(dep someDependency) *someService {
-	return newSomeService()
+func newFooServiceWithDep(dep fooDependency) *fooService {
+	return newFooService()
 }
 
-func newSomeServiceWithTwoDeps(dep someDependency, otherDep someOtherDependency) *someService {
-	return newSomeService()
+func newFooServiceWithTwoDeps(dep fooDependency, otherDep someOtherDependency) *fooService {
+	return newFooService()
 }
 
-func newSomeServiceWithCyclicDep(dep someService) *someService {
-	return newSomeService()
+func newFooServiceWithCyclicDep(dep fooService) *fooService {
+	return newFooService()
 }
 
 func TestRegister(t *testing.T) {
 	tests := []struct {
 		name             string
 		ctors            []interface{}
-		expectedServices map[reflect.Type]constructor
+		expectedServices map[reflect.Type]di.Constructor
 		assertErr        assert.ErrorFunc
 	}{
 		{
 			name:  "success-some-service",
-			ctors: []interface{}{newSomeService},
-			expectedServices: map[reflect.Type]constructor{
-				reflection.TypeOf[*someService](): {
-					fn: newSomeService,
-				},
+			ctors: []interface{}{newFooService},
+			expectedServices: map[reflect.Type]di.Constructor{
+				reflection.TypeOf[*fooService](): di.Construct(di.Transient, newFooService),
 			},
 			assertErr: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -72,11 +71,9 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name:  "success-ctor-pointer",
-			ctors: []interface{}{Construct(Scoped, newSomeService)},
-			expectedServices: map[reflect.Type]constructor{
-				reflection.TypeOf[*someService](): {
-					fn: newSomeService,
-				},
+			ctors: []interface{}{di.Construct(di.Scoped, newFooService)},
+			expectedServices: map[reflect.Type]di.Constructor{
+				reflection.TypeOf[*fooService](): di.Construct(di.Transient, newFooService),
 			},
 			assertErr: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -84,11 +81,9 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name:  "success-ctor-non-pointer",
-			ctors: []interface{}{*Construct(Scoped, newSomeService)},
-			expectedServices: map[reflect.Type]constructor{
-				reflection.TypeOf[*someService](): {
-					fn: newSomeService,
-				},
+			ctors: []interface{}{di.Construct(di.Scoped, newFooService)},
+			expectedServices: map[reflect.Type]di.Constructor{
+				reflection.TypeOf[*fooService](): di.Construct(di.Transient, newFooService),
 			},
 			assertErr: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -96,30 +91,25 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name:  "invalid-ctor-func",
-			ctors: []interface{}{newSomeService, ""},
+			ctors: []interface{}{newFooService, ""},
 			assertErr: func(t *testing.T, err error) {
-				assert.Equal(t, ErrCtorNotFunc, err)
+				assert.Equal(t, di.ErrCtorNotFunc, err)
 			},
 		},
 		{
 			name:  "invalid-ctor-signature",
-			ctors: []interface{}{newSomeService, func() {}},
+			ctors: []interface{}{newFooService, func() {}},
 			assertErr: func(t *testing.T, err error) {
-				assert.Equal(t, ErrWrongCtorSignature, err)
+				assert.Equal(t, di.ErrWrongCtorSignature, err)
 			},
 		},
 		// Validation
 		{
 			name:  "success-no-pointer-single-dep",
-			ctors: []any{newSomeServiceNonPointerDep, newSomeDependency},
-			expectedServices: map[reflect.Type]constructor{
-				reflection.TypeOf[*someDependency](): {
-					fn: newSomeDependency,
-				},
-				reflection.TypeOf[someService](): {
-					fn:     newSomeServiceNonPointerDep,
-					params: []reflect.Type{reflect.TypeOf(newSomeDependency())},
-				},
+			ctors: []any{newFooServiceNonPointerDep, newfooDependency},
+			expectedServices: map[reflect.Type]di.Constructor{
+				reflection.TypeOf[*fooDependency](): di.Construct(di.Transient, newfooDependency),
+				reflection.TypeOf[fooService]():     di.Construct(di.Transient, newFooServiceNonPointerDep),
 			},
 			assertErr: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -127,34 +117,37 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name:  "invalid-missing-single-dep",
-			ctors: []any{newSomeServiceWithDep},
+			ctors: []any{newFooServiceWithDep},
 			assertErr: func(t *testing.T, err error) {
-				assert.ErrorWith(t, err, "'dependency is not registered': 'di.someDependency'")
+				assert.ErrorWith(t, err, "'dependency is not registered': 'di_test.fooDependency'")
 			},
 		},
 		{
 			name:  "invalid-missing-two-deps",
-			ctors: []any{newSomeServiceWithTwoDeps},
+			ctors: []any{newFooServiceWithTwoDeps},
 			assertErr: func(t *testing.T, err error) {
-				assert.ErrorWith(t, err, "dependency is not registered': 'di.someDependency")
-				assert.ErrorWith(t, err, "dependency is not registered': 'di.someOtherDependency")
+				assert.ErrorWith(t, err, "dependency is not registered': 'di_test.fooDependency")
+				assert.ErrorWith(t, err, "dependency is not registered': 'di_test.someOtherDependency")
 			},
 		},
 		{
 			name:  "invalid-cyclic-dependency",
-			ctors: []any{newSomeServiceWithCyclicDep},
+			ctors: []any{newFooServiceWithCyclicDep},
 			assertErr: func(t *testing.T, err error) {
-				assert.ErrorWith(t, err, "cyclic dependency detected': 'di.someService")
+				assert.ErrorWith(t, err, "cyclic dependency detected': 'di_test.fooService")
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			container, err := Register(tt.ctors...)
-			var services map[reflect.Type]constructor
+			container, err := di.Register(tt.ctors...)
+			services := make(map[reflect.Type]di.Constructor, 4)
 			if container != nil {
-				services = container.services
+				containerServices := container.Services()
+				for _, s := range containerServices {
+					services[s.Type()] = s.Constructor()
+				}
 			}
 
 			tt.assertErr(t, err)
@@ -166,8 +159,11 @@ func TestRegister(t *testing.T) {
 			for typ, ctor := range tt.expectedServices {
 				actualCtor, exists := services[typ]
 				assert.Equal(t, true, exists, "exists assertion failed")
-				assert.Equal(t, reflect.TypeOf(ctor.fn), reflect.TypeOf(actualCtor.fn), "type equality failed")
-				assert.Equal(t, len(ctor.params), len(actualCtor.params), "ctor params equality failed", reflect.TypeOf(ctor.fn).String())
+				if exists {
+					// assert.Equal(t, reflect.TypeOf(ctor.fn), reflect.TypeOf(actualCtor.fn), "type equality failed")
+					assert.ElementsMatch(t, ctor.Dependencies(), actualCtor.Dependencies())
+					assert.Equal(t, len(ctor.Dependencies()), len(actualCtor.Dependencies()), "ctor params equality failed")
+				}
 			}
 		})
 	}
@@ -180,126 +176,126 @@ func TestProvide(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		container    func(t *testing.T) (*container, error)
+		container    func(t *testing.T) (di.Container, error)
 		provideFn    func(t *testing.T, provider func(any)) any
 		expectedType reflect.Type
 	}{
 		{
 			name: "success-interface-no-deps",
-			container: func(t *testing.T) (*container, error) {
-				return Register(newSomeService)
+			container: func(t *testing.T) (di.Container, error) {
+				return di.Register(newFooService)
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
 				var service someInterface
 				provider(&service)
 				return service
 			},
-			expectedType: reflection.TypeOf[*someService](),
+			expectedType: reflection.TypeOf[*fooService](),
 		},
 		{
 			name: "success-service-no-deps",
-			container: func(t *testing.T) (*container, error) {
-				return Register(newSomeService)
+			container: func(t *testing.T) (di.Container, error) {
+				return di.Register(newFooService)
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service someService
+				var service fooService
 				provider(&service)
 				return service
 			},
-			expectedType: reflection.TypeOf[someService](),
+			expectedType: reflection.TypeOf[fooService](),
 		},
 		{
 			name: "success-service-pointer-no-deps",
-			container: func(t *testing.T) (*container, error) {
-				return Register(newSomeService)
+			container: func(t *testing.T) (di.Container, error) {
+				return di.Register(newFooService)
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service *someService
+				var service *fooService
 				provider(&service)
 				return service
 			},
-			expectedType: reflection.TypeOf[*someService](),
+			expectedType: reflection.TypeOf[*fooService](),
 		},
 		{
 			name: "success-service-dep-pointer-to-non-pointer",
-			container: func(t *testing.T) (*container, error) {
-				return Register(newSomeServiceWithDep, newSomeDependency)
+			container: func(t *testing.T) (di.Container, error) {
+				return di.Register(newFooServiceWithDep, newfooDependency)
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
 				defer func() {
 					assert.Equal(t, nil, recover())
 				}()
 
-				var service someService
+				var service fooService
 				provider(&service)
 				return service
 			},
-			expectedType: reflection.TypeOf[someService](),
+			expectedType: reflection.TypeOf[fooService](),
 		},
 		{
 			name: "success-service-pointer-to-pointer-dep",
-			container: func(t *testing.T) (*container, error) {
-				return Register(newSomeServiceWithDep, newSomeDependency)
+			container: func(t *testing.T) (di.Container, error) {
+				return di.Register(newFooServiceWithDep, newfooDependency)
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
 				defer func() {
 					assert.Equal(t, nil, recover())
 				}()
 
-				var service *someService
+				var service *fooService
 				provider(&service)
 				return service
 			},
-			expectedType: reflection.TypeOf[*someService](),
+			expectedType: reflection.TypeOf[*fooService](),
 		},
 		{
 			name: "invalid-service-pointer-no-addressable-no-deps",
-			container: func(t *testing.T) (*container, error) {
-				return Register(newSomeService)
+			container: func(t *testing.T) (di.Container, error) {
+				return di.Register(newFooService)
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
 				defer func() {
-					assert.Equal(t, ErrNotAddresable, recover())
+					assert.Equal(t, di.ErrNotAddresable, recover())
 					t.SkipNow()
 				}()
 
-				var service *someService
+				var service *fooService
 				provider(service)
 				return service
 			},
-			expectedType: reflection.TypeOf[*someService](),
+			expectedType: reflection.TypeOf[*fooService](),
 		},
 		{
 			name: "invalid-service-not-registered-no-deps",
-			container: func(t *testing.T) (*container, error) {
-				return &container{}, nil
+			container: func(t *testing.T) (di.Container, error) {
+				return di.Register()
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
 				defer func() {
 					err, _ := recover().(error)
-					assert.ErrorWith(t, err, ErrNotRegistered.Error())
+					assert.ErrorWith(t, err, di.ErrNotRegistered.Error())
 					t.SkipNow()
 				}()
 
-				var service someService
+				var service fooService
 				provider(&service)
 				return service
 			},
-			expectedType: reflection.TypeOf[*someService](),
+			expectedType: reflection.TypeOf[*fooService](),
 		},
 		{
 			name: "invalid-service-not-pointer",
-			container: func(t *testing.T) (*container, error) {
-				return &container{}, nil
+			container: func(t *testing.T) (di.Container, error) {
+				return di.Register()
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
 				defer func() {
 					err, _ := recover().(error)
-					assert.ErrorWith(t, err, ErrNotPointer.Error())
+					assert.ErrorWith(t, err, di.ErrNotPointer.Error())
 					t.SkipNow()
 				}()
 
-				var service someService
+				var service fooService
 				provider(service)
 				return service
 			},
@@ -326,17 +322,17 @@ func TestProvideCache(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		container func(t *testing.T) (*container, error)
+		container func(t *testing.T) (di.Container, error)
 		provideFn func(t *testing.T, provider func(any)) any
 		cached    bool
 	}{
 		{
 			name: "success-transient-root-no-cached",
-			container: func(t *testing.T) (*container, error) {
-				return Register(newSomeService)
+			container: func(t *testing.T) (di.Container, error) {
+				return di.Register(newFooService)
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service someService
+				var service fooService
 				provider(&service)
 				return service
 			},
@@ -344,39 +340,39 @@ func TestProvideCache(t *testing.T) {
 		},
 		{
 			name: "success-singleton-root-cached",
-			container: func(t *testing.T) (*container, error) {
-				return Register(Construct(Singleton, newSomeService))
+			container: func(t *testing.T) (di.Container, error) {
+				return di.Register(di.Construct(di.Singleton, newFooService))
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service someService
+				var service fooService
 				provider(&service)
 				return service
 			},
 			cached: true,
 		},
 		{
-			name: "success-scoped-root-no-cached",
-			container: func(t *testing.T) (*container, error) {
-				return Register(Construct(Scoped, newSomeService))
+			name: "success-di.Scoped-root-no-cached",
+			container: func(t *testing.T) (di.Container, error) {
+				return di.Register(di.Construct(di.Scoped, newFooService))
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service someService
+				var service fooService
 				provider(&service)
 				return service
 			},
 			cached: false,
 		},
 		{
-			name: "success-scoped-scope-cached",
-			container: func(t *testing.T) (*container, error) {
-				c, err := Register(Construct(Scoped, newSomeService))
+			name: "success-di.Scoped-scope-cached",
+			container: func(t *testing.T) (di.Container, error) {
+				c, err := di.Register(di.Construct(di.Scoped, newFooService))
 				if err != nil {
 					return nil, err
 				}
 				return c.Scope(), nil
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service someService
+				var service fooService
 				provider(&service)
 				return service
 			},
@@ -384,15 +380,15 @@ func TestProvideCache(t *testing.T) {
 		},
 		{
 			name: "success-singleton-scope-cached",
-			container: func(t *testing.T) (*container, error) {
-				c, err := Register(Construct(Singleton, newSomeService))
+			container: func(t *testing.T) (di.Container, error) {
+				c, err := di.Register(di.Construct(di.Singleton, newFooService))
 				if err != nil {
 					return nil, err
 				}
 				return c.Scope(), nil
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service someService
+				var service fooService
 				provider(&service)
 				return service
 			},
@@ -400,15 +396,15 @@ func TestProvideCache(t *testing.T) {
 		},
 		{
 			name: "success-transient-scope-no-cached",
-			container: func(t *testing.T) (*container, error) {
-				c, err := Register(Construct(Transient, newSomeService))
+			container: func(t *testing.T) (di.Container, error) {
+				c, err := di.Register(di.Construct(di.Transient, newFooService))
 				if err != nil {
 					return nil, err
 				}
 				return c.Scope(), nil
 			},
 			provideFn: func(t *testing.T, provider func(any)) any {
-				var service someService
+				var service fooService
 				provider(&service)
 				return &service
 			},

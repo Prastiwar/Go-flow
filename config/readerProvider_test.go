@@ -1,10 +1,11 @@
-package config
+package config_test
 
 import (
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/config"
 	"github.com/Prastiwar/Go-flow/config/decoders"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
@@ -25,13 +26,13 @@ func createTempContentFile(t *testing.T, contents string) string {
 func TestReaderProviderLoad(t *testing.T) {
 	tests := []struct {
 		name    string
-		init    func(t *testing.T) (*readerProvider, any, func())
+		init    func(t *testing.T) (config.Provider, any, func())
 		wantErr bool
 	}{
 		{
 			name: "success-json-reader",
-			init: func(t *testing.T) (*readerProvider, any, func()) {
-				provider := NewReaderProvider(strings.NewReader("{ \"title\": \"header\"}"), decoders.NewJson())
+			init: func(t *testing.T) (config.Provider, any, func()) {
+				provider := config.NewReaderProvider(strings.NewReader("{ \"title\": \"header\"}"), decoders.NewJson())
 
 				v := struct {
 					Title string
@@ -45,9 +46,9 @@ func TestReaderProviderLoad(t *testing.T) {
 		},
 		{
 			name: "success-file-reader",
-			init: func(t *testing.T) (*readerProvider, any, func()) {
+			init: func(t *testing.T) (config.Provider, any, func()) {
 				filename := createTempContentFile(t, "{ \"title\": \"header\"}")
-				provider := NewFileProvider(filename, decoders.NewJson())
+				provider := config.NewFileProvider(filename, decoders.NewJson())
 
 				v := struct {
 					Title string
