@@ -31,6 +31,7 @@ func WithInterceptor(i KeyInterceptor) LoadOption {
 
 // WithIgnoreGlobalOptions returns empty LoadOption to indicate no shared options should be used and
 // no additional configuration is provided. This behaviour applies to Source provider.
+// See Source.Load() for more information.
 func WithIgnoreGlobalOptions() LoadOption {
 	return func(s *LoadOptions) {}
 }

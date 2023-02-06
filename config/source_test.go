@@ -163,7 +163,7 @@ func TestSourceLoad(t *testing.T) {
 		{
 			name: "success-empty-no-shared-options",
 			init: func(t *testing.T) (*config.Source, any, func(error)) {
-				s := config.Provide()
+				s := config.Provide(config.NewEnvProvider())
 				v := struct {
 					Key string
 				}{}
