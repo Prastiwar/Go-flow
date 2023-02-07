@@ -8,6 +8,7 @@
 Framework for Go services in go with zero dependency rule, so you can use it in any project without other third-party dependencies or writing your own code for common tasks.
 
 - [Go-flow](#go-flow)
+  - [Production readiness](#production-readiness)
   - [Download](#download)
   - [Library purpose](#library-purpose)
   - [Packages](#packages)
@@ -25,6 +26,12 @@ Framework for Go services in go with zero dependency rule, so you can use it in 
     - [tests](#tests)
   - [Contributing](#contributing)
   - [License](#license)
+
+## Production readiness
+
+The library is in final phase before the stable version release. The phase consist of private project released to production. Though it can be already used in production until a stable v1 version release you should keep in mind that some breaking changes can still happen and will not increase the major version. Every breaking change will be noted either in the version release or pull request description.
+
+For release information see https://github.com/Prastiwar/Go-flow/discussions/27
 
 ## Download
 

@@ -1,6 +1,7 @@
 package retry_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -17,7 +18,7 @@ func Example() {
 	)
 
 	startedTime := time.Now()
-	err := p.Execute(func() error {
+	err := p.Execute(context.Background(), func() error {
 		fmt.Println("executed after: " + time.Since(startedTime).Truncate(time.Second).String())
 		startedTime = time.Now()
 
