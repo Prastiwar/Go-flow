@@ -1,4 +1,4 @@
-package assert
+package assert_test
 
 import (
 	"encoding/json"
@@ -8,6 +8,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 func TestNotEqualAndEqual(t *testing.T) {
@@ -48,9 +50,9 @@ func TestNotEqualAndEqual(t *testing.T) {
 		t.Run("[NotEqual]: "+tt.name, func(t *testing.T) {
 			test := &testing.T{}
 
-			NotEqual(test, tt.expected, tt.actual, "not equal expectation failed")
+			assert.NotEqual(test, tt.expected, tt.actual, "not equal expectation failed")
 
-			Equal(t, tt.fails, test.Failed())
+			assert.Equal(t, tt.fails, test.Failed())
 		})
 	}
 
@@ -58,7 +60,7 @@ func TestNotEqualAndEqual(t *testing.T) {
 		t.Run("[Equal]: "+tt.name, func(t *testing.T) {
 			test := &testing.T{}
 
-			Equal(test, tt.expected, tt.actual, "not equal expectation failed")
+			assert.Equal(test, tt.expected, tt.actual, "not equal expectation failed")
 
 			if tt.fails && test.Failed() {
 				t.Error("failed expectation")
@@ -94,9 +96,9 @@ func TestNotNil(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			test := &testing.T{}
 
-			NotNil(test, tt.v)
+			assert.NotNil(test, tt.v)
 
-			Equal(t, tt.fails, test.Failed())
+			assert.Equal(t, tt.fails, test.Failed())
 		})
 	}
 }
@@ -123,9 +125,9 @@ func TestNilError(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			test := &testing.T{}
 
-			NilError(test, tt.err)
+			assert.NilError(test, tt.err)
 
-			Equal(t, tt.fails, test.Failed())
+			assert.Equal(t, tt.fails, test.Failed())
 		})
 	}
 }
@@ -152,9 +154,9 @@ func TestError(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			test := &testing.T{}
 
-			Error(test, tt.err)
+			assert.Error(test, tt.err)
 
-			Equal(t, tt.fails, test.Failed())
+			assert.Equal(t, tt.fails, test.Failed())
 		})
 	}
 }
@@ -190,9 +192,9 @@ func TestErrorWith(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			test := &testing.T{}
 
-			ErrorWith(test, tt.err, tt.contents)
+			assert.ErrorWith(test, tt.err, tt.contents)
 
-			Equal(t, tt.fails, test.Failed())
+			assert.Equal(t, tt.fails, test.Failed())
 		})
 	}
 }
@@ -224,9 +226,9 @@ func TestErrorIs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			test := &testing.T{}
 
-			ErrorIs(test, tt.err, tt.target)
+			assert.ErrorIs(test, tt.err, tt.target)
 
-			Equal(t, tt.fails, test.Failed())
+			assert.Equal(t, tt.fails, test.Failed())
 		})
 	}
 }
@@ -268,9 +270,9 @@ func TestErrorType(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			test := &testing.T{}
 
-			ErrorType(test, tt.err, tt.target)
+			assert.ErrorType(test, tt.err, tt.target)
 
-			Equal(t, tt.fails, test.Failed())
+			assert.Equal(t, tt.fails, test.Failed())
 		})
 	}
 }
@@ -317,9 +319,9 @@ func TestApproximately(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			test := &testing.T{}
 
-			Approximately(test, tt.expected, tt.actual, tt.delta)
+			assert.Approximately(test, tt.expected, tt.actual, tt.delta)
 
-			Equal(t, tt.fails, test.Failed())
+			assert.Equal(t, tt.fails, test.Failed())
 		})
 	}
 }

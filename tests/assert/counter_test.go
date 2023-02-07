@@ -1,32 +1,34 @@
-package assert
+package assert_test
 
 import (
 	"testing"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 func TestCounterAutoAssert(t *testing.T) {
 	// there is no way to assert if t.Cleanup was called or to remove
 	// failed status, so need to look for coverage if this passes correctly
-	Count(t, 0)
+	assert.Count(t, 0)
 }
 
 func TestCounterAssert(t *testing.T) {
 	tests := []struct {
 		name string
-		c    func(t *testing.T) *Counter
+		c    func(t *testing.T) *assert.Counter
 		fail bool
 	}{
 		{
 			name: "success-zero-assertion",
-			c: func(t *testing.T) *Counter {
-				return Count(t, 0)
+			c: func(t *testing.T) *assert.Counter {
+				return assert.Count(t, 0)
 			},
 			fail: false,
 		},
 		{
 			name: "success-assertion",
-			c: func(t *testing.T) *Counter {
-				c := Count(t, 1)
+			c: func(t *testing.T) *assert.Counter {
+				c := assert.Count(t, 1)
 				c.Inc()
 				return c
 			},
@@ -34,15 +36,15 @@ func TestCounterAssert(t *testing.T) {
 		},
 		{
 			name: "fail-assertion",
-			c: func(t *testing.T) *Counter {
-				return Count(t, 1)
+			c: func(t *testing.T) *assert.Counter {
+				return assert.Count(t, 1)
 			},
 			fail: true,
 		},
 		{
 			name: "at-least-assertion-with-more",
-			c: func(t *testing.T) *Counter {
-				c := Count(t, 1).AtLeast()
+			c: func(t *testing.T) *assert.Counter {
+				c := assert.Count(t, 1).AtLeast()
 				c.Inc()
 				c.Inc()
 				return c
@@ -51,8 +53,8 @@ func TestCounterAssert(t *testing.T) {
 		},
 		{
 			name: "at-least-assertion-with-less",
-			c: func(t *testing.T) *Counter {
-				return Count(t, 1).AtLeast()
+			c: func(t *testing.T) *assert.Counter {
+				return assert.Count(t, 1).AtLeast()
 			},
 			fail: true,
 		},
@@ -64,7 +66,7 @@ func TestCounterAssert(t *testing.T) {
 
 			tt.c(test).Assert(test)
 
-			Equal(t, tt.fail, test.Failed())
+			assert.Equal(t, tt.fail, test.Failed())
 		})
 	}
 }

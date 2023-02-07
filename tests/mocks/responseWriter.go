@@ -2,7 +2,11 @@ package mocks
 
 import (
 	"net/http"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
+
+var _ http.ResponseWriter = &ResponseWriter{}
 
 type ResponseWriter struct {
 	OnHeader      func() http.Header
@@ -11,18 +15,22 @@ type ResponseWriter struct {
 	OnResponse    func(int, interface{}) error
 }
 
-func (w *ResponseWriter) Header() http.Header {
-	return w.OnHeader()
+func (m *ResponseWriter) Header() http.Header {
+	assert.ExpectCall(m.OnHeader)
+	return m.OnHeader()
 }
 
-func (w *ResponseWriter) Write(b []byte) (int, error) {
-	return w.OnWrite(b)
+func (m *ResponseWriter) Write(b []byte) (int, error) {
+	assert.ExpectCall(m.OnWrite)
+	return m.OnWrite(b)
 }
 
-func (w *ResponseWriter) WriteHeader(statusCode int) {
-	w.OnWriteHeader(statusCode)
+func (m *ResponseWriter) WriteHeader(statusCode int) {
+	assert.ExpectCall(m.OnWriteHeader)
+	m.OnWriteHeader(statusCode)
 }
 
-func (w *ResponseWriter) Response(code int, data interface{}) error {
-	return w.OnResponse(code, data)
+func (m *ResponseWriter) Response(code int, data interface{}) error {
+	assert.ExpectCall(m.OnResponse)
+	return m.OnResponse(code, data)
 }

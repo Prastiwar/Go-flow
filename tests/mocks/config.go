@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/Prastiwar/Go-flow/config"
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 var (
@@ -16,6 +17,7 @@ type ReaderDecoderMock struct {
 }
 
 func (m ReaderDecoderMock) Decode(r io.Reader, v any) error {
+	assert.ExpectCall(m.OnDecode)
 	return m.OnDecode(r, v)
 }
 
@@ -24,5 +26,6 @@ type ProviderMock struct {
 }
 
 func (m ProviderMock) Load(v any, opts ...config.LoadOption) error {
+	assert.ExpectCall(m.OnLoad)
 	return m.OnLoad(v, opts...)
 }
