@@ -1,35 +1,36 @@
-package logf
+package logf_test
 
 import (
 	"context"
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/logf"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 func TestDefault(t *testing.T) {
 	t.Cleanup(func() {
-		SetDefault(nil)
+		logf.SetDefault(nil)
 	})
 
-	l := Default()
-	assert.Equal(t, NewLogger(), l)
+	l := logf.Default()
+	assert.Equal(t, logf.NewLogger(), l)
 
-	customLogger := NewLogger(WithFields(Fields{"custom": "test"}))
-	SetDefault(func() Logger {
+	customLogger := logf.NewLogger(logf.WithFields(logf.Fields{"custom": "test"}))
+	logf.SetDefault(func() logf.Logger {
 		return customLogger
 	})
 
-	l = Default()
+	l = logf.Default()
 	assert.Equal(t, customLogger, l)
 }
 
 func TestContext(t *testing.T) {
 	ctx := context.Background()
-	l := From(ctx)
-	assert.Equal(t, NewLogger(), l)
+	l := logf.From(ctx)
+	assert.Equal(t, logf.NewLogger(), l)
 
-	customLogger := NewLogger(WithFields(Fields{"custom": "test"}))
-	ctx = WithLogger(ctx, customLogger)
-	assert.Equal(t, customLogger, From(ctx))
+	customLogger := logf.NewLogger(logf.WithFields(logf.Fields{"custom": "test"}))
+	ctx = logf.WithLogger(ctx, customLogger)
+	assert.Equal(t, customLogger, logf.From(ctx))
 }

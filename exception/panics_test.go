@@ -1,9 +1,10 @@
-package exception
+package exception_test
 
 import (
 	"errors"
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/exception"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 	"github.com/Prastiwar/Go-flow/tests/mocks"
 )
@@ -50,7 +51,7 @@ func TestConvertToError(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ConvertToError(tt.e)
+			err := exception.ConvertToError(tt.e)
 			tt.assertErr(t, err)
 		})
 	}
@@ -90,7 +91,7 @@ func TestHandlePanicError(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			counter := assert.Count(t, tt.count)
 
-			defer HandlePanicError(func(err error) {
+			defer exception.HandlePanicError(func(err error) {
 				tt.onPanic(t, counter)(err)
 				counter.Assert(t)
 			})

@@ -1,16 +1,36 @@
-package config
+package config_test
 
 import (
 	"flag"
+	"strconv"
 	"testing"
 	"time"
 
+	"github.com/Prastiwar/Go-flow/config"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
+type customValue bool
+
+func (b *customValue) Set(s string) error {
+	v, err := strconv.ParseBool(s)
+	if err != nil {
+		return err
+	}
+
+	*b = customValue(v)
+	return nil
+}
+
+func (b *customValue) Get() any { return bool(*b) }
+
+func (b *customValue) String() string { return strconv.FormatBool(bool(*b)) }
+
+func (b *customValue) IsBoolFlag() bool { return true }
+
 func TestNewFlag(t *testing.T) {
-	var val boolValue
-	got := CustomFlag("n", "u", &val)
+	var val customValue
+	got := config.CustomFlag("n", "u", &val)
 
 	assert.Equal(t, "n", got.Name)
 	assert.Equal(t, &val, got.Value)
@@ -35,7 +55,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "success-bool",
 			set:     "true",
-			flag:    BoolFlag(name, usage),
+			flag:    config.BoolFlag(name, usage),
 			wantGet: true,
 			assertion: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -44,7 +64,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "invalid-bool",
 			set:     "Maybe true",
-			flag:    BoolFlag(name, usage),
+			flag:    config.BoolFlag(name, usage),
 			wantGet: nil,
 			assertion: func(t *testing.T, err error) {
 				assert.Error(t, err)
@@ -53,7 +73,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "success-string",
 			set:     "text",
-			flag:    StringFlag(name, usage),
+			flag:    config.StringFlag(name, usage),
 			wantGet: "text",
 			assertion: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -62,7 +82,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "success-int32",
 			set:     "10",
-			flag:    Int32Flag(name, usage),
+			flag:    config.Int32Flag(name, usage),
 			wantGet: int32(10),
 			assertion: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -71,7 +91,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "invalid-int32",
 			set:     "invalid 10",
-			flag:    Int32Flag(name, usage),
+			flag:    config.Int32Flag(name, usage),
 			wantGet: nil,
 			assertion: func(t *testing.T, err error) {
 				assert.Error(t, err)
@@ -80,7 +100,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "success-int64",
 			set:     "10",
-			flag:    Int64Flag(name, usage),
+			flag:    config.Int64Flag(name, usage),
 			wantGet: int64(10),
 			assertion: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -89,7 +109,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "invalid-int64",
 			set:     "invalid 10",
-			flag:    Int64Flag(name, usage),
+			flag:    config.Int64Flag(name, usage),
 			wantGet: nil,
 			assertion: func(t *testing.T, err error) {
 				assert.Error(t, err)
@@ -98,7 +118,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "success-uint32",
 			set:     "10",
-			flag:    Uint32Flag(name, usage),
+			flag:    config.Uint32Flag(name, usage),
 			wantGet: uint32(10),
 			assertion: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -107,7 +127,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "invalid-uint32",
 			set:     "invalid 10",
-			flag:    Uint32Flag(name, usage),
+			flag:    config.Uint32Flag(name, usage),
 			wantGet: nil,
 			assertion: func(t *testing.T, err error) {
 				assert.Error(t, err)
@@ -116,7 +136,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "success-uint64",
 			set:     "10",
-			flag:    Uint64Flag(name, usage),
+			flag:    config.Uint64Flag(name, usage),
 			wantGet: uint64(10),
 			assertion: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -125,7 +145,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "invalid-uint64",
 			set:     "invalid 10",
-			flag:    Uint64Flag(name, usage),
+			flag:    config.Uint64Flag(name, usage),
 			wantGet: nil,
 			assertion: func(t *testing.T, err error) {
 				assert.Error(t, err)
@@ -134,7 +154,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "success-float32",
 			set:     "10.1234",
-			flag:    Float32Flag(name, usage),
+			flag:    config.Float32Flag(name, usage),
 			wantGet: float32(10.1234),
 			assertion: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -143,7 +163,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "invalid-float32",
 			set:     "invalid 10",
-			flag:    Float32Flag(name, usage),
+			flag:    config.Float32Flag(name, usage),
 			wantGet: nil,
 			assertion: func(t *testing.T, err error) {
 				assert.Error(t, err)
@@ -152,7 +172,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "success-float64",
 			set:     "10.1234",
-			flag:    Float64Flag(name, usage),
+			flag:    config.Float64Flag(name, usage),
 			wantGet: float64(10.1234),
 			assertion: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -161,7 +181,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "invalid-float64",
 			set:     "invalid 10",
-			flag:    Float64Flag(name, usage),
+			flag:    config.Float64Flag(name, usage),
 			wantGet: nil,
 			assertion: func(t *testing.T, err error) {
 				assert.Error(t, err)
@@ -170,7 +190,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "success-duration",
 			set:     "10s",
-			flag:    DurationFlag(name, usage),
+			flag:    config.DurationFlag(name, usage),
 			wantGet: time.Duration(time.Second * 10),
 			assertion: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -179,7 +199,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "invalid-duration",
 			set:     "invalid 10s",
-			flag:    DurationFlag(name, usage),
+			flag:    config.DurationFlag(name, usage),
 			wantGet: nil,
 			assertion: func(t *testing.T, err error) {
 				assert.Error(t, err)
@@ -188,7 +208,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "success-time",
 			set:     "2030-10-12T00:00:00.00Z",
-			flag:    TimeFlag(name, usage),
+			flag:    config.TimeFlag(name, usage),
 			wantGet: validTime,
 			assertion: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -197,7 +217,7 @@ func TestFlags(t *testing.T) {
 		{
 			name:    "invalid-time",
 			set:     "2030-10-12",
-			flag:    TimeFlag(name, usage),
+			flag:    config.TimeFlag(name, usage),
 			wantGet: nil,
 			assertion: func(t *testing.T, err error) {
 				assert.Error(t, err)

@@ -1,19 +1,20 @@
-package reflection
+package reflection_test
 
 import (
 	"reflect"
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/reflection"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 type Foo struct{}
 
 func TestTypeOf(t *testing.T) {
-	stringType := TypeOf[string]()
+	stringType := reflection.TypeOf[string]()
 	assert.Equal(t, "string", stringType.Name())
 
-	fooType := TypeOf[Foo]()
+	fooType := reflection.TypeOf[Foo]()
 	assert.Equal(t, "Foo", fooType.Name())
 }
 
@@ -32,15 +33,15 @@ func TestInParamTypes(t *testing.T) {
 			name: "success-single",
 			typ:  reflect.TypeOf(func(int) string { return "" }),
 			want: []reflect.Type{
-				TypeOf[int](),
+				reflection.TypeOf[int](),
 			},
 		},
 		{
 			name: "success-two",
 			typ:  reflect.TypeOf(func(int, string) string { return "" }),
 			want: []reflect.Type{
-				TypeOf[int](),
-				TypeOf[string](),
+				reflection.TypeOf[int](),
+				reflection.TypeOf[string](),
 			},
 		},
 		{
@@ -52,7 +53,7 @@ func TestInParamTypes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := InParamTypes(tt.typ)
+			got := reflection.InParamTypes(tt.typ)
 			assert.ElementsMatch(t, tt.want, got)
 		})
 	}
@@ -73,15 +74,15 @@ func TestOutParamTypes(t *testing.T) {
 			name: "success-single",
 			typ:  reflect.TypeOf(func() int { return 0 }),
 			want: []reflect.Type{
-				TypeOf[int](),
+				reflection.TypeOf[int](),
 			},
 		},
 		{
 			name: "success-two",
 			typ:  reflect.TypeOf(func() (int, string) { return 0, "" }),
 			want: []reflect.Type{
-				TypeOf[int](),
-				TypeOf[string](),
+				reflection.TypeOf[int](),
+				reflection.TypeOf[string](),
 			},
 		},
 		{
@@ -93,7 +94,7 @@ func TestOutParamTypes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := OutParamTypes(tt.typ)
+			got := reflection.OutParamTypes(tt.typ)
 			assert.ElementsMatch(t, tt.want, got)
 		})
 	}
@@ -107,24 +108,24 @@ func TestTogglePointer(t *testing.T) {
 	}{
 		{
 			name:    "success-pointer-to-nonpointer",
-			typ:     TypeOf[*bool](),
+			typ:     reflection.TypeOf[*bool](),
 			pointer: false,
 		},
 		{
 			name:    "success-nonpointer-to-pointer",
-			typ:     TypeOf[bool](),
+			typ:     reflection.TypeOf[bool](),
 			pointer: true,
 		},
 		{
 			name:    "success-double-pointer-to-pointer",
-			typ:     TypeOf[**any](),
+			typ:     reflection.TypeOf[**any](),
 			pointer: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := TogglePointer(tt.typ)
+			got := reflection.TogglePointer(tt.typ)
 
 			assert.NotNil(t, got)
 			assert.Equal(t, tt.pointer, got.Kind() == reflect.Pointer)

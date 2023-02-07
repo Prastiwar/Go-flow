@@ -1,10 +1,11 @@
-package httpf
+package httpf_test
 
 import (
 	"encoding/json"
 	"net/http"
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/httpf"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 	"github.com/Prastiwar/Go-flow/tests/mocks"
 )
@@ -32,7 +33,7 @@ func TestJson(t *testing.T) {
 						headerCounter.Inc()
 						headers := http.Header{}
 						t.Cleanup(func() {
-							assert.Equal(t, []string{ApplicationJsonType}, headers[ContentTypeHeader])
+							assert.Equal(t, []string{httpf.ApplicationJsonType}, headers[httpf.ContentTypeHeader])
 						})
 						return headers
 					},
@@ -64,7 +65,7 @@ func TestJson(t *testing.T) {
 						headerCounter.Inc()
 						headers := http.Header{}
 						t.Cleanup(func() {
-							assert.Equal(t, []string{ApplicationJsonType}, headers[ContentTypeHeader])
+							assert.Equal(t, []string{httpf.ApplicationJsonType}, headers[httpf.ContentTypeHeader])
 						})
 						return headers
 					},
@@ -94,7 +95,7 @@ func TestJson(t *testing.T) {
 						headerCounter.Inc()
 						headers := http.Header{}
 						t.Cleanup(func() {
-							assert.Equal(t, []string{ApplicationJsonType}, headers[ContentTypeHeader])
+							assert.Equal(t, []string{httpf.ApplicationJsonType}, headers[httpf.ContentTypeHeader])
 						})
 						return headers
 					},
@@ -116,7 +117,7 @@ func TestJson(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Json(tt.writer(t), tt.status, tt.data)
+			err := httpf.Json(tt.writer(t), tt.status, tt.data)
 
 			tt.assertion(t, err)
 		})

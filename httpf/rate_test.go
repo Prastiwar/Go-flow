@@ -1,4 +1,4 @@
-package httpf
+package httpf_test
 
 import (
 	"errors"
@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Prastiwar/Go-flow/httpf"
 	"github.com/Prastiwar/Go-flow/rate"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 	"github.com/Prastiwar/Go-flow/tests/mocks"
@@ -28,18 +29,18 @@ func TestIPRateKey(t *testing.T) {
 		},
 		{
 			name:        "success-with-header",
-			headerNames: []string{XForwardedForHeader},
+			headerNames: []string{httpf.XForwardedForHeader},
 			request: &http.Request{
 				RemoteAddr: "0.0.0.0",
 				Header: http.Header{
-					XForwardedForHeader: []string{"1.1.1.1"},
+					httpf.XForwardedForHeader: []string{"1.1.1.1"},
 				},
 			},
 			key: "1.1.1.1",
 		},
 		{
 			name:        "success-with-header-not-in-request",
-			headerNames: []string{XForwardedForHeader},
+			headerNames: []string{httpf.XForwardedForHeader},
 			request:     &http.Request{RemoteAddr: "0.0.0.0"},
 			key:         "0.0.0.0",
 		},
@@ -47,7 +48,7 @@ func TestIPRateKey(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			factory := IPRateKey(tt.headerNames...)
+			factory := httpf.IPRateKey(tt.headerNames...)
 			key := factory(tt.request)
 			assert.Equal(t, tt.key, key)
 		})
@@ -80,7 +81,7 @@ func TestPathRateKey(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			factory := PathRateKey()
+			factory := httpf.PathRateKey()
 
 			key := factory(tt.request)
 
@@ -91,7 +92,7 @@ func TestPathRateKey(t *testing.T) {
 
 func TestComposeRateKeyFactories(t *testing.T) {
 	t.Run("success-composed", func(t *testing.T) {
-		f := ComposeRateKeyFactories(IPRateKey(), PathRateKey())
+		f := httpf.ComposeRateKeyFactories(httpf.IPRateKey(), httpf.PathRateKey())
 
 		key := f(&http.Request{
 			Method:     http.MethodGet,
@@ -102,7 +103,7 @@ func TestComposeRateKeyFactories(t *testing.T) {
 	})
 
 	t.Run("success-single", func(t *testing.T) {
-		f := ComposeRateKeyFactories(IPRateKey())
+		f := httpf.ComposeRateKeyFactories(httpf.IPRateKey())
 		key := f(&http.Request{
 			Method:     http.MethodGet,
 			URL:        urlFromPath("https://test.com/api/resource"),
@@ -114,7 +115,7 @@ func TestComposeRateKeyFactories(t *testing.T) {
 		defer func() {
 			assert.NotNil(t, recover())
 		}()
-		_ = ComposeRateKeyFactories()
+		_ = httpf.ComposeRateKeyFactories()
 	})
 }
 
@@ -125,7 +126,7 @@ func TestRateLimitMiddleware(t *testing.T) {
 	tests := []struct {
 		name      string
 		limiter   rate.Limiter
-		assertion func(t *testing.T) (HandlerFunc, func(headers http.Header, err error))
+		assertion func(t *testing.T) (httpf.HandlerFunc, func(headers http.Header, err error))
 	}{
 		{
 			name: "success-no-exceed",
@@ -139,9 +140,9 @@ func TestRateLimitMiddleware(t *testing.T) {
 					}
 				},
 			},
-			assertion: func(t *testing.T) (HandlerFunc, func(headers http.Header, err error)) {
+			assertion: func(t *testing.T) (httpf.HandlerFunc, func(headers http.Header, err error)) {
 				counter := assert.Count(t, 1)
-				handler := func(w ResponseWriter, r *http.Request) error {
+				handler := func(w httpf.ResponseWriter, r *http.Request) error {
 					counter.Inc()
 					return nil
 				}
@@ -164,9 +165,9 @@ func TestRateLimitMiddleware(t *testing.T) {
 					}
 				},
 			},
-			assertion: func(t *testing.T) (HandlerFunc, func(headers http.Header, err error)) {
+			assertion: func(t *testing.T) (httpf.HandlerFunc, func(headers http.Header, err error)) {
 				counter := assert.Count(t, 0)
-				handler := func(w ResponseWriter, r *http.Request) error {
+				handler := func(w httpf.ResponseWriter, r *http.Request) error {
 					counter.Inc()
 					return nil
 				}
@@ -189,9 +190,9 @@ func TestRateLimitMiddleware(t *testing.T) {
 					}
 				},
 			},
-			assertion: func(t *testing.T) (HandlerFunc, func(headers http.Header, err error)) {
+			assertion: func(t *testing.T) (httpf.HandlerFunc, func(headers http.Header, err error)) {
 				counter := assert.Count(t, 0)
-				handler := func(w ResponseWriter, r *http.Request) error {
+				handler := func(w httpf.ResponseWriter, r *http.Request) error {
 					counter.Inc()
 					return nil
 				}
@@ -214,9 +215,9 @@ func TestRateLimitMiddleware(t *testing.T) {
 					}
 				},
 			},
-			assertion: func(t *testing.T) (HandlerFunc, func(headers http.Header, err error)) {
+			assertion: func(t *testing.T) (httpf.HandlerFunc, func(headers http.Header, err error)) {
 				counter := assert.Count(t, 1)
-				handler := func(w ResponseWriter, r *http.Request) error {
+				handler := func(w httpf.ResponseWriter, r *http.Request) error {
 					counter.Inc()
 					return errors.New("handler-error")
 				}
@@ -241,15 +242,13 @@ func TestRateLimitMiddleware(t *testing.T) {
 				},
 			}
 
-			writer := &jsonWriterDecorator{
-				&mocks.ResponseWriter{
-					OnHeader: func() http.Header {
-						return headers
-					},
+			writer := mocks.HttpfResponseWriterMock{
+				OnHeader: func() http.Header {
+					return headers
 				},
 			}
 
-			got := RateLimitMiddleware(handler, store, IPRateKey())
+			got := httpf.RateLimitMiddleware(handler, store, httpf.IPRateKey())
 			err := got.ServeHTTP(writer, request)
 
 			assertion(headers, err)
@@ -259,9 +258,9 @@ func TestRateLimitMiddleware(t *testing.T) {
 
 func assertRateLimitHeaders(t *testing.T, header http.Header, limit, remaining, reset string) {
 	const prefix = "incorrect value for header"
-	assert.Equal(t, limit, header.Get(RateLimitLimitHeader), prefix, RateLimitLimitHeader)
-	assert.Equal(t, remaining, header.Get(RateLimitRemainingHeader), prefix, RateLimitLimitHeader)
-	assert.Equal(t, reset, header.Get(RateLimitResetHeader), prefix, RateLimitLimitHeader)
+	assert.Equal(t, limit, header.Get(httpf.RateLimitLimitHeader), prefix, httpf.RateLimitLimitHeader)
+	assert.Equal(t, remaining, header.Get(httpf.RateLimitRemainingHeader), prefix, httpf.RateLimitLimitHeader)
+	assert.Equal(t, reset, header.Get(httpf.RateLimitResetHeader), prefix, httpf.RateLimitLimitHeader)
 }
 
 func urlFromPath(path string) *url.URL {

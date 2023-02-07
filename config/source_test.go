@@ -1,4 +1,4 @@
-package config
+package config_test
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 	"testing"
 	"unicode"
 
+	"github.com/Prastiwar/Go-flow/config"
 	"github.com/Prastiwar/Go-flow/config/decoders"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
@@ -26,44 +27,47 @@ func (r *InvalidReader) Read(p []byte) (n int, err error) {
 func TestSourceSetDefault(t *testing.T) {
 	tests := []struct {
 		name     string
-		defaults []opt
-		init     func(t *testing.T) (*Source, func(error))
+		defaults []config.DefaultOpt
+		init     func(t *testing.T) (*config.Source, func(error))
 	}{
 		{
 			name: "success",
-			defaults: []opt{
-				Opt("key", "value"),
-				Opt("key2", 1),
+			defaults: []config.DefaultOpt{
+				config.Opt("key", "value"),
+				config.Opt("key2", 1),
 			},
-			init: func(t *testing.T) (*Source, func(error)) {
-				s := Provide()
+			init: func(t *testing.T) (*config.Source, func(error)) {
+				s := config.Provide()
 				return s, func(err error) {
 					assert.NilError(t, err)
-					assert.Equal(t, "{\"key\":\"value\",\"key2\":1}", string(s.defaults))
+					var defaults json.RawMessage
+					defaultErr := s.Default(&defaults)
+					assert.NilError(t, defaultErr)
+					assert.Equal(t, "{\"key\":\"value\",\"key2\":1}", string(defaults))
 				}
 			},
 		},
 		{
 			name: "invalid-duplicate-key",
-			defaults: []opt{
-				Opt("key", "value"),
-				Opt("key", 1),
+			defaults: []config.DefaultOpt{
+				config.Opt("key", "value"),
+				config.Opt("key", 1),
 			},
-			init: func(t *testing.T) (*Source, func(error)) {
-				s := Provide()
+			init: func(t *testing.T) (*config.Source, func(error)) {
+				s := config.Provide()
 				return s, func(err error) {
-					isExpectedError := errors.Is(err, ErrDuplicateKey)
+					isExpectedError := errors.Is(err, config.ErrDuplicateKey)
 					assert.Equal(t, true, isExpectedError, "error expectation failed")
 				}
 			},
 		},
 		{
 			name: "invalid-json-value",
-			defaults: []opt{
-				Opt("key", make(chan int)),
+			defaults: []config.DefaultOpt{
+				config.Opt("key", make(chan int)),
 			},
-			init: func(t *testing.T) (*Source, func(error)) {
-				s := Provide()
+			init: func(t *testing.T) (*config.Source, func(error)) {
+				s := config.Provide()
 				return s, func(err error) {
 					_, isExpectedError := err.(*json.UnsupportedTypeError)
 					assert.Equal(t, true, isExpectedError, "error expectation failed")
@@ -86,13 +90,13 @@ func TestSourceSetDefault(t *testing.T) {
 func TestSourceDefault(t *testing.T) {
 	tests := []struct {
 		name string
-		init func(t *testing.T) (*Source, any, func(err error))
+		init func(t *testing.T) (*config.Source, any, func(err error))
 	}{
 		{
 			name: "success-empty-default",
 
-			init: func(t *testing.T) (*Source, any, func(err error)) {
-				s := Provide()
+			init: func(t *testing.T) (*config.Source, any, func(err error)) {
+				s := config.Provide()
 				v := struct{}{}
 				return s, &v, func(err error) {
 					assert.NilError(t, err)
@@ -102,10 +106,10 @@ func TestSourceDefault(t *testing.T) {
 		{
 			name: "success-not-empty-default",
 
-			init: func(t *testing.T) (*Source, any, func(err error)) {
-				s := Provide()
+			init: func(t *testing.T) (*config.Source, any, func(err error)) {
+				s := config.Provide()
 				err := s.SetDefault(
-					Opt("key", "value"),
+					config.Opt("key", "value"),
 				)
 				assert.NilError(t, err)
 
@@ -138,13 +142,13 @@ func TestSourceDefault(t *testing.T) {
 func TestSourceLoad(t *testing.T) {
 	tests := []struct {
 		name string
-		init func(t *testing.T) (*Source, any, func(error))
-		opts []LoadOption
+		init func(t *testing.T) (*config.Source, any, func(error))
+		opts []config.LoadOption
 	}{
 		{
 			name: "success-empty-shared-options",
-			init: func(t *testing.T) (*Source, any, func(error)) {
-				s := Provide()
+			init: func(t *testing.T) (*config.Source, any, func(error)) {
+				s := config.Provide()
 				v := struct {
 					Key string
 				}{}
@@ -158,8 +162,8 @@ func TestSourceLoad(t *testing.T) {
 		},
 		{
 			name: "success-empty-no-shared-options",
-			init: func(t *testing.T) (*Source, any, func(error)) {
-				s := Provide()
+			init: func(t *testing.T) (*config.Source, any, func(error)) {
+				s := config.Provide(config.NewEnvProvider())
 				v := struct {
 					Key string
 				}{}
@@ -170,28 +174,28 @@ func TestSourceLoad(t *testing.T) {
 					assert.Equal(t, "test", v.Key)
 				}
 			},
-			opts: []LoadOption{WithIgnoreGlobalOptions()},
+			opts: []config.LoadOption{config.WithIgnoreGlobalOptions()},
 		},
 		{
 			name: "success-complex",
-			init: func(t *testing.T) (*Source, any, func(error)) {
-				s := Provide(
-					NewFlagProvider(
-						StringFlag("flagKey", "just a string"),
-						StringFlag("ci", "just a string"),
-						StringFlag("notOverridden", "just a string"),
+			init: func(t *testing.T) (*config.Source, any, func(error)) {
+				s := config.Provide(
+					config.NewFlagProvider(
+						config.StringFlag("flagKey", "just a string"),
+						config.StringFlag("ci", "just a string"),
+						config.StringFlag("notOverridden", "just a string"),
 					),
-					NewEnvProvider(),
+					config.NewEnvProvider(),
 				)
 
 				err := s.SetDefault(
-					Opt("DefaultKey", "1234567890"),
+					config.Opt("DefaultKey", "1234567890"),
 				)
 				assert.NilError(t, err)
 
 				s.ShareOptions(
-					WithInterceptor(func(providerName string, field reflect.StructField) string {
-						if providerName == EnvProviderName {
+					config.WithInterceptor(func(providerName string, field reflect.StructField) string {
+						if providerName == config.EnvProviderName {
 							return strings.ToUpper(field.Name)
 						}
 
@@ -228,21 +232,21 @@ func TestSourceLoad(t *testing.T) {
 		},
 		{
 			name: "invalid-non-pointer",
-			init: func(t *testing.T) (*Source, any, func(error)) {
-				s := Provide()
+			init: func(t *testing.T) (*config.Source, any, func(error)) {
+				s := config.Provide()
 				v := struct{}{}
 
 				return s, v, func(err error) {
-					assert.ErrorIs(t, err, ErrNonPointer)
+					assert.ErrorIs(t, err, config.ErrNonPointer)
 				}
 			},
 		},
 		{
 			name: "invalid-default",
-			init: func(t *testing.T) (*Source, any, func(error)) {
-				s := Provide()
+			init: func(t *testing.T) (*config.Source, any, func(error)) {
+				s := config.Provide()
 				err := s.SetDefault(
-					Opt("Key", 10),
+					config.Opt("Key", 10),
 				)
 				assert.NilError(t, err)
 
@@ -257,9 +261,9 @@ func TestSourceLoad(t *testing.T) {
 		},
 		{
 			name: "invalid-provider-error",
-			init: func(t *testing.T) (*Source, any, func(error)) {
-				s := Provide(
-					NewReaderProvider(&InvalidReader{}, decoders.NewJson()),
+			init: func(t *testing.T) (*config.Source, any, func(error)) {
+				s := config.Provide(
+					config.NewReaderProvider(&InvalidReader{}, decoders.NewJson()),
 				)
 
 				v := struct{}{}
@@ -315,7 +319,7 @@ func TestBind(t *testing.T) {
 				to := struct{}{}
 
 				return from, to, func(err error) {
-					assert.ErrorIs(t, err, ErrNonPointer)
+					assert.ErrorIs(t, err, config.ErrNonPointer)
 				}
 			},
 		},
@@ -326,7 +330,7 @@ func TestBind(t *testing.T) {
 				to := 1
 
 				return &from, &to, func(err error) {
-					assert.ErrorIs(t, err, ErrNonStruct)
+					assert.ErrorIs(t, err, config.ErrNonStruct)
 				}
 			},
 		},
@@ -337,7 +341,7 @@ func TestBind(t *testing.T) {
 				to := 1
 
 				return &from, &to, func(err error) {
-					assert.ErrorIs(t, err, ErrNonStruct)
+					assert.ErrorIs(t, err, config.ErrNonStruct)
 				}
 			},
 		},
@@ -347,9 +351,19 @@ func TestBind(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			from, to, asserts := tt.init(t)
 
-			err := Bind(from, to)
+			err := config.Bind(from, to)
 
 			asserts(err)
 		})
 	}
+}
+
+func TestDefaultOpt(t *testing.T) {
+	expectedKey := "expectedKey"
+	expectedValue := "expectedValue"
+
+	opt := config.Opt(expectedKey, expectedValue)
+
+	assert.Equal(t, expectedKey, opt.Key())
+	assert.Equal(t, expectedValue, opt.Value())
 }

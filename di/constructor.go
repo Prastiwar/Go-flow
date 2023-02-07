@@ -7,6 +7,7 @@ import (
 	"github.com/Prastiwar/Go-flow/reflection"
 )
 
+// LifeTime is value defining scope of life for object.
 type LifeTime int
 
 const (
@@ -20,6 +21,31 @@ var (
 	ErrWrongCtorSignature = errors.New("ctor must return only service value")
 )
 
+// Constructor is interface for delegate the Create function which has passed the provider for dependency resolving while
+// instantiating a new instace of concrete type.
+type Constructor interface {
+	// Create returns created instance from called ctor with parameters retrieved with provider.
+	Create(provider func(reflect.Type) interface{}) interface{}
+
+	// Type returns a reflect.Type for object that can be created by this constructor.
+	Type() reflect.Type
+
+	// Dependencies returns an array of reflect.Type defining type of dependencies for object to construct.
+	Dependencies() []reflect.Type
+
+	// Life returns LifeTime which defines scope of existance for constructed object.
+	Life() LifeTime
+}
+
+// ConstructorFunc is simple func type that implements Constructor.
+type ConstructorFunc func(provider func(reflect.Type) interface{}) interface{}
+
+func (f ConstructorFunc) Create(provider func(reflect.Type) interface{}) interface{} {
+	return f(provider)
+}
+
+var _ Constructor = &constructor{}
+
 type constructor struct {
 	typ    reflect.Type
 	fn     interface{}
@@ -27,9 +53,9 @@ type constructor struct {
 	life   LifeTime
 }
 
-// Construct returns a new constructor instance for specified function.
+// Construct returns a new Constructor instance for specified function.
 // It panics if ctor is not a function or it does not return any value.
-func Construct(life LifeTime, ctor any) *constructor {
+func Construct(life LifeTime, ctor any) Constructor {
 	var typ reflect.Type
 
 	ctorValue := reflect.ValueOf(ctor)
@@ -72,7 +98,6 @@ func (c *constructor) validate() error {
 	return nil
 }
 
-// Create returns created instance from called ctor with parameters retrieved with provider.
 func (c *constructor) Create(provider func(reflect.Type) interface{}) interface{} {
 	paramValues := make([]reflect.Value, len(c.params))
 	for i := 0; i < len(c.params); i++ {
@@ -91,4 +116,15 @@ func (c *constructor) Create(provider func(reflect.Type) interface{}) interface{
 	service := method.Call(paramValues)[0].Interface()
 
 	return service
+}
+
+func (c *constructor) Type() reflect.Type {
+	return c.typ
+}
+
+func (c *constructor) Dependencies() []reflect.Type {
+	return c.params
+}
+func (c *constructor) Life() LifeTime {
+	return c.life
 }

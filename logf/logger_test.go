@@ -1,17 +1,18 @@
-package logf
+package logf_test
 
 import (
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/logf"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 	"github.com/Prastiwar/Go-flow/tests/mocks"
 )
 
 type formatterTestCase struct {
 	name     string
-	f        Formatter
+	f        logf.Formatter
 	msg      string
-	fields   Fields
+	fields   logf.Fields
 	expected string
 }
 
@@ -27,34 +28,34 @@ func testFormatter(t *testing.T, tests []formatterTestCase) {
 func TestWithScope(t *testing.T) {
 	tests := []struct {
 		name          string
-		originScope   Fields
-		withScope     Fields
-		expectedScope Fields
+		originScope   logf.Fields
+		withScope     logf.Fields
+		expectedScope logf.Fields
 	}{
 		{
 			name: "success-no-fields",
 		},
 		{
 			name:        "success-add-field",
-			originScope: Fields{"time": "now"},
-			withScope:   Fields{"level": "1"},
-			expectedScope: Fields{
+			originScope: logf.Fields{"time": "now"},
+			withScope:   logf.Fields{"level": "1"},
+			expectedScope: logf.Fields{
 				"time":  "now",
 				"level": "1",
 			},
 		},
 		{
 			name:          "success-override-field",
-			originScope:   Fields{"time": "now"},
-			withScope:     Fields{"time": "today"},
-			expectedScope: Fields{"time": "today"},
+			originScope:   logf.Fields{"time": "now"},
+			withScope:     logf.Fields{"time": "today"},
+			expectedScope: logf.Fields{"time": "today"},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			loggerMock := NewLogger(WithFields(tt.originScope))
-			logger := WithScope(loggerMock, tt.withScope)
+			loggerMock := logf.NewLogger(logf.WithFields(tt.originScope))
+			logger := logf.WithScope(loggerMock, tt.withScope)
 			assert.MapMatch(t, tt.expectedScope, logger.Scope())
 
 			assert.NotNil(t, logger)
@@ -65,41 +66,41 @@ func TestWithScope(t *testing.T) {
 func TestPrinting(t *testing.T) {
 	tests := []struct {
 		name  string
-		print func(Logger, string, ...any)
+		print func(logf.Logger, string, ...any)
 	}{
 		{
 			name: "success-info",
-			print: func(l Logger, s string, a ...any) {
+			print: func(l logf.Logger, s string, a ...any) {
 				l.Info(s)
 			},
 		},
 		{
 			name: "success-infof",
-			print: func(l Logger, s string, a ...any) {
+			print: func(l logf.Logger, s string, a ...any) {
 				l.Infof(s, a...)
 			},
 		},
 		{
 			name: "success-error",
-			print: func(l Logger, s string, a ...any) {
+			print: func(l logf.Logger, s string, a ...any) {
 				l.Error(s)
 			},
 		},
 		{
 			name: "success-errorf",
-			print: func(l Logger, s string, a ...any) {
+			print: func(l logf.Logger, s string, a ...any) {
 				l.Errorf(s, a...)
 			},
 		},
 		{
 			name: "success-debug",
-			print: func(l Logger, s string, a ...any) {
+			print: func(l logf.Logger, s string, a ...any) {
 				l.Debug(s)
 			},
 		},
 		{
 			name: "success-debugf",
-			print: func(l Logger, s string, a ...any) {
+			print: func(l logf.Logger, s string, a ...any) {
 				l.Debugf(s, a...)
 			},
 		},
@@ -113,13 +114,15 @@ func TestPrinting(t *testing.T) {
 				writerCounter.Inc()
 				return 0, nil
 			})
-			formatMock := NewFormatterMock(func(msg string, fields Fields) string {
-				formatCounter.Inc()
-				return msg
-			})
-			loggerMock := NewLogger(
-				WithOutput(writerMock),
-				WithFormatter(formatMock),
+			formatMock := mocks.FormatterMock{
+				OnFormat: func(msg string, fields logf.Fields) string {
+					formatCounter.Inc()
+					return msg
+				},
+			}
+			loggerMock := logf.NewLogger(
+				logf.WithOutput(writerMock),
+				logf.WithFormatter(formatMock),
 			)
 
 			tt.print(loggerMock, "%v", "test")

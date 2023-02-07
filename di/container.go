@@ -13,17 +13,44 @@ import (
 	"github.com/Prastiwar/Go-flow/reflection"
 )
 
+var _ Container = &container{}
+
 // Container is implemented by any value that has a Validate, Provide and Register method.
 // The implementation controls how constructors are registered or provided inside container and what
 // are requirements must be met to consider container as valid instance.
 type Container interface {
+	// Validate verifies if every dependency is registered to provide services without
+	// missing dependency issue and tests if there is no cyclic dependency.
 	Validate() error
+
+	// Provide creates service from found constructor and sets the result to v. It will panic
+	// if constructor cannot be found or v is not a pointer. Singleton services are cahced in
+	// root cache. If container is scoped it will cache also Scoped services. Transient services
+	// are always recreated from constructor.
 	Provide(v interface{})
-	Register(ctors ...any)
+
+	// Scope returns a new scoped container which will cache scoped lifetime services.
+	Scope() Container
+
+	// Services returns an array of registered services.
+	Services() []Service
+}
+
+type Service struct {
+	typ  reflect.Type
+	ctor Constructor
+}
+
+func (s Service) Type() reflect.Type {
+	return s.typ
+}
+
+func (s Service) Constructor() Constructor {
+	return s.ctor
 }
 
 type container struct {
-	services map[reflect.Type]constructor
+	services map[reflect.Type]Constructor
 	cache    Cache
 }
 
@@ -41,26 +68,21 @@ const (
 // Register returns a new container instance with constructor services. Construct or func constructor
 // can be passed. Error will be returned if any func constructor is not valid or Validate on
 // container will return error.
-func Register(ctors ...any) (c *container, err error) {
+func Register(ctors ...any) (c Container, err error) {
 	defer exception.HandlePanicError(func(rerr error) {
 		c = nil
 		err = rerr
 	})
 
-	services := make(map[reflect.Type]constructor, len(ctors))
+	services := make(map[reflect.Type]Constructor, len(ctors))
 
 	for _, ctor := range ctors {
-		construct, ok := ctor.(constructor)
+		realCtor, ok := ctor.(Constructor)
 		if !ok {
-			constr, ok := ctor.(*constructor)
-			if !ok {
-				construct = *Construct(Transient, ctor)
-			} else {
-				construct = *constr
-			}
+			realCtor = Construct(Transient, ctor)
 		}
 
-		services[construct.typ] = construct
+		services[realCtor.Type()] = realCtor
 	}
 
 	c = &container{
@@ -76,12 +98,10 @@ func Register(ctors ...any) (c *container, err error) {
 	return c, nil
 }
 
-// Validate verifies if every dependency is registered to provide services without
-// missing dependency issue and tests if there is no cyclic dependency.
 func (c *container) Validate() error {
 	errs := make([]error, 0)
 	for serviceType, serviceCtor := range c.services {
-		for _, dependencyType := range serviceCtor.params {
+		for _, dependencyType := range serviceCtor.Dependencies() {
 			cyclic := serviceType == dependencyType
 			if !cyclic {
 				otherType := reflection.TogglePointer(serviceType)
@@ -107,8 +127,7 @@ func (c *container) Validate() error {
 	return nil
 }
 
-// Scope returns a new scoped container which will cache scoped lifetime services.
-func (c *container) Scope() *container {
+func (c *container) Scope() Container {
 	scoped := &container{
 		services: c.services,
 		cache:    NewScopeCache(c.cache),
@@ -117,10 +136,6 @@ func (c *container) Scope() *container {
 	return scoped
 }
 
-// Provide creates service from found constructor and sets the result to v. It will panic
-// if constructor cannot be found or v is not a pointer. Singleton services are cahced in
-// root cache. If container is scoped it will cache also Scoped services. Transient services
-// are always recreated from constructor.
 func (c *container) Provide(v interface{}) {
 	typ := reflect.TypeOf(v)
 	if typ.Kind() != reflect.Pointer {
@@ -165,14 +180,27 @@ func (c *container) get(typ reflect.Type) interface{} {
 		panic(fmt.Errorf(formatErrorArg, ErrNotRegistered, typ))
 	}
 
-	service, ok := c.cache.Get(ctor.life, ctor.typ)
+	service, ok := c.cache.Get(ctor.Life(), ctor.Type())
 	if ok {
 		return service
 	}
 
 	service = ctor.Create(c.get)
 
-	c.cache.Put(ctor.life, ctor.typ, service)
+	c.cache.Put(ctor.Life(), ctor.Type(), service)
 
 	return service
+}
+
+func (c *container) Services() []Service {
+	services := make([]Service, len(c.services))
+	i := 0
+	for typ, ctor := range c.services {
+		services[i] = Service{
+			typ:  typ,
+			ctor: ctor,
+		}
+		i++
+	}
+	return services
 }

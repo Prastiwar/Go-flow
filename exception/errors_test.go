@@ -1,10 +1,11 @@
-package exception
+package exception_test
 
 import (
 	"errors"
 	"strings"
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/exception"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
@@ -12,17 +13,17 @@ func TestAggregate(t *testing.T) {
 	tests := []struct {
 		name string
 		errs []error
-		want AggregatedError
+		want exception.AggregatedError
 	}{
 		{
 			name: "success-nested-flat",
 			errs: []error{
 				errors.New("1"),
-				Aggregate(errors.New("2"), errors.New("3"), errors.New("4")),
-				Aggregate(errors.New("5")),
+				exception.Aggregate(errors.New("2"), errors.New("3"), errors.New("4")),
+				exception.Aggregate(errors.New("5")),
 				errors.New("6"),
 			},
-			want: Aggregate(
+			want: exception.Aggregate(
 				errors.New("1"),
 				errors.New("2"),
 				errors.New("3"),
@@ -38,7 +39,7 @@ func TestAggregate(t *testing.T) {
 				errors.New("2"),
 				errors.New("3"),
 			},
-			want: Aggregate(
+			want: exception.Aggregate(
 				errors.New("1"),
 				errors.New("2"),
 				errors.New("3"),
@@ -47,12 +48,12 @@ func TestAggregate(t *testing.T) {
 		{
 			name: "success-shuffled",
 			errs: []error{
-				Aggregate(errors.New("2"), errors.New("3"), errors.New("4")),
+				exception.Aggregate(errors.New("2"), errors.New("3"), errors.New("4")),
 				errors.New("1"),
 				errors.New("6"),
-				Aggregate(errors.New("5")),
+				exception.Aggregate(errors.New("5")),
 			},
-			want: Aggregate(
+			want: exception.Aggregate(
 				errors.New("2"),
 				errors.New("3"),
 				errors.New("4"),
@@ -65,7 +66,7 @@ func TestAggregate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := Aggregate(tt.errs...).Flat()
+			got := exception.Aggregate(tt.errs...).Flat()
 			assert.Equal(t, tt.want.Error(), got.Error())
 		})
 	}
@@ -93,21 +94,21 @@ func TestAggregatef(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Aggregatedf(tt.errors...)
+			err := exception.Aggregatedf(tt.errors...)
 			assert.Equal(t, tt.wantErr, err)
 		})
 	}
 }
 
 func TestStackTrace(t *testing.T) {
-	got := StackTrace()
+	got := exception.StackTrace()
 
 	lines := strings.Split(got, "\n")
 	if len(lines) < 6 {
 		t.Error("too few lines")
 	}
 
-	const expected = "exception.TestStackTrace"
+	const expected = "exception_test.TestStackTrace"
 	contains := false
 	for _, v := range lines {
 		if strings.Contains(v, expected) {

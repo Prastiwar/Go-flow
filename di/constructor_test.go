@@ -1,23 +1,24 @@
-package di
+package di_test
 
 import (
 	"reflect"
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/di"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 func TestConstructorCreate(t *testing.T) {
 	tests := []struct {
 		name     string
-		c        *constructor
+		c        di.Constructor
 		provider func(reflect.Type) interface{}
 		want     interface{}
 		panic    bool
 	}{
 		{
 			name: "success-no-dep",
-			c: Construct(Singleton, func() string {
+			c: di.Construct(di.Singleton, func() string {
 				return ""
 			}),
 			provider: func(t reflect.Type) interface{} {
@@ -27,7 +28,7 @@ func TestConstructorCreate(t *testing.T) {
 		},
 		{
 			name: "success-dep",
-			c: Construct(Singleton, func(v int) string {
+			c: di.Construct(di.Singleton, func(v int) string {
 				return ""
 			}),
 			provider: func(t reflect.Type) interface{} {
@@ -37,7 +38,7 @@ func TestConstructorCreate(t *testing.T) {
 		},
 		{
 			name: "panic-dep",
-			c: Construct(Singleton, func(v int) string {
+			c: di.Construct(di.Singleton, func(v int) string {
 				return ""
 			}),
 			provider: func(t reflect.Type) interface{} {
@@ -63,13 +64,13 @@ func TestConstructorCreate(t *testing.T) {
 func TestConstructorValidate(t *testing.T) {
 	tests := []struct {
 		name      string
-		life      LifeTime
+		life      di.LifeTime
 		ctor      any
 		assertErr assert.ErrorFunc
 	}{
 		{
 			name: "success-no-dep",
-			life: Singleton,
+			life: di.Singleton,
 			ctor: func() string { return "" },
 			assertErr: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -77,7 +78,7 @@ func TestConstructorValidate(t *testing.T) {
 		},
 		{
 			name: "success-dep",
-			life: Singleton,
+			life: di.Singleton,
 			ctor: func(int) string { return "" },
 			assertErr: func(t *testing.T, err error) {
 				assert.NilError(t, err)
@@ -85,18 +86,18 @@ func TestConstructorValidate(t *testing.T) {
 		},
 		{
 			name: "invalid-instance",
-			life: Singleton,
+			life: di.Singleton,
 			ctor: "",
 			assertErr: func(t *testing.T, err error) {
-				assert.Equal(t, ErrCtorNotFunc, err)
+				assert.Equal(t, di.ErrCtorNotFunc, err)
 			},
 		},
 		{
 			name: "invalid-no-return",
-			life: Singleton,
+			life: di.Singleton,
 			ctor: func() {},
 			assertErr: func(t *testing.T, err error) {
-				assert.Equal(t, ErrWrongCtorSignature, err)
+				assert.Equal(t, di.ErrWrongCtorSignature, err)
 			},
 		},
 	}
@@ -114,7 +115,18 @@ func TestConstructorValidate(t *testing.T) {
 				tt.assertErr(t, err)
 			}()
 
-			_ = Construct(tt.life, tt.ctor)
+			_ = di.Construct(tt.life, tt.ctor)
 		})
 	}
+}
+
+func TestConstructorFunc(t *testing.T) {
+	expectedValue := 0
+	f := di.ConstructorFunc(func(provider func(reflect.Type) interface{}) interface{} {
+		return expectedValue
+	})
+
+	val := f.Create(nil)
+
+	assert.Equal(t, expectedValue, val)
 }

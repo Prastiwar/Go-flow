@@ -1,4 +1,4 @@
-package reflection
+package reflection_test
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Prastiwar/Go-flow/reflection"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
@@ -194,7 +195,7 @@ func TestParse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := Parse(tt.str, tt.target)
+			got, err := reflection.Parse(tt.str, tt.target)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

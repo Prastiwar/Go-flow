@@ -26,14 +26,22 @@ type Source struct {
 	options   []LoadOption
 }
 
-type opt struct {
+type DefaultOpt struct {
 	key   string
 	value any
 }
 
-// Opts creates an instance used for initializing default value for named key.
-func Opt(key string, value any) opt {
-	return opt{
+func (o DefaultOpt) Key() string {
+	return o.key
+}
+
+func (o DefaultOpt) Value() any {
+	return o.value
+}
+
+// Opts creates an instance of DefaultOpt used for initializing default value for named key.
+func Opt(key string, value any) DefaultOpt {
+	return DefaultOpt{
 		key:   key,
 		value: value,
 	}
@@ -52,7 +60,7 @@ func (s *Source) ShareOptions(options ...LoadOption) {
 }
 
 // SetDefault sets default values in json format to be easily unmarshaled by Default method.
-func (s *Source) SetDefault(defaults ...opt) error {
+func (s *Source) SetDefault(defaults ...DefaultOpt) error {
 	opts := make(map[string]interface{}, len(defaults))
 	for _, opt := range defaults {
 		_, ok := opts[opt.key]

@@ -1,8 +1,9 @@
-package cast
+package cast_test
 
 import (
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/reflection/cast"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
@@ -11,7 +12,7 @@ type customString string
 func TestAsString(t *testing.T) {
 	arr := []interface{}{"1", "2", "3"}
 
-	r, ok := As[string](arr)
+	r, ok := cast.As[string](arr)
 
 	assert.Equal(t, true, ok)
 	assert.Equal(t, len(arr), len(r))
@@ -23,7 +24,7 @@ func TestAsString(t *testing.T) {
 func TestAsInvalid(t *testing.T) {
 	arr := []customString{"1", "2", "3"}
 
-	r, ok := As[string](arr)
+	r, ok := cast.As[string](arr)
 
 	assert.Equal(t, false, ok)
 	assert.Equal(t, 0, len(r))

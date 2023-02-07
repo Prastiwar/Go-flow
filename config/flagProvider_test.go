@@ -1,7 +1,6 @@
-package config
+package config_test
 
 import (
-	"errors"
 	"flag"
 	"os"
 	"reflect"
@@ -9,17 +8,9 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/Prastiwar/Go-flow/config"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
-
-type notGetterStringValue string
-
-func (d *notGetterStringValue) Set(s string) error {
-	*d = notGetterStringValue(s)
-	return nil
-}
-
-func (d *notGetterStringValue) String() string { return string(*d) }
 
 func setArgs(args ...string) {
 	os.Args = []string{
@@ -32,8 +23,8 @@ func TestFlagProviderLoad(t *testing.T) {
 	const desc = "test usage description"
 	nowUtc := time.Now().UTC().Format(time.RFC3339)
 
-	optionsWithLowerFirtCase := []LoadOption{
-		WithInterceptor(func(name string, sf reflect.StructField) string {
+	optionsWithLowerFirtCase := []config.LoadOption{
+		config.WithInterceptor(func(name string, sf reflect.StructField) string {
 			a := []rune(sf.Name)
 			a[0] = unicode.ToLower(a[0])
 			return string(a)
@@ -44,22 +35,22 @@ func TestFlagProviderLoad(t *testing.T) {
 		name    string
 		flags   []flag.Flag
 		init    func(t *testing.T) (any, func())
-		options []LoadOption
+		options []config.LoadOption
 		wantErr bool
 	}{
 		{
 			name: "success-all-flags",
 			flags: []flag.Flag{
-				BoolFlag("varBool", desc),
-				StringFlag("varString", desc),
-				Int32Flag("varInt32", desc),
-				Int64Flag("varInt64", desc),
-				Uint32Flag("varUint32", desc),
-				Uint64Flag("varUint64", desc),
-				Float32Flag("varFloat32", desc),
-				Float64Flag("varFloat64", desc),
-				DurationFlag("varDuration", desc),
-				TimeFlag("varTime", desc),
+				config.BoolFlag("varBool", desc),
+				config.StringFlag("varString", desc),
+				config.Int32Flag("varInt32", desc),
+				config.Int64Flag("varInt64", desc),
+				config.Uint32Flag("varUint32", desc),
+				config.Uint64Flag("varUint64", desc),
+				config.Float32Flag("varFloat32", desc),
+				config.Float64Flag("varFloat64", desc),
+				config.DurationFlag("varDuration", desc),
+				config.TimeFlag("varTime", desc),
 			},
 			init: func(t *testing.T) (any, func()) {
 				setArgs(
@@ -107,8 +98,8 @@ func TestFlagProviderLoad(t *testing.T) {
 		{
 			name: "success-pointers",
 			flags: []flag.Flag{
-				StringFlag("varString", desc),
-				BoolFlag("varBool", desc),
+				config.StringFlag("varString", desc),
+				config.BoolFlag("varBool", desc),
 			},
 			init: func(t *testing.T) (any, func()) {
 				setArgs(
@@ -132,8 +123,8 @@ func TestFlagProviderLoad(t *testing.T) {
 		{
 			name: "success-convertible",
 			flags: []flag.Flag{
-				Int32Flag("varIntPointer", desc),
-				Int32Flag("varInt", desc),
+				config.Int32Flag("varIntPointer", desc),
+				config.Int32Flag("varInt", desc),
 			},
 			init: func(t *testing.T) (any, func()) {
 				setArgs(
@@ -157,8 +148,8 @@ func TestFlagProviderLoad(t *testing.T) {
 		{
 			name: "success-overriding",
 			flags: []flag.Flag{
-				StringFlag("notOverrideString", desc),
-				StringFlag("overriddenEmptyString", desc),
+				config.StringFlag("notOverrideString", desc),
+				config.StringFlag("overriddenEmptyString", desc),
 			},
 			init: func(t *testing.T) (any, func()) {
 				setArgs(
@@ -203,7 +194,7 @@ func TestFlagProviderLoad(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := NewFlagProvider(tt.flags...)
+			p := config.NewFlagProvider(tt.flags...)
 			v, asserts := tt.init(t)
 
 			err := p.Load(v, tt.options...)
@@ -223,28 +214,12 @@ func TestFlagProviderLoad(t *testing.T) {
 }
 
 func TestNewFlagProvider(t *testing.T) {
-	valid := NewFlagProvider(BoolFlag("name", "usage"))
+	valid := config.NewFlagProvider(config.BoolFlag("name", "usage"))
 	assert.NotNil(t, valid)
 
 	defer func() {
-		assert.ErrorIs(t, recover().(error), ErrMustImplementGetter)
+		assert.ErrorIs(t, recover().(error), config.ErrMustImplementGetter)
 	}()
 
-	_ = NewFlagProvider(flag.Flag{})
-}
-
-func TestFlagProviderLoadEmptyFlag(t *testing.T) {
-	p := &flagProvider{
-		set: flag.NewFlagSet("", flag.ContinueOnError),
-	}
-	var s notGetterStringValue
-	p.set.Var(&s, "Name", "usage")
-
-	setArgs("-Name=test")
-	err := p.Load(&struct {
-		Name string
-	}{})
-
-	isExpectedError := errors.Is(err, ErrMustImplementGetter)
-	assert.Equal(t, true, isExpectedError, "error expectation failed")
+	_ = config.NewFlagProvider(flag.Flag{})
 }

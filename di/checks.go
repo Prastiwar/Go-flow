@@ -7,9 +7,9 @@ import (
 )
 
 // checkInterface returns constructor found from services for service which implements typ.
-func checkInterface(typ reflect.Type, services map[reflect.Type]constructor) (constructor, bool) {
+func checkInterface(typ reflect.Type, services map[reflect.Type]Constructor) (Constructor, bool) {
 	if typ.Kind() != reflect.Interface {
-		return constructor{}, false
+		return &constructor{}, false
 	}
 
 	for serviceType, ctor := range services {
@@ -19,11 +19,11 @@ func checkInterface(typ reflect.Type, services map[reflect.Type]constructor) (co
 		}
 	}
 
-	return constructor{}, false
+	return &constructor{}, false
 }
 
 // checkInterface returns constructor found from services for matched typ.
-func checkRegistered(typ reflect.Type, services map[reflect.Type]constructor) (constructor, bool) {
+func checkRegistered(typ reflect.Type, services map[reflect.Type]Constructor) (Constructor, bool) {
 	if typ.Kind() == reflect.Interface {
 		return checkInterface(typ, services)
 	}

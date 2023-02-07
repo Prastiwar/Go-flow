@@ -1,7 +1,9 @@
-package assert
+package assert_test
 
 import (
 	"testing"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 func TestMapMatch(t *testing.T) {
@@ -52,9 +54,9 @@ func TestMapMatch(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			test := &testing.T{}
 
-			MapMatch(test, tt.mapA, tt.mapB)
+			assert.MapMatch(test, tt.mapA, tt.mapB)
 
-			Equal(t, tt.fails, test.Failed())
+			assert.Equal(t, tt.fails, test.Failed())
 		})
 	}
 }
@@ -100,9 +102,9 @@ func TestMapHas(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			test := &testing.T{}
 
-			MapHas(test, tt.m, tt.key, tt.val)
+			assert.MapHas(test, tt.m, tt.key, tt.val)
 
-			Equal(t, tt.fails, test.Failed())
+			assert.Equal(t, tt.fails, test.Failed())
 		})
 	}
 }

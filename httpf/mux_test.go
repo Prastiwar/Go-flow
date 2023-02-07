@@ -1,20 +1,21 @@
-package httpf
+package httpf_test
 
 import (
 	"errors"
 	"net/http"
 	"testing"
 
+	"github.com/Prastiwar/Go-flow/httpf"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 	"github.com/Prastiwar/Go-flow/tests/mocks"
 )
 
 func TestServeMux(t *testing.T) {
-	mux := NewServeMuxBuilder()
+	mux := httpf.NewServeMuxBuilder()
 
-	handlerFunc := func(name string) Handler {
+	handlerFunc := func(name string) httpf.Handler {
 		counter := assert.Count(t, 1, name+" route was not called")
-		return HandlerFunc(func(w ResponseWriter, r *http.Request) error {
+		return httpf.HandlerFunc(func(w httpf.ResponseWriter, r *http.Request) error {
 			counter.Inc()
 			return nil
 		})
@@ -46,15 +47,15 @@ func TestServeMux(t *testing.T) {
 }
 
 func TestErrorHandler(t *testing.T) {
-	mux := NewServeMuxBuilder()
+	mux := httpf.NewServeMuxBuilder()
 	errHandler := errors.New("handler-error")
 
 	errorCounter := assert.Count(t, 1, "expected call to error handler")
 
-	router := mux.WithErrorHandler(ErrorHandlerFunc(func(w http.ResponseWriter, r *http.Request, err error) {
+	router := mux.WithErrorHandler(httpf.ErrorHandlerFunc(func(w http.ResponseWriter, r *http.Request, err error) {
 		errorCounter.Inc()
 		assert.Equal(t, errHandler, err)
-	})).Get("/api/albums/", HandlerFunc(func(w ResponseWriter, r *http.Request) error {
+	})).Get("/api/albums/", httpf.HandlerFunc(func(w httpf.ResponseWriter, r *http.Request) error {
 		return errHandler
 	})).Build()
 
@@ -70,15 +71,15 @@ func TestServeMuxHandleGetError(t *testing.T) {
 	tests := []struct {
 		name          string
 		requestMethod string
-		errHandler    func(t *testing.T) ErrorHandler
+		errHandler    func(t *testing.T) httpf.ErrorHandler
 		writer        func(t *testing.T) http.ResponseWriter
 	}{
 		{
 			name:          "with-custom-handler",
 			requestMethod: http.MethodGet,
-			errHandler: func(t *testing.T) ErrorHandler {
+			errHandler: func(t *testing.T) httpf.ErrorHandler {
 				errorCounter := assert.Count(t, 1, "expected call to error handler")
-				return ErrorHandlerFunc(func(w http.ResponseWriter, r *http.Request, err error) {
+				return httpf.ErrorHandlerFunc(func(w http.ResponseWriter, r *http.Request, err error) {
 					errorCounter.Inc()
 					assert.Equal(t, errHandle, err)
 				})
@@ -103,7 +104,7 @@ func TestServeMuxHandleGetError(t *testing.T) {
 		{
 			name:          "with-default-handler",
 			requestMethod: http.MethodGet,
-			errHandler: func(t *testing.T) ErrorHandler {
+			errHandler: func(t *testing.T) httpf.ErrorHandler {
 				return nil
 			},
 			writer: func(t *testing.T) http.ResponseWriter {
@@ -129,7 +130,7 @@ func TestServeMuxHandleGetError(t *testing.T) {
 		{
 			name:          "with-method-not-allowed",
 			requestMethod: http.MethodPost,
-			errHandler: func(t *testing.T) ErrorHandler {
+			errHandler: func(t *testing.T) httpf.ErrorHandler {
 				return nil
 			},
 			writer: func(t *testing.T) http.ResponseWriter {
@@ -156,10 +157,10 @@ func TestServeMuxHandleGetError(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mux := NewServeMuxBuilder()
+			mux := httpf.NewServeMuxBuilder()
 
 			router := mux.WithErrorHandler(tt.errHandler(t)).
-				Get("/api/albums/", HandlerFunc(func(w ResponseWriter, r *http.Request) error {
+				Get("/api/albums/", httpf.HandlerFunc(func(w httpf.ResponseWriter, r *http.Request) error {
 					return errHandle
 				})).Build()
 
@@ -176,7 +177,7 @@ func TestWriterDecoration(t *testing.T) {
 		name      string
 		code      int
 		data      interface{}
-		decorator func(t *testing.T) func(http.ResponseWriter) ResponseWriter
+		decorator func(t *testing.T) func(http.ResponseWriter) httpf.ResponseWriter
 	}{
 		{
 			name: "succes-default-writer",
@@ -184,7 +185,7 @@ func TestWriterDecoration(t *testing.T) {
 			data: struct {
 				Id string `json:"id"`
 			}{Id: "123"},
-			decorator: func(t *testing.T) func(http.ResponseWriter) ResponseWriter {
+			decorator: func(t *testing.T) func(http.ResponseWriter) httpf.ResponseWriter {
 				return nil
 			},
 		},
@@ -192,9 +193,9 @@ func TestWriterDecoration(t *testing.T) {
 			name: "succes-custom-writer",
 			code: 204,
 			data: nil,
-			decorator: func(t *testing.T) func(http.ResponseWriter) ResponseWriter {
+			decorator: func(t *testing.T) func(http.ResponseWriter) httpf.ResponseWriter {
 				callCounter := assert.Count(t, 1)
-				return func(w http.ResponseWriter) ResponseWriter {
+				return func(w http.ResponseWriter) httpf.ResponseWriter {
 					return &mocks.ResponseWriter{
 						OnResponse: func(code int, data interface{}) error {
 							callCounter.Inc()
@@ -208,10 +209,10 @@ func TestWriterDecoration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mux := NewServeMuxBuilder()
+			mux := httpf.NewServeMuxBuilder()
 
 			router := mux.WithWriterDecorator(tt.decorator(t)).
-				Get("/api/albums/", HandlerFunc(func(w ResponseWriter, r *http.Request) error {
+				Get("/api/albums/", httpf.HandlerFunc(func(w httpf.ResponseWriter, r *http.Request) error {
 					return w.Response(tt.code, tt.data)
 				})).Build()
 
@@ -228,14 +229,14 @@ func TestWriterDecoration(t *testing.T) {
 }
 
 func TestWithParamsParser(t *testing.T) {
-	mux := NewServeMuxBuilder()
+	mux := httpf.NewServeMuxBuilder()
 
-	mux.WithParamsParser(ParamsParserFunc(func(r *http.Request) map[string]string {
+	mux.WithParamsParser(httpf.ParamsParserFunc(func(r *http.Request) map[string]string {
 		return map[string]string{"id": "1234"}
 	}))
 
-	mux.Get("/api/albums/", HandlerFunc(func(w ResponseWriter, r *http.Request) error {
-		id := Param(r, "id")
+	mux.Get("/api/albums/", httpf.HandlerFunc(func(w httpf.ResponseWriter, r *http.Request) error {
+		id := httpf.Param(r, "id")
 		return w.Response(201, id)
 	}))
 

@@ -1,7 +1,9 @@
-package assert
+package assert_test
 
 import (
 	"testing"
+
+	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
 func TestElementsMatch(t *testing.T) {
@@ -47,9 +49,9 @@ func TestElementsMatch(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			test := &testing.T{}
 
-			ElementsMatch(test, tt.arrA, tt.arrB)
+			assert.ElementsMatch(test, tt.arrA, tt.arrB)
 
-			Equal(t, tt.fails, test.Failed())
+			assert.Equal(t, tt.fails, test.Failed())
 		})
 	}
 }
