@@ -14,6 +14,7 @@ Framework for Go services in go with zero dependency rule, so you can use it in 
   - [Packages](#packages)
     - [caching](#caching)
     - [config](#config)
+    - [datas](#datas)
     - [di](#di)
     - [exception](#exception)
     - [httpf](#httpf)
@@ -61,6 +62,12 @@ Configuration module which provides functionality to load configuration from fil
 It allows to extend the behavior with interfaces for providers and KeyInterceptor option to change the way it looks for matching key for field name.
 
 See [example file](config/example_test.go) for runnable examples.
+
+### datas
+
+Datas is a package that provides functionality for data formatting, encoding, and decoding especially for serialization purposes. It includes support for JSON and XML encoding, as well as generic interfaces that allow you to work with data in a flexible and extensible way. This package is particularly useful for projects that need to work with data in a variety of formats, or that require a high degree of customization in how data conversion is handled. The package will be highly appreciated by people who plan to use third-party library to convert data using standard format, like json instead standard library for performance(or any other) reason.
+
+See [example file](datas/example_test.go) for runnable examples.
 
 ### di
 
