@@ -5,7 +5,7 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Prastiwar_Go-flow&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Prastiwar_Go-flow)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Prastiwar_Go-flow&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Prastiwar_Go-flow)
 
-Framework for Go services in go with zero dependency rule, so you can use it in any project without other third-party dependencies or writing your own code for common tasks.
+Backend framework library written in Go for Gophers who are tired of writing the same interfaces over and over again. It mostly provides dependency inversion to most common built systems.
 
 - [Go-flow](#go-flow)
   - [Production readiness](#production-readiness)
@@ -44,11 +44,11 @@ go get -u github.com/Prastiwar/Go-flow@{version}
 
 ## Library purpose
 
-The idea is to provide and maintain by community single framework without other third-party dependencies to facilitate software development without worrying and dealing with obsolete libraries which hugely increases technical debt.
-The technical debt is the reason why this library follows no dependency rule which means it does not depend on any other library. It can be clearly visible in go.mod file.
-This framework's mission is to extend the built-in GO standard library in a non-invasive way with common systems like configuration, logging and dependency management
-meaning it should have feeling like it's part of standard one but it should not give up on simplifying building systems by adding GOs like boilerplate.
-Writing production-ready system developer often must make decision which will not change and will not apply to every possible case but still should be modifiable enough to make development easier not harder.
+The idea is to provide and maintain by community single framework with the most used backend systems like caching and logging without the need for repeatable writing the same interfaces over third-party dependencies to facilitate software development with dependency inversion rule. It does provide an implementation for some systems so Gophers would not waste time researching GitHub and worrying about massive third-party obsolete libraries which hugely increases technical debt and takes time to find the one that fits your needs.
+This does not mean the framework is completely resilient to time and language development. A single library is simpler to maintain by the community to prevent deprecating the library or forcing developer to wait for changes.
+The technical debt is the reason why this library follows the no-dependency rule which means it does not depend on any other library. It can be visible in clean go.mod file.
+This framework's mission is to extend the built-in GO standard library in a non-invasive way with common systems like configuration, logging, and dependency management meaning it should have a feeling like it's part of standard one but it should not give up on simplifying building systems by adding GOs like boilerplate.
+Writing production-ready system developers often must make a decision that will not change and will not apply to every possible case but still should be modular enough to make development easier not harder.
 
 ## Packages
 
