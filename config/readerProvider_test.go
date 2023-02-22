@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/Prastiwar/Go-flow/config"
-	"github.com/Prastiwar/Go-flow/config/decoders"
+	"github.com/Prastiwar/Go-flow/datas"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
@@ -32,7 +32,7 @@ func TestReaderProviderLoad(t *testing.T) {
 		{
 			name: "success-json-reader",
 			init: func(t *testing.T) (config.Provider, any, func()) {
-				provider := config.NewReaderProvider(strings.NewReader("{ \"title\": \"header\"}"), decoders.NewJson())
+				provider := config.NewReaderProvider(strings.NewReader("{ \"title\": \"header\"}"), datas.Json())
 
 				v := struct {
 					Title string
@@ -48,7 +48,7 @@ func TestReaderProviderLoad(t *testing.T) {
 			name: "success-file-reader",
 			init: func(t *testing.T) (config.Provider, any, func()) {
 				filename := createTempContentFile(t, "{ \"title\": \"header\"}")
-				provider := config.NewFileProvider(filename, decoders.NewJson())
+				provider := config.NewFileProvider(filename, datas.Json())
 
 				v := struct {
 					Title string
