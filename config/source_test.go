@@ -10,7 +10,7 @@ import (
 	"unicode"
 
 	"github.com/Prastiwar/Go-flow/config"
-	"github.com/Prastiwar/Go-flow/config/decoders"
+	"github.com/Prastiwar/Go-flow/datas"
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
@@ -263,7 +263,7 @@ func TestSourceLoad(t *testing.T) {
 			name: "invalid-provider-error",
 			init: func(t *testing.T) (*config.Source, any, func(error)) {
 				s := config.Provide(
-					config.NewReaderProvider(&InvalidReader{}, decoders.NewJson()),
+					config.NewReaderProvider(&InvalidReader{}, datas.Json()),
 				)
 
 				v := struct{}{}
