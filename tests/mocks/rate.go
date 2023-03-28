@@ -12,6 +12,7 @@ var (
 	_ rate.Limiter          = LimiterMock{}
 	_ rate.BurstLimiter     = BurstLimiterMock{}
 	_ rate.CancellableToken = TokenMock{}
+	_ rate.Clock            = MockClock{}
 )
 
 type LimiterStoreMock struct {
@@ -86,4 +87,26 @@ func (m TokenMock) Use() error {
 func (m TokenMock) Cancel() {
 	assert.ExpectCall(m.OnCancel)
 	m.OnCancel()
+}
+
+type MockClock struct {
+	NowFunc func() time.Time
+}
+
+func (c MockClock) Now() time.Time {
+	return c.NowFunc()
+}
+
+// NewMutableClock returns MockClock and function to set time of the clock at runtime.
+func NewMutableClock() (rate.Clock, func(time.Time)) {
+	now := time.Now()
+	timer := &now
+
+	mockClock := MockClock{
+		NowFunc: func() time.Time {
+			return *timer
+		},
+	}
+
+	return mockClock, func(t time.Time) { *timer = t }
 }

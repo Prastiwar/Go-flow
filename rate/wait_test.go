@@ -107,6 +107,9 @@ func TestConsumeAndWait(t *testing.T) {
 						OnUse: func() error {
 							return nil
 						},
+						OnResetsAt: func() time.Time {
+							return time.Now()
+						},
 					}
 				},
 			},
@@ -211,6 +214,9 @@ func TestConsumeNAndWait(t *testing.T) {
 					return mocks.TokenMock{
 						OnUse: func() error {
 							return nil
+						},
+						OnResetsAt: func() time.Time {
+							return time.Now()
 						},
 					}
 				},

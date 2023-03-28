@@ -11,16 +11,15 @@ package rate
 // like a fixed window can be used.
 type Limiter interface {
 	// Take returns a new Token. This should not consume the token and not consider the Token in availability calculation.
-	// If Limit() is zero then this should return rate.FalseToken.
+	// Token should be reusable and time resistant and not usable only once it was got.
 	Take() Token
 
 	// Tokens should return the remaining token amount that can be consumed at now time with Take, so higher
-	// Tokens value allow more events to happen without a delay. A zero value means none token can be consumed.
+	// Tokens value allow more events to happen without a delay. A zero value means none token can be consumed now.
 	Tokens() uint64
 
 	// Limit should return the maximum amount of token that can be consumed within defined period with Take, so higher Limit
-	// value allow more events to happen without a limit delay. A zero value means none token can be consumed and Take
-	// should return rate.FalseToken.
+	// value allow more events to happen without a limit delay.
 	Limit() uint64
 }
 
@@ -30,13 +29,11 @@ type BurstLimiter interface {
 	Limiter
 
 	// TakeN returns a new Token that allows to consume n tokens at once. This function does not consume the token
-	// and should not consider the Token in availability calculation. If n is higher than Burst() it should return
-	// rate.FalseToken.
+	// and should not consider the Token in availability calculation.
 	TakeN(n uint64) Token
 
 	// Burst is the maximum number of tokens that can be consumed in a single call to TakeN, so higher Burst
-	// value allow more events to happen at once. A zero value means none token can be consumed and TakeN
-	// should always return rate.FalseToken.
+	// value allow more events to happen at once.
 	Burst() uint64
 }
 

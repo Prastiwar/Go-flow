@@ -40,7 +40,7 @@ func ConsumeNAndWait(ctx context.Context, l BurstLimiter, n uint64) error {
 }
 
 func takeAndWait(ctx context.Context, t Token, takeErr error) error {
-	if !errors.Is(takeErr, ErrRateLimitExceeded) {
+	if takeErr != nil && !errors.Is(takeErr, ErrRateLimitExceeded) {
 		return takeErr
 	}
 

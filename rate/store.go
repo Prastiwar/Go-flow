@@ -6,3 +6,6 @@ type LimiterStore interface {
 	// If there was no entry found it should return default Limiter and persist it with specified key.
 	Limit(key string) Limiter
 }
+
+// LimiterAlgorithm is a function which returns new instance of Limiter using specific algorithm.
+type LimiterAlgorithm func() Limiter

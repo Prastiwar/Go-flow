@@ -17,9 +17,6 @@ var (
 
 	// MaxTime is maximum time value.
 	MaxTime = MinTime.Add(1<<63 - 1)
-
-	// FalseToken should be returned from Take/TakeN methods to compare with IsFalseToken function.
-	FalseToken CancellableToken = &falseToken{}
 )
 
 // Token is a controlled token by Limiter. It allows the caller to consume it or check if it can be consumed and
@@ -27,7 +24,7 @@ var (
 type Token interface {
 	// Use consumes token and returns no error if succeeded. Returns ErrRateLimitExceeded when limit rate was exceeded.
 	// If used with BurstLimiter it will not consume tokens below the limit before returning error. It will return ErrInvalidTokenValue
-	// when Limiter Limit/Burst is lower than value provided in Take/TakeN.
+	// when Limit in BurstLimiter is lower than value provided in TakeN.
 	Use() error
 
 	// Allow reports whether an token can be consumed.
@@ -44,31 +41,4 @@ type CancellableToken interface {
 
 	// Cancel frees up tokens to ReservationLimiter.
 	Cancel()
-}
-
-// FalseToken is token returned when either tokens limit is 0 or reserved/taken token count is higher than burst/limit.
-// Which means Limiter would never allow such token to be consumed.
-type falseToken struct{}
-
-// Allow always returns false.
-func (*falseToken) Allow() bool {
-	return false
-}
-
-// ResetsAt returns MaxTime value.
-func (*falseToken) ResetsAt() time.Time {
-	return MaxTime
-}
-
-// Use always returns ErrInvalidTokenValue.
-func (*falseToken) Use() error {
-	return ErrInvalidTokenValue
-}
-
-// Cancel is noop.
-func (*falseToken) Cancel() {}
-
-// IsFalseToken reports if token is always false meaning Limiter would never allow such token to be consumed.
-func IsFalseToken(token Token) bool {
-	return token == FalseToken
 }
