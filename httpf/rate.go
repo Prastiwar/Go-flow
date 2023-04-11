@@ -1,10 +1,12 @@
 package httpf
 
 import (
+	"errors"
 	"net/http"
 	"net/textproto"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Prastiwar/Go-flow/rate"
 )
@@ -13,6 +15,7 @@ const (
 	RateLimitLimitHeader     = "X-Rate-Limit-Limit"
 	RateLimitRemainingHeader = "X-Rate-Limit-Remaining"
 	RateLimitResetHeader     = "X-Rate-Limit-Reset"
+	RetryAfterHeader         = "Retry-After"
 )
 
 // RateHttpKeyFactory is factory func to create a string key based on http.Request.
@@ -80,21 +83,30 @@ func RateLimitMiddleware(h Handler, store rate.LimiterStore, keyFactory RateHttp
 		limiter := store.Limit(key)
 		token := limiter.Take()
 		if err := token.Use(); err != nil {
-			writeRateLimitHeaders(w.Header(), limiter, token)
+			if errors.Is(err, rate.ErrRateLimitExceeded) {
+				writeRateLimitHeaders(w.Header(), limiter, token, err)
+			}
 			return err
 		}
-		writeRateLimitHeaders(w.Header(), limiter, token)
+		writeRateLimitHeaders(w.Header(), limiter, token, nil)
 		return h.ServeHTTP(w, r)
 	})
 }
 
-func writeRateLimitHeaders(headers http.Header, limiter rate.Limiter, token rate.Token) {
+func writeRateLimitHeaders(headers http.Header, limiter rate.Limiter, token rate.Token, err error) {
 	maxRate := strconv.FormatInt(int64(limiter.Limit()), 10)
 	headers.Add(RateLimitLimitHeader, maxRate)
 
 	remaining := strconv.FormatInt(int64(limiter.Tokens()), 10)
 	headers.Add(RateLimitRemainingHeader, remaining)
 
-	resetsAt := strconv.FormatInt(token.ResetsAt().Unix(), 10)
+	resetAt := token.ResetsAt()
+	resetsAt := strconv.FormatInt(resetAt.Unix(), 10)
 	headers.Add(RateLimitResetHeader, resetsAt)
+
+	if err != nil {
+		delta := resetAt.Sub(time.Now())
+		retryAfter := strconv.FormatInt(int64(delta.Seconds()), 10)
+		headers.Add(RetryAfterHeader, retryAfter)
+	}
 }

@@ -121,7 +121,7 @@ func TestComposeRateKeyFactories(t *testing.T) {
 
 func TestRateLimitMiddleware(t *testing.T) {
 	timeNow := time.Now()
-	timeNowString := strconv.FormatInt(int64(timeNow.Unix()), 10)
+	timeResetAt := time.Now().Add(time.Second)
 
 	tests := []struct {
 		name      string
@@ -147,7 +147,7 @@ func TestRateLimitMiddleware(t *testing.T) {
 					return nil
 				}
 				return handler, func(headers http.Header, err error) {
-					assertRateLimitHeaders(t, headers, "10", "9", timeNowString)
+					assertRateLimitHeaders(t, headers, "10", "9", &timeNow, err)
 					assert.NilError(t, err)
 					counter.Assert(t)
 				}
@@ -161,7 +161,7 @@ func TestRateLimitMiddleware(t *testing.T) {
 				OnTake: func() rate.Token {
 					return mocks.TokenMock{
 						OnUse:      func() error { return rate.ErrRateLimitExceeded },
-						OnResetsAt: func() time.Time { return timeNow },
+						OnResetsAt: func() time.Time { return timeResetAt },
 					}
 				},
 			},
@@ -172,7 +172,7 @@ func TestRateLimitMiddleware(t *testing.T) {
 					return nil
 				}
 				return handler, func(headers http.Header, err error) {
-					assertRateLimitHeaders(t, headers, "10", "0", timeNowString)
+					assertRateLimitHeaders(t, headers, "10", "0", &timeResetAt, err)
 					assert.ErrorIs(t, err, rate.ErrRateLimitExceeded)
 					counter.Assert(t)
 				}
@@ -197,7 +197,7 @@ func TestRateLimitMiddleware(t *testing.T) {
 					return nil
 				}
 				return handler, func(headers http.Header, err error) {
-					assertRateLimitHeaders(t, headers, "10", "10", timeNowString)
+					assertRateLimitHeaders(t, headers, "", "", nil, err)
 					assert.ErrorWith(t, err, "unknown-error")
 					counter.Assert(t)
 				}
@@ -222,7 +222,7 @@ func TestRateLimitMiddleware(t *testing.T) {
 					return errors.New("handler-error")
 				}
 				return handler, func(headers http.Header, err error) {
-					assertRateLimitHeaders(t, headers, "10", "9", timeNowString)
+					assertRateLimitHeaders(t, headers, "10", "9", &timeNow, err)
 					assert.ErrorWith(t, err, "handler-error")
 					counter.Assert(t)
 				}
@@ -256,11 +256,28 @@ func TestRateLimitMiddleware(t *testing.T) {
 	}
 }
 
-func assertRateLimitHeaders(t *testing.T, header http.Header, limit, remaining, reset string) {
+func assertRateLimitHeaders(t *testing.T, header http.Header, limit, remaining string, resetTime *time.Time, err error) {
 	const prefix = "incorrect value for header"
+
 	assert.Equal(t, limit, header.Get(httpf.RateLimitLimitHeader), prefix, httpf.RateLimitLimitHeader)
 	assert.Equal(t, remaining, header.Get(httpf.RateLimitRemainingHeader), prefix, httpf.RateLimitLimitHeader)
+
+	if resetTime == nil {
+		assert.Equal(t, "", header.Get(httpf.RateLimitResetHeader), prefix, httpf.RateLimitLimitHeader)
+		assert.Equal(t, "", header.Get(httpf.RetryAfterHeader), prefix, httpf.RetryAfterHeader)
+		return
+	}
+
+	reset := strconv.FormatInt(int64(resetTime.Unix()), 10)
 	assert.Equal(t, reset, header.Get(httpf.RateLimitResetHeader), prefix, httpf.RateLimitLimitHeader)
+
+	if errors.Is(err, rate.ErrRateLimitExceeded) {
+		delta := resetTime.Sub(time.Now()).Seconds()
+		retryAfter := strconv.FormatInt(int64(delta), 10)
+		assert.Equal(t, retryAfter, header.Get(httpf.RetryAfterHeader), prefix, httpf.RetryAfterHeader)
+	} else {
+		assert.Equal(t, "", header.Get(httpf.RetryAfterHeader), prefix, httpf.RetryAfterHeader)
+	}
 }
 
 func urlFromPath(path string) *url.URL {
