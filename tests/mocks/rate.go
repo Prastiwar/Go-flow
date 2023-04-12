@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	"context"
 	"time"
 
 	"github.com/Prastiwar/Go-flow/rate"
@@ -16,18 +17,18 @@ var (
 )
 
 type LimiterStoreMock struct {
-	OnLimit func(key string) rate.Limiter
+	OnLimit func(ctx context.Context, key string) rate.Limiter
 }
 
-func (m LimiterStoreMock) Limit(key string) rate.Limiter {
+func (m LimiterStoreMock) Limit(ctx context.Context, key string) rate.Limiter {
 	assert.ExpectCall(m.OnLimit)
-	return m.OnLimit(key)
+	return m.OnLimit(ctx, key)
 }
 
 type LimiterMock struct {
 	OnLimit  func() uint64
-	OnTokens func() uint64
-	OnTake   func() rate.Token
+	OnTokens func(ctx context.Context) uint64
+	OnTake   func(ctx context.Context) rate.Token
 }
 
 func (m LimiterMock) Limit() uint64 {
@@ -35,26 +36,26 @@ func (m LimiterMock) Limit() uint64 {
 	return m.OnLimit()
 }
 
-func (m LimiterMock) Take() rate.Token {
+func (m LimiterMock) Take(ctx context.Context) rate.Token {
 	assert.ExpectCall(m.OnTake)
-	return m.OnTake()
+	return m.OnTake(ctx)
 }
 
-func (m LimiterMock) Tokens() uint64 {
+func (m LimiterMock) Tokens(ctx context.Context) uint64 {
 	assert.ExpectCall(m.OnTokens)
-	return m.OnTokens()
+	return m.OnTokens(ctx)
 }
 
 type BurstLimiterMock struct {
 	rate.Limiter
 
 	OnBurst func() uint64
-	OnTakeN func(n uint64) rate.Token
+	OnTakeN func(ctx context.Context, n uint64) rate.Token
 }
 
-func (m BurstLimiterMock) TakeN(n uint64) rate.Token {
+func (m BurstLimiterMock) TakeN(ctx context.Context, n uint64) rate.Token {
 	assert.ExpectCall(m.OnTakeN)
-	return m.OnTakeN(n)
+	return m.OnTakeN(ctx, n)
 }
 
 func (m BurstLimiterMock) Burst() uint64 {
@@ -67,6 +68,7 @@ type TokenMock struct {
 	OnResetsAt func() time.Time
 	OnUse      func() error
 	OnCancel   func()
+	OnContext  func() context.Context
 }
 
 func (m TokenMock) Allow() bool {
@@ -87,6 +89,11 @@ func (m TokenMock) Use() error {
 func (m TokenMock) Cancel() {
 	assert.ExpectCall(m.OnCancel)
 	m.OnCancel()
+}
+
+func (m TokenMock) Context() context.Context {
+	assert.ExpectCall(m.OnContext)
+	return m.OnContext()
 }
 
 type MockClock struct {

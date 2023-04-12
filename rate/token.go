@@ -1,6 +1,7 @@
 package rate
 
 import (
+	"context"
 	"errors"
 	"time"
 )
@@ -11,6 +12,9 @@ var (
 
 	// ErrInvalidTokenValue is the error returned by Token.Use when Token is always falsy.
 	ErrInvalidTokenValue = errors.New("token value exceeds limit")
+
+	// ErrTokenCancelled is the error returned by Token.Use when CancellableToken.Cancel was used.
+	ErrTokenCancelled = errors.New("token value exceeds limit")
 
 	// MinTime is minimum time value.
 	MinTime = time.Unix(-2208988800, 0)
@@ -27,18 +31,26 @@ type Token interface {
 	// when Limit in BurstLimiter is lower than value provided in TakeN.
 	Use() error
 
-	// Allow reports whether an token can be consumed.
+	// Allow reports whether an token can be consumed at this moment.
 	Allow() bool
 
 	// ResetsAt returns a time when token will be available to be consumed. At returned time Allow() should report true.
 	ResetsAt() time.Time
+
+	// Context returns the token's context. To change the context, use WithContext.
+	// The returned context should be always non-nil; it defaults to the background context.
+	// Since the token is controlled by Limiter, the context should be the value passed in Limiter.Take.
+	// The token's context is immutable. To change it create a new Token using Limiter.Take.
+	Context() context.Context
 }
 
 // CancellableToken is a controlled token by ReservationLimiter. It extends the Token functionality with Cancel function
-// that allows to free up the reserved tokens.
+// that allows to free up the reserved tokens. In opposite to Token this should not be reusable and should be used
+// one-time only for either consumption or cancellation. If token was canceled, Use function should return ErrTokenCancelled.
 type CancellableToken interface {
 	Token
 
-	// Cancel frees up tokens to ReservationLimiter.
+	// Cancel frees up tokens to ReservationLimiter without actually consuming the token. Cancellation does not
+	// allow to consume the token and Use function will return ErrTokenCancelled error.
 	Cancel()
 }

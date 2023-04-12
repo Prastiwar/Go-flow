@@ -80,8 +80,9 @@ func ComposeRateKeyFactories(factories ...RateHttpKeyFactory) RateHttpKeyFactory
 func RateLimitMiddleware(h Handler, store rate.LimiterStore, keyFactory RateHttpKeyFactory) Handler {
 	return HandlerFunc(func(w ResponseWriter, r *http.Request) error {
 		key := keyFactory(r)
-		limiter := store.Limit(key)
-		token := limiter.Take()
+		ctx := r.Context()
+		limiter := store.Limit(ctx, key)
+		token := limiter.Take(ctx)
 		if err := token.Use(); err != nil {
 			if errors.Is(err, rate.ErrRateLimitExceeded) {
 				writeRateLimitHeaders(w.Header(), limiter, token, err)

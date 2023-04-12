@@ -17,7 +17,7 @@ type memoryStore struct {
 	factory rate.LimiterAlgorithm
 }
 
-func (ls *memoryStore) Limit(key string) rate.Limiter {
+func (ls *memoryStore) Limit(ctx context.Context, key string) rate.Limiter {
 	l, ok := ls.store.Load(key)
 	if !ok {
 		l = ls.factory()
@@ -26,10 +26,10 @@ func (ls *memoryStore) Limit(key string) rate.Limiter {
 	return l.(rate.Limiter)
 }
 
-func (ls *memoryStore) cleanup() {
+func (ls *memoryStore) cleanup(ctx context.Context) {
 	ls.store.Range(func(key, value any) bool {
 		l := value.(rate.Limiter)
-		avail := l.Tokens()
+		avail := l.Tokens(ctx)
 		if avail >= l.Limit() {
 			ls.store.Delete(key)
 		}
@@ -58,7 +58,7 @@ func NewLimiterStore(ctx context.Context, alg rate.LimiterAlgorithm, cleanupInte
 			case <-ctx.Done():
 				return
 			case <-waitCtx.Done():
-				store.cleanup()
+				store.cleanup(ctx)
 				continue
 			}
 		}

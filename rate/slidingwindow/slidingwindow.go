@@ -1,6 +1,7 @@
 package slidingwindow
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -162,11 +163,11 @@ func (l *limiter) Limit() uint64 {
 	return uint64(l.state.maxEvents)
 }
 
-func (l *limiter) Take() rate.Token {
+func (l *limiter) Take(ctx context.Context) rate.Token {
 	return newToken(l.state, l.clock)
 }
 
-func (l *limiter) Tokens() uint64 {
+func (l *limiter) Tokens(ctx context.Context) uint64 {
 	now := l.clock.Now()
 	return l.state.Available(now)
 }
@@ -209,4 +210,8 @@ func (t *token) Use() error {
 	}
 	t.state.Incr()
 	return nil
+}
+
+func (t *token) Context() context.Context {
+	return context.Background()
 }
