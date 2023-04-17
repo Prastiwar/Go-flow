@@ -29,13 +29,19 @@ func Wait(ctx context.Context, deadline time.Time) error {
 // other error it'll immediately return this error. When ctx is canceled or ctx deadline exceeds before
 // reset time it'll return this error.
 func ConsumeAndWait(ctx context.Context, l Limiter) error {
-	token := l.Take()
+	token, err := l.Take(ctx)
+	if err != nil {
+		return err
+	}
 	return takeAndWait(ctx, token, token.Use())
 }
 
 // ConsumeNAndWait is extended ConsumeAndWait() function that supports BurstLimiter.TakeN().
 func ConsumeNAndWait(ctx context.Context, l BurstLimiter, n uint64) error {
-	token := l.TakeN(n)
+	token, err := l.TakeN(ctx, n)
+	if err != nil {
+		return err
+	}
 	return takeAndWait(ctx, token, token.Use())
 }
 

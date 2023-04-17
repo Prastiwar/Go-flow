@@ -2,6 +2,8 @@ package memory
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -12,29 +14,64 @@ var (
 	_ rate.LimiterStore = (*memoryStore)(nil)
 )
 
+var (
+	ErrCleanupFailure = errors.New("at least one error occured at cleanup")
+)
+
 type memoryStore struct {
 	store   sync.Map
 	factory rate.LimiterAlgorithm
 }
 
-func (ls *memoryStore) Limit(ctx context.Context, key string) rate.Limiter {
+func (ls *memoryStore) Limit(ctx context.Context, key string) (rate.Limiter, error) {
 	l, ok := ls.store.Load(key)
 	if !ok {
 		l = ls.factory()
 		ls.store.Store(key, l)
 	}
-	return l.(rate.Limiter)
+	return l.(rate.Limiter), nil
 }
 
-func (ls *memoryStore) cleanup(ctx context.Context) {
+func (ls *memoryStore) cleanup(ctx context.Context) error {
+	var errs error
+
 	ls.store.Range(func(key, value any) bool {
 		l := value.(rate.Limiter)
-		avail := l.Tokens(ctx)
+		avail, err := l.Tokens(ctx)
+		if err != nil {
+			errs = errors.Join(errs, fmt.Errorf("unexpected error for Limiter with key '%v': %w", key, err))
+			return true
+		}
 		if avail >= l.Limit() {
 			ls.store.Delete(key)
 		}
 		return true
 	})
+
+	if errs != nil {
+		errs = errors.Join(ErrCleanupFailure, errs)
+	}
+	return errs
+}
+
+type Options struct {
+	ErrorHandler func(err error)
+}
+
+type Option func(o *Options)
+
+func WithErrorHandler(errorHandler func(err error)) Option {
+	return func(o *Options) {
+		o.ErrorHandler = errorHandler
+	}
+}
+
+func NewOptions(opts ...Option) *Options {
+	o := &Options{}
+	for _, opt := range opts {
+		opt(o)
+	}
+	return o
 }
 
 // NewLimiterStore returns a rate.LimiterStore which stores keys in memory using sync.Map for thread safety.
@@ -44,7 +81,9 @@ func (ls *memoryStore) cleanup(ctx context.Context) {
 // Lowering the value means more cleanup frequency therefore more CPU usage but faster memory release.
 // The cleanup time depends on cleanup execution time, meaning if the cleanup interval is set to 5s.
 // It'll run cleanup on the 5th second and if cleanup execution takes 1s then the second cleanup will be performed at the 11th second.
-func NewLimiterStore(ctx context.Context, alg rate.LimiterAlgorithm, cleanupInterval time.Duration) rate.LimiterStore {
+func NewLimiterStore(ctx context.Context, alg rate.LimiterAlgorithm, cleanupInterval time.Duration, opts ...Option) rate.LimiterStore {
+	options := NewOptions(opts...)
+
 	store := &memoryStore{
 		factory: alg,
 	}
@@ -58,7 +97,10 @@ func NewLimiterStore(ctx context.Context, alg rate.LimiterAlgorithm, cleanupInte
 			case <-ctx.Done():
 				return
 			case <-waitCtx.Done():
-				store.cleanup(ctx)
+				err := store.cleanup(ctx)
+				if err != nil && options.ErrorHandler != nil {
+					options.ErrorHandler(err)
+				}
 				continue
 			}
 		}

@@ -1,6 +1,7 @@
 package httpf
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/textproto"
@@ -81,25 +82,37 @@ func RateLimitMiddleware(h Handler, store rate.LimiterStore, keyFactory RateHttp
 	return HandlerFunc(func(w ResponseWriter, r *http.Request) error {
 		key := keyFactory(r)
 		ctx := r.Context()
-		limiter := store.Limit(ctx, key)
-		token := limiter.Take(ctx)
+
+		limiter, err := store.Limit(ctx, key)
+		if err != nil {
+			return err
+		}
+
+		token, err := limiter.Take(ctx)
+		if err != nil {
+			return err
+		}
+
 		if err := token.Use(); err != nil {
 			if errors.Is(err, rate.ErrRateLimitExceeded) {
-				writeRateLimitHeaders(w.Header(), limiter, token, err)
+				writeRateLimitHeaders(ctx, w.Header(), limiter, token, err)
 			}
 			return err
 		}
-		writeRateLimitHeaders(w.Header(), limiter, token, nil)
+
+		writeRateLimitHeaders(ctx, w.Header(), limiter, token, nil)
 		return h.ServeHTTP(w, r)
 	})
 }
 
-func writeRateLimitHeaders(headers http.Header, limiter rate.Limiter, token rate.Token, err error) {
+func writeRateLimitHeaders(ctx context.Context, headers http.Header, limiter rate.Limiter, token rate.Token, err error) {
 	maxRate := strconv.FormatInt(int64(limiter.Limit()), 10)
 	headers.Add(RateLimitLimitHeader, maxRate)
 
-	remaining := strconv.FormatInt(int64(limiter.Tokens()), 10)
-	headers.Add(RateLimitRemainingHeader, remaining)
+	if tokens, err := limiter.Tokens(ctx); err == nil {
+		remaining := strconv.FormatInt(int64(tokens), 10)
+		headers.Add(RateLimitRemainingHeader, remaining)
+	}
 
 	resetAt := token.ResetsAt()
 	resetsAt := strconv.FormatInt(resetAt.Unix(), 10)

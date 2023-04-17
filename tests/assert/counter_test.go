@@ -1,6 +1,7 @@
 package assert_test
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/Prastiwar/Go-flow/tests/assert"
@@ -10,6 +11,26 @@ func TestCounterAutoAssert(t *testing.T) {
 	// there is no way to assert if t.Cleanup was called or to remove
 	// failed status, so need to look for coverage if this passes correctly
 	assert.Count(t, 0)
+}
+
+// TestCounterAlwaysOneAssert relies on code coverage and will not fail is multiple asserts are called.
+// There is no way for any kind of assertions on testing.T.
+func TestCounterAlwaysOneAssert(t *testing.T) {
+	const count = 10
+
+	testT := &testing.T{}
+	c := assert.Count(testT, 1)
+	wg := &sync.WaitGroup{}
+	wg.Add(count)
+	for i := 0; i < count; i++ {
+		go func() {
+			defer wg.Done()
+			c.Assert(testT)
+		}()
+	}
+	wg.Wait()
+
+	assert.Equal(t, true, testT.Failed())
 }
 
 func TestCounterAssert(t *testing.T) {

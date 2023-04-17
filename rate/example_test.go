@@ -17,9 +17,16 @@ func Example() {
 
 	store := memory.NewLimiterStore(context.Background(), sw, time.Hour)
 
-	l := store.Limit("{id}")
+	l, err := store.Limit(context.Background(), "{id}")
+	if err != nil {
+		panic(err)
+	}
 
-	t := l.Take()
+	t, err := l.Take(context.Background())
+	if err != nil {
+		panic(err)
+	}
+
 	if err := t.Use(); err != nil {
 		panic(err)
 	}

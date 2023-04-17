@@ -2,6 +2,7 @@ package memory_test
 
 import (
 	"context"
+	"errors"
 	"runtime"
 	"strconv"
 	"testing"
@@ -11,16 +12,17 @@ import (
 	"github.com/Prastiwar/Go-flow/rate/memory"
 	"github.com/Prastiwar/Go-flow/rate/slidingwindow"
 	"github.com/Prastiwar/Go-flow/tests/assert"
+	"github.com/Prastiwar/Go-flow/tests/mocks"
 )
 
 // newStore is a shorthand to return rate.NewMemoryLimiterStore with slidingwindow.SlidingWindowCounter
-func newStore(ctx context.Context, cleanupInterval time.Duration) rate.LimiterStore {
+func newStore(ctx context.Context, cleanupInterval time.Duration, opts ...memory.Option) rate.LimiterStore {
 	slidingWindow, err := slidingwindow.NewAlgorithm(40, time.Minute, 20)
 	if err != nil {
 		panic(err)
 	}
 
-	return memory.NewLimiterStore(ctx, slidingWindow, cleanupInterval)
+	return memory.NewLimiterStore(ctx, slidingWindow, cleanupInterval, opts...)
 }
 
 func TestGoroutineCount(t *testing.T) {
@@ -31,7 +33,7 @@ func TestGoroutineCount(t *testing.T) {
 	// Act
 	store := newStore(ctx, time.Second)
 	for i := 0; i < 10; i++ {
-		_ = store.Limit(strconv.Itoa(i))
+		_, _ = store.Limit(context.Background(), strconv.Itoa(i))
 	}
 
 	// Assert
@@ -45,17 +47,55 @@ func TestGoroutineCount(t *testing.T) {
 func TestCleanup(t *testing.T) {
 	// Arrange
 	const key = "{userId}"
-	store := newStore(context.Background(), time.Second/2)
+	ctx := context.Background()
 
-	// Act
-	expected := store.Limit(key)
+	store := newStore(ctx, time.Second/2)
 
-	// Assert
-	actual := store.Limit(key)
+	// Act - store
+	expected, err := store.Limit(ctx, key)
+
+	// Assert - store
+	assert.NilError(t, err)
+
+	actual, err := store.Limit(ctx, key)
+	assert.NilError(t, err)
 	assert.Equal(t, expected, actual, "equal before cleanup")
 
+	// Act - cleanup
 	time.Sleep(time.Second)
 
-	actual = store.Limit(key)
+	// Assert - cleanup
+	actual, err = store.Limit(ctx, key)
+	assert.NilError(t, err)
 	assert.NotEqual(t, expected, actual, "different after cleanup")
+}
+
+func TestErrorHandling(t *testing.T) {
+	// Arrange
+	const key = "{userId}"
+	ctx := context.Background()
+
+	onTokensCaller := assert.Count(t, 1)
+	onErrorCaller := assert.Count(t, 1)
+	limiterMock := mocks.LimiterMock{
+		OnTokens: func(ctx context.Context) (uint64, error) {
+			onTokensCaller.Inc()
+			return 0, errors.New("invalid-on-tokens")
+		},
+	}
+	onError := func(err error) {
+		onErrorCaller.Inc()
+		assert.ErrorWith(t, err, "invalid-on-tokens")
+	}
+
+	store := memory.NewLimiterStore(ctx, func() rate.Limiter { return limiterMock }, time.Second/3, memory.WithErrorHandler(onError))
+	_, err := store.Limit(ctx, key)
+	assert.NilError(t, err)
+
+	// Act
+	time.Sleep(time.Second / 2)
+
+	// Assert
+	onTokensCaller.Assert(t, "expected Limiter.Tokens to be called once")
+	onErrorCaller.Assert(t, "expected error handler to be called once")
 }

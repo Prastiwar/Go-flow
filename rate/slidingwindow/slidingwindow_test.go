@@ -1,6 +1,7 @@
 package slidingwindow_test
 
 import (
+	"context"
 	"strconv"
 	"testing"
 	"time"
@@ -20,24 +21,34 @@ func TestSlidingToken(t *testing.T) {
 		panic(err)
 	}
 	limiter := alg()
-	token := limiter.Take()
+	ctx := context.Background()
 
 	// Act & Assert
+	token, err := limiter.Take(ctx)
+	assert.NilError(t, err)
+
+	tokens, err := limiter.Tokens(ctx)
+	assert.NilError(t, err)
 	assert.Equal(t, uint64(5), limiter.Limit(), "pre limit")
-	assert.Equal(t, uint64(5), limiter.Tokens(), "pre tokens")
+	assert.Equal(t, uint64(5), tokens, "pre tokens")
 
 	i := 0
 	for token.Use() == nil {
 		i++
 	}
+
+	tokens, err = limiter.Tokens(ctx)
+	assert.NilError(t, err)
 	assert.ErrorIs(t, token.Use(), rate.ErrRateLimitExceeded, "post limit")
 	assert.Equal(t, uint64(5), limiter.Limit(), "post limit")
-	assert.Equal(t, uint64(0), limiter.Tokens(), "post tokens")
+	assert.Equal(t, uint64(0), tokens, "post tokens")
 	assert.Equal(t, 5, i, "use count")
 
 	setTimer(clock.Now().Add(30 * time.Second))
 
-	assert.Equal(t, uint64(5), limiter.Tokens(), "reset tokens")
+	tokens, err = limiter.Tokens(ctx)
+	assert.NilError(t, err)
+	assert.Equal(t, uint64(5), tokens, "reset tokens")
 }
 
 func TestSlidingWindowCounter(t *testing.T) {
@@ -123,7 +134,10 @@ func TestSlidingWindowCounter(t *testing.T) {
 			// Act
 			start := clock.Now()
 			for i := 0; i < len(tt.expectation); i++ {
-				t := limiter.Take()
+				t, err := limiter.Take(context.Background())
+				if err != nil {
+					panic(err)
+				}
 				if err := t.Use(); err != nil {
 					panic(err)
 				}
@@ -200,4 +214,25 @@ func TestSlidingWindowCounterConstructor(t *testing.T) {
 			tt.assertErr(t, err)
 		})
 	}
+}
+
+func TestSlidingTokenContext(t *testing.T) {
+	// Arrange
+	alg, err := slidingwindow.NewAlgorithm(5, 15*time.Second, 3)
+	if err != nil {
+		panic(err)
+	}
+	limiter := alg()
+	ctx := context.WithValue(context.Background(), "foo", "boo")
+
+	// Act
+	tokenWithContext, _ := limiter.Take(ctx)
+	actualContext := tokenWithContext.Context()
+
+	tokenWithNoContext, _ := limiter.Take(nil)
+	actualNoContext := tokenWithNoContext.Context()
+
+	// Assert
+	assert.Equal(t, ctx, actualContext)
+	assert.Equal(t, context.Background(), actualNoContext)
 }

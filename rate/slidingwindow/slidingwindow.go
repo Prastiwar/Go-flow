@@ -163,22 +163,27 @@ func (l *limiter) Limit() uint64 {
 	return uint64(l.state.maxEvents)
 }
 
-func (l *limiter) Take(ctx context.Context) rate.Token {
-	return newToken(l.state, l.clock)
+func (l *limiter) Take(ctx context.Context) (rate.Token, error) {
+	return newToken(ctx, l.state, l.clock), nil
 }
 
-func (l *limiter) Tokens(ctx context.Context) uint64 {
+func (l *limiter) Tokens(ctx context.Context) (uint64, error) {
 	now := l.clock.Now()
-	return l.state.Available(now)
+	return l.state.Available(now), nil
 }
 
 type token struct {
+	ctx   context.Context
 	state *windowState
 	clock rate.Clock
 }
 
-func newToken(l *windowState, clock rate.Clock) rate.Token {
-	return &token{state: l, clock: clock}
+func newToken(ctx context.Context, l *windowState, clock rate.Clock) rate.Token {
+	return &token{
+		ctx:   ctx,
+		state: l,
+		clock: clock,
+	}
 }
 
 func (t *token) Allow() bool {
@@ -213,5 +218,8 @@ func (t *token) Use() error {
 }
 
 func (t *token) Context() context.Context {
+	if t.ctx != nil {
+		return t.ctx
+	}
 	return context.Background()
 }
