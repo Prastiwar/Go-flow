@@ -23,7 +23,7 @@ const (
 )
 
 var (
-	port     = 8080
+	port     = 8085
 	serverMu = sync.Mutex{}
 )
 
@@ -121,11 +121,11 @@ func ExampleRateLimitMiddleware() {
 		tokens      uint64        = maxTokens
 	)
 	storeLimiter := mocks.LimiterStoreMock{
-		OnLimit: func(key string) rate.Limiter {
+		OnLimit: func(ctx context.Context, key string) (rate.Limiter, error) {
 			return mocks.LimiterMock{
 				OnLimit:  func() uint64 { return maxTokens },
-				OnTokens: func() uint64 { return tokens },
-				OnTake: func() rate.Token {
+				OnTokens: func(ctx context.Context) (uint64, error) { return tokens, nil },
+				OnTake: func(ctx context.Context) (rate.Token, error) {
 					return mocks.TokenMock{
 						OnUse: func() error {
 							if tokens <= 0 {
@@ -139,9 +139,9 @@ func ExampleRateLimitMiddleware() {
 							return nil
 						},
 						OnResetsAt: func() time.Time { return time.Now().Add(resetPeriod) },
-					}
+					}, nil
 				},
-			}
+			}, nil
 		},
 	}
 

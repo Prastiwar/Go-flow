@@ -1,10 +1,13 @@
 package httpf
 
 import (
+	"context"
+	"errors"
 	"net/http"
 	"net/textproto"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Prastiwar/Go-flow/rate"
 )
@@ -13,6 +16,7 @@ const (
 	RateLimitLimitHeader     = "X-Rate-Limit-Limit"
 	RateLimitRemainingHeader = "X-Rate-Limit-Remaining"
 	RateLimitResetHeader     = "X-Rate-Limit-Reset"
+	RetryAfterHeader         = "Retry-After"
 )
 
 // RateHttpKeyFactory is factory func to create a string key based on http.Request.
@@ -77,24 +81,46 @@ func ComposeRateKeyFactories(factories ...RateHttpKeyFactory) RateHttpKeyFactory
 func RateLimitMiddleware(h Handler, store rate.LimiterStore, keyFactory RateHttpKeyFactory) Handler {
 	return HandlerFunc(func(w ResponseWriter, r *http.Request) error {
 		key := keyFactory(r)
-		limiter := store.Limit(key)
-		token := limiter.Take()
-		if err := token.Use(); err != nil {
-			writeRateLimitHeaders(w.Header(), limiter, token)
+		ctx := r.Context()
+
+		limiter, err := store.Limit(ctx, key)
+		if err != nil {
 			return err
 		}
-		writeRateLimitHeaders(w.Header(), limiter, token)
+
+		token, err := limiter.Take(ctx)
+		if err != nil {
+			return err
+		}
+
+		if err := token.Use(); err != nil {
+			if errors.Is(err, rate.ErrRateLimitExceeded) {
+				writeRateLimitHeaders(ctx, w.Header(), limiter, token, err)
+			}
+			return err
+		}
+
+		writeRateLimitHeaders(ctx, w.Header(), limiter, token, nil)
 		return h.ServeHTTP(w, r)
 	})
 }
 
-func writeRateLimitHeaders(headers http.Header, limiter rate.Limiter, token rate.Token) {
+func writeRateLimitHeaders(ctx context.Context, headers http.Header, limiter rate.Limiter, token rate.Token, err error) {
 	maxRate := strconv.FormatInt(int64(limiter.Limit()), 10)
 	headers.Add(RateLimitLimitHeader, maxRate)
 
-	remaining := strconv.FormatInt(int64(limiter.Tokens()), 10)
-	headers.Add(RateLimitRemainingHeader, remaining)
+	if tokens, err := limiter.Tokens(ctx); err == nil {
+		remaining := strconv.FormatInt(int64(tokens), 10)
+		headers.Add(RateLimitRemainingHeader, remaining)
+	}
 
-	resetsAt := strconv.FormatInt(token.ResetsAt().Unix(), 10)
+	resetAt := token.ResetsAt()
+	resetsAt := strconv.FormatInt(resetAt.Unix(), 10)
 	headers.Add(RateLimitResetHeader, resetsAt)
+
+	if err != nil {
+		delta := time.Until(resetAt)
+		retryAfter := strconv.FormatInt(int64(delta.Seconds()), 10)
+		headers.Add(RetryAfterHeader, retryAfter)
+	}
 }

@@ -2,6 +2,7 @@ package rate_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -102,12 +103,15 @@ func TestConsumeAndWait(t *testing.T) {
 				return context.Background()
 			},
 			limiter: mocks.LimiterMock{
-				OnTake: func() rate.Token {
+				OnTake: func(ctx context.Context) (rate.Token, error) {
 					return mocks.TokenMock{
 						OnUse: func() error {
 							return nil
 						},
-					}
+						OnResetsAt: func() time.Time {
+							return time.Now()
+						},
+					}, nil
 				},
 			},
 			assertErr: func(t *testing.T, result time.Duration, err error) {
@@ -121,7 +125,7 @@ func TestConsumeAndWait(t *testing.T) {
 				return context.Background()
 			},
 			limiter: mocks.LimiterMock{
-				OnTake: func() rate.Token {
+				OnTake: func(ctx context.Context) (rate.Token, error) {
 					return mocks.TokenMock{
 						OnUse: func() error {
 							return rate.ErrRateLimitExceeded
@@ -129,7 +133,7 @@ func TestConsumeAndWait(t *testing.T) {
 						OnResetsAt: func() time.Time {
 							return time.Now().Add(time.Second / 2)
 						},
-					}
+					}, nil
 				},
 			},
 			assertErr: func(t *testing.T, result time.Duration, err error) {
@@ -143,7 +147,7 @@ func TestConsumeAndWait(t *testing.T) {
 				return canceledContext()
 			},
 			limiter: mocks.LimiterMock{
-				OnTake: func() rate.Token {
+				OnTake: func(ctx context.Context) (rate.Token, error) {
 					return mocks.TokenMock{
 						OnUse: func() error {
 							return rate.ErrRateLimitExceeded
@@ -151,7 +155,7 @@ func TestConsumeAndWait(t *testing.T) {
 						OnResetsAt: func() time.Time {
 							return time.Now().Add(time.Second)
 						},
-					}
+					}, nil
 				},
 			},
 			assertErr: func(t *testing.T, result time.Duration, err error) {
@@ -165,7 +169,7 @@ func TestConsumeAndWait(t *testing.T) {
 				return deadlinedContext()
 			},
 			limiter: mocks.LimiterMock{
-				OnTake: func() rate.Token {
+				OnTake: func(ctx context.Context) (rate.Token, error) {
 					return mocks.TokenMock{
 						OnUse: func() error {
 							return rate.ErrRateLimitExceeded
@@ -173,11 +177,45 @@ func TestConsumeAndWait(t *testing.T) {
 						OnResetsAt: func() time.Time {
 							return time.Now().Add(time.Second)
 						},
-					}
+					}, nil
 				},
 			},
 			assertErr: func(t *testing.T, result time.Duration, err error) {
 				assert.ErrorIs(t, err, context.DeadlineExceeded)
+				assert.Approximately(t, time.Duration(0), result, defaultDelta)
+			},
+		},
+		{
+			name: "failure-use-error",
+			ctx: func(t *testing.T) context.Context {
+				return deadlinedContext()
+			},
+			limiter: mocks.LimiterMock{
+				OnTake: func(ctx context.Context) (rate.Token, error) {
+					return mocks.TokenMock{
+						OnUse: func() error {
+							return errors.New("use-error")
+						},
+					}, nil
+				},
+			},
+			assertErr: func(t *testing.T, result time.Duration, err error) {
+				assert.ErrorWith(t, err, "use-error")
+				assert.Approximately(t, time.Duration(0), result, defaultDelta)
+			},
+		},
+		{
+			name: "failure-take-error",
+			ctx: func(t *testing.T) context.Context {
+				return deadlinedContext()
+			},
+			limiter: mocks.LimiterMock{
+				OnTake: func(ctx context.Context) (rate.Token, error) {
+					return nil, errors.New("take-error")
+				},
+			},
+			assertErr: func(t *testing.T, result time.Duration, err error) {
+				assert.ErrorWith(t, err, "take-error")
 				assert.Approximately(t, time.Duration(0), result, defaultDelta)
 			},
 		},
@@ -207,12 +245,15 @@ func TestConsumeNAndWait(t *testing.T) {
 				return context.Background()
 			},
 			limiter: mocks.BurstLimiterMock{
-				OnTakeN: func(n uint64) rate.Token {
+				OnTakeN: func(ctx context.Context, n uint64) (rate.Token, error) {
 					return mocks.TokenMock{
 						OnUse: func() error {
 							return nil
 						},
-					}
+						OnResetsAt: func() time.Time {
+							return time.Now()
+						},
+					}, nil
 				},
 			},
 			assertErr: func(t *testing.T, result time.Duration, err error) {
@@ -226,7 +267,7 @@ func TestConsumeNAndWait(t *testing.T) {
 				return context.Background()
 			},
 			limiter: mocks.BurstLimiterMock{
-				OnTakeN: func(n uint64) rate.Token {
+				OnTakeN: func(ctx context.Context, n uint64) (rate.Token, error) {
 					return mocks.TokenMock{
 						OnUse: func() error {
 							return rate.ErrRateLimitExceeded
@@ -234,7 +275,7 @@ func TestConsumeNAndWait(t *testing.T) {
 						OnResetsAt: func() time.Time {
 							return time.Now().Add(time.Second / 2)
 						},
-					}
+					}, nil
 				},
 			},
 			assertErr: func(t *testing.T, result time.Duration, err error) {
@@ -248,7 +289,7 @@ func TestConsumeNAndWait(t *testing.T) {
 				return canceledContext()
 			},
 			limiter: mocks.BurstLimiterMock{
-				OnTakeN: func(n uint64) rate.Token {
+				OnTakeN: func(ctx context.Context, n uint64) (rate.Token, error) {
 					return mocks.TokenMock{
 						OnUse: func() error {
 							return rate.ErrRateLimitExceeded
@@ -256,7 +297,7 @@ func TestConsumeNAndWait(t *testing.T) {
 						OnResetsAt: func() time.Time {
 							return time.Now().Add(time.Second)
 						},
-					}
+					}, nil
 				},
 			},
 			assertErr: func(t *testing.T, result time.Duration, err error) {
@@ -270,7 +311,7 @@ func TestConsumeNAndWait(t *testing.T) {
 				return deadlinedContext()
 			},
 			limiter: mocks.BurstLimiterMock{
-				OnTakeN: func(n uint64) rate.Token {
+				OnTakeN: func(ctx context.Context, n uint64) (rate.Token, error) {
 					return mocks.TokenMock{
 						OnUse: func() error {
 							return rate.ErrRateLimitExceeded
@@ -278,11 +319,45 @@ func TestConsumeNAndWait(t *testing.T) {
 						OnResetsAt: func() time.Time {
 							return time.Now().Add(time.Second)
 						},
-					}
+					}, nil
 				},
 			},
 			assertErr: func(t *testing.T, result time.Duration, err error) {
 				assert.ErrorIs(t, err, context.DeadlineExceeded)
+				assert.Approximately(t, time.Duration(0), result, defaultDelta)
+			},
+		},
+		{
+			name: "failure-wait-deadline-exceeded",
+			ctx: func(t *testing.T) context.Context {
+				return deadlinedContext()
+			},
+			limiter: mocks.BurstLimiterMock{
+				OnTakeN: func(ctx context.Context, n uint64) (rate.Token, error) {
+					return mocks.TokenMock{
+						OnUse: func() error {
+							return errors.New("use-error")
+						},
+					}, nil
+				},
+			},
+			assertErr: func(t *testing.T, result time.Duration, err error) {
+				assert.ErrorWith(t, err, "use-error")
+				assert.Approximately(t, time.Duration(0), result, defaultDelta)
+			},
+		},
+		{
+			name: "failure-take-error",
+			ctx: func(t *testing.T) context.Context {
+				return deadlinedContext()
+			},
+			limiter: mocks.BurstLimiterMock{
+				OnTakeN: func(ctx context.Context, n uint64) (rate.Token, error) {
+					return nil, errors.New("take-error")
+				},
+			},
+			assertErr: func(t *testing.T, result time.Duration, err error) {
+				assert.ErrorWith(t, err, "take-error")
 				assert.Approximately(t, time.Duration(0), result, defaultDelta)
 			},
 		},

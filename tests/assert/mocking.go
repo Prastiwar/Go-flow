@@ -44,10 +44,11 @@ func prevCallerName() string {
 func callerName(skip int) string {
 	pc, _, _, ok := runtime.Caller(1 + skip)
 	details := runtime.FuncForPC(pc)
+	name := ""
+	start := 0
 	if ok && details != nil {
-		n := details.Name()
-		start := strings.LastIndex(n, "/") + 1
-		return n[start:]
+		name = details.Name()
+		start = strings.LastIndex(name, "/") + 1
 	}
-	return ""
+	return name[start:]
 }

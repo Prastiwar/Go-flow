@@ -1,9 +1,12 @@
 // rate package contains abstraction over the rate-limiting concept which is a strategy for limiting mostly network traffic.
 // It allows putting a cap on how often someone can repeat an action within a certain timeframe.
-// The package does not contain any certain implementation since multiple algorithms exist that are already implemented
-// by the Golang community. Use this package to abstract away the specific implementations provided by third party libraries.
-// It still would require to write an adapter for implementation to fulfill rate interfaces in your infrastracture layer.
+// The package does contain example alghoritm most often used in Web API's but there are much more algorithms already implemented
+// in Go which are open-sourced by the Golang community. Use this package to abstract away the specific implementations
+// provided by third party libraries. This requires to write an adapter for implementation to fulfill rate interfaces
+// in your infrastracture layer.
 package rate
+
+import "context"
 
 // Limiter controls how frequently events are allowed to happen. The implementation decides which algorithm should be used
 // that can fulfill the interface. The Token name is syntactic and does not restrict implementation to use
@@ -11,16 +14,16 @@ package rate
 // like a fixed window can be used.
 type Limiter interface {
 	// Take returns a new Token. This should not consume the token and not consider the Token in availability calculation.
-	// If Limit() is zero then this should return rate.FalseToken.
-	Take() Token
+	// Token should be reusable and time resistant and not usable only once it was got. The context will be passed down to
+	// token which will use it if required for calculations.
+	Take(ctx context.Context) (Token, error)
 
 	// Tokens should return the remaining token amount that can be consumed at now time with Take, so higher
-	// Tokens value allow more events to happen without a delay. A zero value means none token can be consumed.
-	Tokens() uint64
+	// Tokens value allow more events to happen without a delay. A zero value means none token can be consumed now.
+	Tokens(ctx context.Context) (uint64, error)
 
 	// Limit should return the maximum amount of token that can be consumed within defined period with Take, so higher Limit
-	// value allow more events to happen without a limit delay. A zero value means none token can be consumed and Take
-	// should return rate.FalseToken.
+	// value allow more events to happen without a limit delay.
 	Limit() uint64
 }
 
@@ -29,14 +32,14 @@ type Limiter interface {
 type BurstLimiter interface {
 	Limiter
 
-	// TakeN returns a new Token that allows to consume n tokens at once. This function does not consume the token
-	// and should not consider the Token in availability calculation. If n is higher than Burst() it should return
-	// rate.FalseToken.
-	TakeN(n uint64) Token
+	// TakeN returns a new Token that allows to consume n tokens at once. This should not consume the token and not consider
+	// the Token in availability calculation. Token should be reusable and time resistant and not usable only once it was got.
+	// The context will be passed down to token which will use it if required for calculations.
+	TakeN(ctx context.Context, n uint64) (Token, error)
 
 	// Burst is the maximum number of tokens that can be consumed in a single call to TakeN, so higher Burst
-	// value allow more events to happen at once. A zero value means none token can be consumed and TakeN
-	// should always return rate.FalseToken.
+	// value allow more events to happen at once. This is not the maximum available value to be consumed. Use Tokens
+	// if you need such value.
 	Burst() uint64
 }
 
@@ -46,7 +49,10 @@ type BurstLimiter interface {
 type ReservationLimiter interface {
 	Limiter
 
-	Reserve() CancellableToken
+	// Reserve returns a new CancellableToken that allows to consume token. This should not consume the token
+	// but would potentially consider in availability calculation. CancellableToken should not be reusable and used for one-time only.
+	// The context will be passed down to token which will use it if required for calculations.
+	Reserve(ctx context.Context) (CancellableToken, error)
 }
 
 // BurstLimiter extends BurstLimiter and ReservationLimiter functionality to accept burst reservation, so it allow
@@ -55,5 +61,8 @@ type BurstReservationLimiter interface {
 	BurstLimiter
 	ReservationLimiter
 
-	ReserveN(n uint64) CancellableToken
+	// ReserveN returns a new CancellableToken that allows to consume n tokens at once. This should not consume the token
+	// but would potentially consider in availability calculation. CancellableToken should not be reusable and used for one-time only.
+	// The context will be passed down to token which will use it if required for calculations.
+	ReserveN(ctx context.Context, n uint64) (CancellableToken, error)
 }

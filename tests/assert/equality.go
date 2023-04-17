@@ -100,3 +100,11 @@ func Approximately(t *testing.T, expected time.Duration, actual time.Duration, d
 		errorf(t, fmt.Sprintf("expected approximately '%v' duration but got '%v'", expected, actual), prefixes...)
 	}
 }
+
+// ApproximatelyTime asserts actual time.Time is approximately(within delta difference) equal to expected time.Time.
+func ApproximatelyTime(t *testing.T, expected time.Time, actual time.Time, delta time.Duration, prefixes ...string) {
+	t.Helper()
+	if expected.Before(actual.Add(-delta)) || expected.After(actual.Add(delta)) {
+		errorf(t, fmt.Sprintf("expected approximately '%v' duration but got '%v'", expected, actual), prefixes...)
+	}
+}
