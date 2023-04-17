@@ -317,7 +317,7 @@ func assertRateLimitHeaders(t *testing.T, header http.Header, limit, remaining s
 	assert.Equal(t, reset, header.Get(httpf.RateLimitResetHeader), prefix, httpf.RateLimitLimitHeader)
 
 	if errors.Is(err, rate.ErrRateLimitExceeded) {
-		delta := resetTime.Sub(time.Now()).Seconds()
+		delta := time.Until(*resetTime).Seconds()
 		retryAfter := strconv.FormatInt(int64(delta), 10)
 		assert.Equal(t, retryAfter, header.Get(httpf.RetryAfterHeader), prefix, httpf.RetryAfterHeader)
 	} else {

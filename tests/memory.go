@@ -2,12 +2,14 @@ package tests
 
 import (
 	"fmt"
+	"math"
 	"runtime"
 )
 
 // MemoryUsage returns memory usage in bytes.
 func MemoryUsage(f func()) uint64 {
 	var m1, m2 runtime.MemStats
+	defer runtime.GOMAXPROCS(runtime.GOMAXPROCS(1))
 	runtime.ReadMemStats(&m1)
 
 	f()
@@ -20,22 +22,23 @@ func MemoryUsage(f func()) uint64 {
 // 10015 bytes will be returned as "10 kb"
 func MemoryUsageFormatted(f func()) string {
 	mem := MemoryUsage(f)
-	sizeName := "bytes"
+	unitSize, unitName := getUnit(mem)
+	return fmt.Sprintf("%v %v", unitSize, unitName)
+}
 
-	switch {
-	case mem > 1024*1024*1024*1024:
-		sizeName = "tb"
-		mem = mem / (1024 * 1024 * 1024 * 1024)
-	case mem > 1024*1024*1024:
-		sizeName = "gb"
-		mem = mem / (1024 * 1024 * 1024)
-	case mem > 1024*1024:
-		sizeName = "mb"
-		mem = mem / (1024 * 1024)
-	case mem > 1024:
-		sizeName = "kb"
-		mem = mem / 1024
+func getUnit(mem uint64) (uint64, string) {
+	units := []string{
+		"tb", "gb", "mb", "kb",
 	}
 
-	return fmt.Sprintf("%v %v", mem, sizeName)
+	boundaryIndex := float64(len(units))
+	for _, v := range units {
+		boundary := uint64(math.Pow(1024, boundaryIndex))
+		if mem > boundary {
+			return mem / boundary, v
+		}
+		boundaryIndex--
+	}
+
+	return mem, "bytes"
 }

@@ -325,3 +325,56 @@ func TestApproximately(t *testing.T) {
 		})
 	}
 }
+
+func TestApproximatelyTime(t *testing.T) {
+	tests := []struct {
+		name     string
+		expected time.Duration
+		actual   time.Duration
+		delta    time.Duration
+		fails    bool
+	}{
+		{
+			name:     "success-same",
+			expected: time.Second,
+			actual:   time.Second,
+			delta:    time.Hour,
+			fails:    false,
+		},
+		{
+			name:     "success-approx-0.5s-delta",
+			expected: time.Second,
+			actual:   time.Second + (time.Second / 2),
+			delta:    time.Second,
+			fails:    false,
+		},
+		{
+			name:     "success-approx-1s-delta",
+			expected: time.Second,
+			actual:   time.Second,
+			delta:    time.Second,
+			fails:    false,
+		},
+		{
+			name:     "invalid-too-small-delta",
+			expected: time.Second,
+			actual:   time.Second + 2000,
+			delta:    time.Microsecond,
+			fails:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			test := &testing.T{}
+			now := time.Now()
+
+			expected := now.Add(tt.expected)
+			actual := now.Add(tt.actual)
+
+			assert.ApproximatelyTime(test, expected, actual, tt.delta)
+
+			assert.Equal(t, tt.fails, test.Failed())
+		})
+	}
+}

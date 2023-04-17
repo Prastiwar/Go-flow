@@ -223,7 +223,8 @@ func TestSlidingTokenContext(t *testing.T) {
 		panic(err)
 	}
 	limiter := alg()
-	ctx := context.WithValue(context.Background(), "foo", "boo")
+	key := struct{ v string }{v: "foo"}
+	ctx := context.WithValue(context.Background(), key, "boo")
 
 	// Act
 	tokenWithContext, _ := limiter.Take(ctx)

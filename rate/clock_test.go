@@ -10,5 +10,5 @@ import (
 func TestSystemClock(t *testing.T) {
 	clock := SystemClock
 
-	assert.Equal(t, time.Now(), clock.Now())
+	assert.ApproximatelyTime(t, time.Now(), clock.Now(), 100*time.Millisecond)
 }

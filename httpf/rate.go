@@ -119,7 +119,7 @@ func writeRateLimitHeaders(ctx context.Context, headers http.Header, limiter rat
 	headers.Add(RateLimitResetHeader, resetsAt)
 
 	if err != nil {
-		delta := resetAt.Sub(time.Now())
+		delta := time.Until(resetAt)
 		retryAfter := strconv.FormatInt(int64(delta.Seconds()), 10)
 		headers.Add(RetryAfterHeader, retryAfter)
 	}
