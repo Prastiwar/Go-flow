@@ -12,12 +12,13 @@ import (
 )
 
 var (
-	_ httpf.Client         = ClientMock{}
-	_ httpf.ResponseWriter = HttpfResponseWriterMock{}
-	_ httpf.ParamsParser   = ParamsParserMock{}
-	_ httpf.Router         = RouterMock{}
-	_ httpf.RouteBuilder   = RouteBuilderMock{}
-	_ httpf.Server         = ServerMock{}
+	_ httpf.Client          = ClientMock{}
+	_ httpf.ResponseWriter  = HttpfResponseWriterMock{}
+	_ httpf.ParamsParser    = ParamsParserMock{}
+	_ httpf.Router          = RouterMock{}
+	_ httpf.RouteBuilder    = RouteBuilderMock{}
+	_ httpf.Server          = ServerMock{}
+	_ httpf.BodyUnmarshaler = BodyUnmarshalerMock{}
 )
 
 type ClientMock struct {
@@ -222,4 +223,13 @@ func (m ServerMock) ServeTLS(l net.Listener, certFile string, keyFile string) er
 func (m ServerMock) Shutdown(ctx context.Context) error {
 	assert.ExpectCall(m.OnShutdown)
 	return m.OnShutdown(ctx)
+}
+
+type BodyUnmarshalerMock struct {
+	OnUnmarshal func(r *http.Response, v any) error
+}
+
+func (m BodyUnmarshalerMock) Unmarshal(r *http.Response, v any) error {
+	assert.ExpectCall(m.OnUnmarshal)
+	return m.OnUnmarshal(r, v)
 }
