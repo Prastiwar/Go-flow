@@ -18,3 +18,16 @@ func ExampleAs() {
 	// Output:
 	// [1 2 3]
 }
+
+func ExampleParse() {
+	arr := []interface{}{"1", "2", "3"}
+
+	stringArr, ok := cast.Parse[int32](arr)
+	if !ok {
+		panic("cannot parse between provided two types")
+	}
+	fmt.Println(stringArr)
+
+	// Output:
+	// [1 2 3]
+}

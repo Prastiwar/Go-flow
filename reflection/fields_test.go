@@ -8,6 +8,10 @@ import (
 	"github.com/Prastiwar/Go-flow/tests/assert"
 )
 
+func ptr[T any](v T) *T {
+	return &v
+}
+
 func TestSetFieldValue(t *testing.T) {
 	var nilBool *bool
 	tests := []struct {
@@ -237,6 +241,25 @@ func TestGetFieldValueFor(t *testing.T) {
 	}
 }
 
-func ptr[T any](v T) *T {
-	return &v
-}
+// func TestCastFieldValue(t *testing.T) {
+// 	tests := []struct {
+// 		name      string
+// 		fieldType reflect.Type
+// 		rawValue  any
+// 		want      reflect.Value
+// 		want1     bool
+// 	}{
+// 		// TODO: Add test cases.
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			got, err := reflection.CastFieldValue(tt.args.fieldType, tt.args.rawValue)
+// 			if !reflect.DeepEqual(got, tt.want) {
+// 				t.Errorf("CastFieldValue() got = %v, want %v", got, tt.want)
+// 			}
+// 			if got1 != tt.want1 {
+// 				t.Errorf("CastFieldValue() got1 = %v, want %v", got1, tt.want1)
+// 			}
+// 		})
+// 	}
+// }

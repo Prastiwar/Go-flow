@@ -9,11 +9,12 @@ var (
 	ErrNotAddresable = errors.New("field is not addressable")
 )
 
-// GetFieldValueFor returns a reflect.Value which matches fieldType and value of rawValue.
-// If rawValue type is different than fieldType then it's converter or parsed to match the type.
-func GetFieldValueFor(fieldType reflect.Type, rawValue any) (reflect.Value, error) {
+// CastFieldValue returns a reflect.Value which matches fieldType and value of rawValue.
+// If rawValue type is different than fieldType then it's converted to match the type.
+// If value cannot be converted to expected type, it'll report false together with last visited reflect.Value.
+func CastFieldValue(fieldType reflect.Type, rawValue any) (reflect.Value, bool) {
 	if rawValue == nil {
-		return reflect.Zero(fieldType), nil
+		return reflect.Zero(fieldType), false
 	}
 
 	val, ok := rawValue.(reflect.Value)
@@ -22,7 +23,7 @@ func GetFieldValueFor(fieldType reflect.Type, rawValue any) (reflect.Value, erro
 	}
 
 	if !val.IsValid() {
-		return reflect.Zero(fieldType), nil
+		return reflect.Zero(fieldType), false
 	}
 
 	if val.Kind() == reflect.Pointer {
@@ -31,7 +32,7 @@ func GetFieldValueFor(fieldType reflect.Type, rawValue any) (reflect.Value, erro
 
 	valType := val.Type()
 	if valType.AssignableTo(fieldType) {
-		return val, nil
+		return val, true
 	}
 
 	isFieldTypePointer := fieldType.Kind() == reflect.Pointer
@@ -41,15 +42,28 @@ func GetFieldValueFor(fieldType reflect.Type, rawValue any) (reflect.Value, erro
 			p := reflect.New(fieldNonPointer)
 			val = val.Convert(fieldNonPointer)
 			p.Elem().Set(val)
-			return p, nil
+			return p, true
 		}
 	}
 
 	if valType.ConvertibleTo(fieldType) {
 		val = val.Convert(fieldType)
+		return val, true
+	}
+
+	return val, false
+}
+
+// GetFieldValueFor returns a reflect.Value which matches fieldType and value of rawValue.
+// If rawValue type is different than fieldType then it's converted or parsed to match the type.
+// If value cannot be converted or parsed to expected type, it'll return an ErrNotSupportedType error.
+func GetFieldValueFor(fieldType reflect.Type, rawValue any) (reflect.Value, error) {
+	val, ok := CastFieldValue(fieldType, rawValue)
+	if ok || val == reflect.Zero(fieldType) {
 		return val, nil
 	}
 
+	isFieldTypePointer := fieldType.Kind() == reflect.Pointer
 	if isFieldTypePointer {
 		defaultValue := reflect.Zero(fieldType.Elem())
 		vv, err := Parse(val.String(), defaultValue)

@@ -8,7 +8,7 @@ assignees: ''
 
 ---
 
-<!--- Provide a more detailed introduction to the issue itself, why is is a problem -->
+<!--- Provide a more detailed introduction to the issue itself, why is it a problem -->
 ## Description
 
 -
