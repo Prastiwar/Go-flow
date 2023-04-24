@@ -8,7 +8,7 @@ import (
 )
 
 // ExpectCall panics with unexpected call message for caller name if fn is nil. If fn is not
-// a func then it will panic with invalid parameter message. Staandard way to call this is:
+// a func then it will panic with invalid parameter message. Standard way to call this is:
 //
 //	func (m MyMock) Do(key string) error {
 //		assert.ExpectCall(m.OnDo) // if m.OnDo is nil - it will panic with accurate message
