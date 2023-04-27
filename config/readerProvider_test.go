@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"context"
 	"os"
 	"strings"
 	"testing"
@@ -60,13 +61,30 @@ func TestReaderProviderLoad(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "inaccesible-file-reader",
+			init: func(t *testing.T) (config.Provider, any, func()) {
+				provider := config.NewFileProvider("unknown", datas.Json())
+
+				v := struct {
+					Title string
+				}{
+					Title: "unchanged",
+				}
+
+				return provider, &v, func() {
+					assert.Equal(t, "unchanged", v.Title)
+				}
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			provider, v, asserts := tt.init(t)
 
-			err := provider.Load(v)
+			err := provider.Load(context.Background(), v)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

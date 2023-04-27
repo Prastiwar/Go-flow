@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"context"
 	"flag"
 	"os"
 	"reflect"
@@ -197,7 +198,7 @@ func TestFlagProviderLoad(t *testing.T) {
 			p := config.NewFlagProvider(tt.flags...)
 			v, asserts := tt.init(t)
 
-			err := p.Load(v, tt.options...)
+			err := p.Load(context.Background(), v, tt.options...)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -122,7 +123,7 @@ func TestEnvProviderLoad(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			p := config.NewEnvProviderWith(tt.prefix)
 			v, asserts := tt.init(t)
-			err := p.Load(v)
+			err := p.Load(context.Background(), v)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

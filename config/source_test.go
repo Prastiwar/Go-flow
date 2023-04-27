@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"os"
@@ -279,7 +280,7 @@ func TestSourceLoad(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			source, v, asserts := tt.init(t)
 
-			err := source.Load(v, tt.opts...)
+			err := source.Load(context.Background(), v, tt.opts...)
 
 			asserts(err)
 		})

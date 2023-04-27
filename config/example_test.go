@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
@@ -62,7 +63,7 @@ func Example() {
 	// dbOptions will be loaded starting from the first passed provider up to the last one.
 	// All values will be also overridden by each provider in this order.
 	// The default value is not overridden by provider if it doesn't exist in it.
-	err = cfg.Load(&dbOptions)
+	err = cfg.Load(context.Background(), &dbOptions)
 	if err != nil {
 		// One of the providers failed to load config values
 		panic(err)

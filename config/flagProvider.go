@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"flag"
 	"os"
 )
@@ -29,7 +30,7 @@ func NewFlagProvider(flags ...flag.Flag) *flagProvider {
 // Load parses flag definitions from the argument list, which should not include the command name.
 // Parsed flag value results are stored in matching v fields. If there is no matching field it
 // will be ignored and it's value will not be overridden.
-func (p *flagProvider) Load(v any, opts ...LoadOption) error {
+func (p *flagProvider) Load(ctx context.Context, v any, opts ...LoadOption) error {
 	err := p.set.Parse(os.Args[1:])
 	if err != nil {
 		return err
