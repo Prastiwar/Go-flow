@@ -5,6 +5,7 @@
 package config
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 )
@@ -15,7 +16,7 @@ var _ Provider = &Source{}
 // Provider is implemented by any value that has a Load method, which loads
 // configuration and overrides if applicable matching field values for v.
 type Provider interface {
-	Load(v any, opts ...LoadOption) error
+	Load(ctx context.Context, v any, opts ...LoadOption) error
 }
 
 // Source stores shared options, default values and configured providers to manage
@@ -90,18 +91,18 @@ func (s *Source) Default(v any) error {
 
 // Load calls LoadWithOptions with specified opts LoadOptions or if none is probided - it will use options
 // stored by ShareOptions method. To ignore shared options without providing any, use WithIgnoreOptions() option.
-func (s *Source) Load(v any, opts ...LoadOption) error {
+func (s *Source) Load(ctx context.Context, v any, opts ...LoadOption) error {
 	if len(opts) == 0 {
-		return s.LoadWithOptions(v, s.options...)
+		return s.LoadWithOptions(ctx, v, s.options...)
 	}
-	return s.LoadWithOptions(v, opts...)
+	return s.LoadWithOptions(ctx, v, opts...)
 }
 
 // LoadWithOptions calls Load method on each provider which binds matching v fields by
 // corresponding key value. LoadWithOptions can return ErrNonPointer or ErrNonStruct if v is not valid.
 // If field was not found in provider - it will not override the value. But it can be overridden by
 // provider which will be called as next in order if the value can be found.
-func (s *Source) LoadWithOptions(v any, opts ...LoadOption) error {
+func (s *Source) LoadWithOptions(ctx context.Context, v any, opts ...LoadOption) error {
 	if _, err := valueLoadOf(v); err != nil {
 		return err
 	}
@@ -111,7 +112,7 @@ func (s *Source) LoadWithOptions(v any, opts ...LoadOption) error {
 	}
 
 	for _, p := range s.providers {
-		if err := p.Load(v, opts...); err != nil {
+		if err := p.Load(ctx, v, opts...); err != nil {
 			return err
 		}
 	}

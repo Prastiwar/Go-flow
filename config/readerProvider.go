@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"io"
 	"os"
 
@@ -23,7 +24,7 @@ func NewReaderProvider(r io.Reader, d datas.ReaderUnmarshaler) *readerProvider {
 // Load parses flag definitions from the argument list, which should not include the command name.
 // Parsed flag value results are stored in matching v fields. If there is no matching field it
 // will be ignored and it's value will not be overridden.
-func (p *readerProvider) Load(v any, opts ...LoadOption) error {
+func (p *readerProvider) Load(ctx context.Context, v any, opts ...LoadOption) error {
 	return p.decoder.UnmarshalFrom(p.reader, v)
 }
 
