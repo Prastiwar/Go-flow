@@ -5,7 +5,7 @@
 
 [Related Discussion](https://github.com/Prastiwar/Go-flow/discussions/x)
 
-<!-- Describe the scope of changes for this pull request -->
+<!-- Describe the scope of changes for this pull request, the best way it to list all the changes with short description for each -->
 ### Changes
 
 -
