@@ -9,8 +9,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/http/httptest"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/Prastiwar/Go-flow/datas"
@@ -19,26 +19,10 @@ import (
 	"github.com/Prastiwar/Go-flow/tests/mocks"
 )
 
-const (
-	hostPrefix = "localhost:"
-)
-
-var (
-	port     = 8085
-	serverMu = sync.Mutex{}
-)
-
-// runServer creates new server and listens in new goroutine on address that is returned from this function.
-func runServer(router httpf.Router) string {
-	serverMu.Lock()
-	defer serverMu.Unlock()
-
-	port++
-	address := hostPrefix + strconv.Itoa(port)
-	go func() {
-		_ = httpf.NewServer(address, router).ListenAndServe()
-	}()
-	return "http://" + address
+// runServer runs new server and returns its address and close function.
+func runServer(router httpf.Router) (string, func()) {
+	server := httptest.NewServer(router)
+	return server.URL, server.Close
 }
 
 func Example() {
@@ -87,7 +71,8 @@ func Example() {
 		return w.Response(http.StatusCreated, result)
 	}))
 
-	serverAddress := runServer(mux.Build())
+	serverAddress, cleanup := runServer(mux.Build())
+	defer cleanup()
 
 	resp, err := http.Post(serverAddress+"/api/test/", httpf.ApplicationJsonType, bytes.NewBufferString("{}"))
 	if err != nil {
@@ -150,7 +135,8 @@ func ExampleRateLimitMiddleware() {
 		return w.Response(http.StatusOK, nil)
 	}), storeLimiter, httpf.PathRateKey()))
 
-	serverAddress := runServer(mux.Build())
+	serverAddress, cleanup := runServer(mux.Build())
+	defer cleanup()
 
 	callGet := func() {
 		resp, err := http.Get(serverAddress + "/api/test/")
