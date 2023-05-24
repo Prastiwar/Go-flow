@@ -1,0 +1,69 @@
+documentation:
+- any:
+  - changed-files: ['**/*.md']
+  - head-branch: ['^docs/']
+
+caches:
+- any:
+  - changed-files: ['caches/**/*.go']
+  - head-branch: [.*\/caches\/.*]
+
+config:
+- any:
+  - changed-files: ['config/**/*.go']
+  - head-branch: [.*\/config\/.*]
+
+datas:
+- any:
+  - changed-files: ['datas/**/*.go']
+  - head-branch: [.*\/datas\/.*]
+
+di:
+- any:
+  - changed-files: ['di/**/*.go']
+  - head-branch: [.*\/di\/.*]
+
+exception:
+- any:
+  - changed-files: ['exception/**/*.go']
+  - head-branch: [.*\/exception\/.*]
+
+httpf:
+- any:
+  - changed-files: ['httpf/**/*.go']
+  - head-branch: [.*\/httpf\/.*]
+
+logf:
+- any:
+  - changed-files: ['logf/**/*.go']
+  - head-branch: [.*\/logf\/.*]
+
+middleware:
+- any:
+  - changed-files: ['middleware/**/*.go']
+  - head-branch: [.*\/middleware\/.*]
+
+policy:
+- any:
+  - changed-files: ['policy/**/*.go']
+  - head-branch: [.*\/policy\/.*]
+
+rate:
+- any:
+  - changed-files: ['rate/**/*.go']
+  - head-branch: [.*\/rate\/.*]
+
+reflection:
+- any:
+  - changed-files: ['reflection/**/*.go']
+  - head-branch: [.*\/reflection\/.*]
+
+retry:
+- any:
+  - changed-files: ['retry/**/*.go']
+  - head-branch: [.*\/retry\/.*]
+
+tests:
+- any:
+  - changed-files: ['tests/**/*.go']
+  - head-branch: [.*\/tests\/.*]
