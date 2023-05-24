@@ -3,23 +3,25 @@ name: Go
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - '**.go'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - '**.go'
 
 env:
   CI: true
   BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 jobs:
-  trigger:
+  branch:
     runs-on: ubuntu-latest
-    if: startsWith(github.head_ref || github.ref_name, 'docs/') == false
+    if: startsWith(github.head_ref || github.ref_name, 'poc/') == true
     steps:
       - name: Trigger
-        run: echo trigger jobs at ${{ env.BRANCH_NAME }} branch
-
+        run: echo "::error::POC branch ${{ env.BRANCH_NAME }} cannot be merged to main branch" && exit 1
   build:
-    needs: trigger
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -44,7 +46,6 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    needs: trigger
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-go@v3
