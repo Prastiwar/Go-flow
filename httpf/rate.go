@@ -19,6 +19,11 @@ const (
 	RetryAfterHeader         = "Retry-After"
 )
 
+var (
+	ErrMissingRateStore      = errors.New("nil LimiterStore passed as parameter")
+	ErrMissingRateKeyFactory = errors.New("nil RateHttpKeyFactory passed as parameter")
+)
+
 // RateHttpKeyFactory is factory func to create a string key based on http.Request.
 type RateHttpKeyFactory func(r *http.Request) string
 
@@ -79,6 +84,12 @@ func ComposeRateKeyFactories(factories ...RateHttpKeyFactory) RateHttpKeyFactory
 // return 429 status code with appropiate body. This middleware writes all of
 // "X-Rate-Limit-Limit", "X-Rate-Limit-Remaining" and "X-Rate-Limit-Reset" headers with correct values.
 func RateLimitMiddleware(h Handler, store rate.LimiterStore, keyFactory RateHttpKeyFactory) Handler {
+	if store == nil {
+		panic(ErrMissingRateStore)
+	}
+	if keyFactory == nil {
+		panic(ErrMissingRateKeyFactory)
+	}
 	return HandlerFunc(func(w ResponseWriter, r *http.Request) error {
 		key := keyFactory(r)
 		ctx := r.Context()
