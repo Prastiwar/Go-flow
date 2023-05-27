@@ -15,7 +15,8 @@ var (
 )
 
 var (
-	ErrCleanupFailure = errors.New("at least one error occured at cleanup")
+	ErrCleanupFailure   = errors.New("at least one error occured at cleanup")
+	ErrMissingAlgorithm = errors.New("nil LimiterAlgorithm was passed to constructor")
 )
 
 type memoryStore struct {
@@ -76,35 +77,46 @@ func NewOptions(opts ...Option) *Options {
 
 // NewLimiterStore returns a rate.LimiterStore which stores keys in memory using sync.Map for thread safety.
 // It'll create a single goroutine to perform cleanup with provided cleanupInterval to remove unused limiters.
+// If cleanupInterval is less or equal 0, the cleanup goroutine will not run and no cleanup will ever be available for this instance.
 // Unused means when the limiter's available tokens are equal to the limit. There is no tracking for the last time used for
 // a more memory-efficient solution. Adjust the cleanupInterval parameter to define how often the cleanup should be performed.
 // Lowering the value means more cleanup frequency therefore more CPU usage but faster memory release.
 // The cleanup time depends on cleanup execution time, meaning if the cleanup interval is set to 5s.
 // It'll run cleanup on the 5th second and if cleanup execution takes 1s then the second cleanup will be performed at the 11th second.
-func NewLimiterStore(ctx context.Context, alg rate.LimiterAlgorithm, cleanupInterval time.Duration, opts ...Option) rate.LimiterStore {
+func NewLimiterStore(ctx context.Context, alg rate.LimiterAlgorithm, cleanupInterval time.Duration, opts ...Option) (rate.LimiterStore, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	if alg == nil {
+		return nil, ErrMissingAlgorithm
+	}
+
 	options := NewOptions(opts...)
 
 	store := &memoryStore{
 		factory: alg,
 	}
 
-	go func() {
-		for {
-			waitCtx, cancel := context.WithDeadline(ctx, time.Now().Add(cleanupInterval))
-			defer cancel()
+	if cleanupInterval > time.Duration(0) {
+		go func() {
+			for {
+				waitCtx, cancel := context.WithDeadline(ctx, time.Now().Add(cleanupInterval))
+				defer cancel()
 
-			select {
-			case <-ctx.Done():
-				return
-			case <-waitCtx.Done():
-				err := store.cleanup(ctx)
-				if err != nil && options.ErrorHandler != nil {
-					options.ErrorHandler(err)
+				select {
+				case <-ctx.Done():
+					return
+				case <-waitCtx.Done():
+					err := store.cleanup(ctx)
+					if err != nil && options.ErrorHandler != nil {
+						options.ErrorHandler(err)
+					}
+					continue
 				}
-				continue
 			}
-		}
-	}()
+		}()
+	}
 
-	return store
+	return store, nil
 }
