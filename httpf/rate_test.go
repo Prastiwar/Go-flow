@@ -114,9 +114,11 @@ func TestComposeRateKeyFactories(t *testing.T) {
 
 	t.Run("failure-no-factories", func(t *testing.T) {
 		defer func() {
-			assert.NotNil(t, recover())
+			assert.Equal(t, nil, recover())
 		}()
-		_ = httpf.ComposeRateKeyFactories()
+		f := httpf.ComposeRateKeyFactories()
+		key := f(&http.Request{})
+		assert.Equal(t, "", key)
 	})
 }
 

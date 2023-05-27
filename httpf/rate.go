@@ -59,7 +59,7 @@ func PathRateKey() RateHttpKeyFactory {
 // merge the keys into single string key using whitespace as separator.
 func ComposeRateKeyFactories(factories ...RateHttpKeyFactory) RateHttpKeyFactory {
 	if len(factories) == 0 {
-		panic("factories cannot be empty")
+		return func(r *http.Request) string { return "" }
 	}
 
 	if len(factories) == 1 {
@@ -79,7 +79,7 @@ func ComposeRateKeyFactories(factories ...RateHttpKeyFactory) RateHttpKeyFactory
 	}
 }
 
-// RateLimitMiddleware returns httpf.Handler which used rate-limiting feature to decide if h Handler can be requested.
+// RateLimitMiddleware returns httpf.Handler which uses rate-limiting feature to decide if h Handler can be requested.
 // If rate limit exceeds maximum value, the error is returned and should be handled by ErrorHandler to actually
 // return 429 status code with appropiate body. This middleware writes all of
 // "X-Rate-Limit-Limit", "X-Rate-Limit-Remaining" and "X-Rate-Limit-Reset" headers with correct values.
