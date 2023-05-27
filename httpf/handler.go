@@ -1,6 +1,10 @@
 package httpf
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/Prastiwar/Go-flow/exception"
+)
 
 // A ResponseWriter interface is used by an HTTP handler to
 // construct an HTTP response. It extends http.ResponseWriter with
@@ -39,4 +43,14 @@ type HandlerFunc func(w ResponseWriter, r *http.Request) error
 // ServeHTTP calls h(w, r).
 func (h HandlerFunc) ServeHTTP(w ResponseWriter, r *http.Request) error {
 	return h(w, r)
+}
+
+// RecoverMiddleware returns httpf.Handler which uses recover feature to return an error in case of panic.
+func RecoverMiddleware(h Handler) Handler {
+	return HandlerFunc(func(w ResponseWriter, r *http.Request) (retErr error) {
+		defer exception.HandlePanicError(func(err error) {
+			retErr = err
+		})
+		return h.ServeHTTP(w, r)
+	})
 }

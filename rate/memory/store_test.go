@@ -22,7 +22,11 @@ func newStore(ctx context.Context, cleanupInterval time.Duration, opts ...memory
 		panic(err)
 	}
 
-	return memory.NewLimiterStore(ctx, slidingWindow, cleanupInterval, opts...)
+	store, err := memory.NewLimiterStore(ctx, slidingWindow, cleanupInterval, opts...)
+	if err != nil {
+		panic(err)
+	}
+	return store
 }
 
 func TestGoroutineCount(t *testing.T) {
@@ -88,8 +92,10 @@ func TestErrorHandling(t *testing.T) {
 		assert.ErrorWith(t, err, "invalid-on-tokens")
 	}
 
-	store := memory.NewLimiterStore(ctx, func() rate.Limiter { return limiterMock }, time.Second/3, memory.WithErrorHandler(onError))
-	_, err := store.Limit(ctx, key)
+	store, err := memory.NewLimiterStore(ctx, func() rate.Limiter { return limiterMock }, time.Second/3, memory.WithErrorHandler(onError))
+	assert.NilError(t, err)
+
+	_, err = store.Limit(ctx, key)
 	assert.NilError(t, err)
 
 	// Act
@@ -98,4 +104,17 @@ func TestErrorHandling(t *testing.T) {
 	// Assert
 	onTokensCaller.Assert(t, "expected Limiter.Tokens to be called once")
 	onErrorCaller.Assert(t, "expected error handler to be called once")
+}
+
+func TestNewLimiterStoreValidation(t *testing.T) {
+	t.Run("nil-algorithm", func(t *testing.T) {
+		_, err := memory.NewLimiterStore(nil, nil, time.Duration(0))
+		assert.ErrorIs(t, err, memory.ErrMissingAlgorithm)
+	})
+
+	t.Run("zero-goroutine", func(t *testing.T) {
+		goroutinesCount := runtime.NumGoroutine()
+		_ = newStore(nil, time.Duration(0))
+		assert.Equal(t, goroutinesCount, runtime.NumGoroutine())
+	})
 }

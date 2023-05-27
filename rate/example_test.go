@@ -15,7 +15,10 @@ func Example() {
 		panic(err)
 	}
 
-	store := memory.NewLimiterStore(context.Background(), sw, time.Hour)
+	store, err := memory.NewLimiterStore(context.Background(), sw, time.Hour)
+	if err != nil {
+		panic(err)
+	}
 
 	l, err := store.Limit(context.Background(), "{id}")
 	if err != nil {

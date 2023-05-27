@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Prastiwar/Go-flow/exception"
 	"github.com/Prastiwar/Go-flow/httpf"
 	"github.com/Prastiwar/Go-flow/rate"
 	"github.com/Prastiwar/Go-flow/tests/assert"
@@ -125,32 +126,43 @@ func TestComposeRateKeyFactories(t *testing.T) {
 func TestRateLimitMiddleware(t *testing.T) {
 	timeNow := time.Now()
 	timeResetAt := time.Now().Add(time.Second)
+	limiterStore := func(l rate.Limiter) rate.LimiterStore {
+		return mocks.LimiterStoreMock{
+			OnLimit: func(ctx context.Context, key string) (rate.Limiter, error) {
+				return l, nil
+			},
+		}
+	}
 
 	tests := []struct {
-		name      string
-		store     rate.LimiterStore
-		limiter   rate.Limiter
-		assertion func(t *testing.T) (httpf.HandlerFunc, func(headers http.Header, err error))
+		name       string
+		keyFactory httpf.RateHttpKeyFactory
+		store      func(t *testing.T) rate.LimiterStore
+		assertion  func(t *testing.T) (httpf.Handler, func(headers http.Header, err error))
 	}{
 		{
-			name: "success-no-exceed",
-			limiter: mocks.LimiterMock{
-				OnLimit:  func() uint64 { return 10 },
-				OnTokens: func(ctx context.Context) (uint64, error) { return 9, nil },
-				OnTake: func(ctx context.Context) (rate.Token, error) {
-					return mocks.TokenMock{
-						OnUse:      func() error { return nil },
-						OnResetsAt: func() time.Time { return timeNow },
-					}, nil
-				},
+			name:       "success-no-exceed",
+			keyFactory: httpf.IPRateKey(),
+			store: func(t *testing.T) rate.LimiterStore {
+				limiter := mocks.LimiterMock{
+					OnLimit:  func() uint64 { return 10 },
+					OnTokens: func(ctx context.Context) (uint64, error) { return 9, nil },
+					OnTake: func(ctx context.Context) (rate.Token, error) {
+						return mocks.TokenMock{
+							OnUse:      func() error { return nil },
+							OnResetsAt: func() time.Time { return timeNow },
+						}, nil
+					},
+				}
+				return limiterStore(limiter)
 			},
-			assertion: func(t *testing.T) (httpf.HandlerFunc, func(headers http.Header, err error)) {
+			assertion: func(t *testing.T) (httpf.Handler, func(headers http.Header, err error)) {
 				counter := assert.Count(t, 1)
 				handler := func(w httpf.ResponseWriter, r *http.Request) error {
 					counter.Inc()
 					return nil
 				}
-				return handler, func(headers http.Header, err error) {
+				return httpf.HandlerFunc(handler), func(headers http.Header, err error) {
 					assertRateLimitHeaders(t, headers, "10", "9", &timeNow, err)
 					assert.NilError(t, err)
 					counter.Assert(t)
@@ -158,24 +170,28 @@ func TestRateLimitMiddleware(t *testing.T) {
 			},
 		},
 		{
-			name: "failure-rate-exceed",
-			limiter: mocks.LimiterMock{
-				OnLimit:  func() uint64 { return 10 },
-				OnTokens: func(ctx context.Context) (uint64, error) { return 0, nil },
-				OnTake: func(ctx context.Context) (rate.Token, error) {
-					return mocks.TokenMock{
-						OnUse:      func() error { return rate.ErrRateLimitExceeded },
-						OnResetsAt: func() time.Time { return timeResetAt },
-					}, nil
-				},
+			name:       "failure-rate-exceed",
+			keyFactory: httpf.IPRateKey(),
+			store: func(t *testing.T) rate.LimiterStore {
+				limiter := mocks.LimiterMock{
+					OnLimit:  func() uint64 { return 10 },
+					OnTokens: func(ctx context.Context) (uint64, error) { return 0, nil },
+					OnTake: func(ctx context.Context) (rate.Token, error) {
+						return mocks.TokenMock{
+							OnUse:      func() error { return rate.ErrRateLimitExceeded },
+							OnResetsAt: func() time.Time { return timeResetAt },
+						}, nil
+					},
+				}
+				return limiterStore(limiter)
 			},
-			assertion: func(t *testing.T) (httpf.HandlerFunc, func(headers http.Header, err error)) {
+			assertion: func(t *testing.T) (httpf.Handler, func(headers http.Header, err error)) {
 				counter := assert.Count(t, 0)
 				handler := func(w httpf.ResponseWriter, r *http.Request) error {
 					counter.Inc()
 					return nil
 				}
-				return handler, func(headers http.Header, err error) {
+				return httpf.HandlerFunc(handler), func(headers http.Header, err error) {
 					assertRateLimitHeaders(t, headers, "10", "0", &timeResetAt, err)
 					assert.ErrorIs(t, err, rate.ErrRateLimitExceeded)
 					counter.Assert(t)
@@ -183,24 +199,28 @@ func TestRateLimitMiddleware(t *testing.T) {
 			},
 		},
 		{
-			name: "failure-unknown-error",
-			limiter: mocks.LimiterMock{
-				OnLimit:  func() uint64 { return 10 },
-				OnTokens: func(ctx context.Context) (uint64, error) { return 10, nil },
-				OnTake: func(ctx context.Context) (rate.Token, error) {
-					return mocks.TokenMock{
-						OnUse:      func() error { return errors.New("unknown-error") },
-						OnResetsAt: func() time.Time { return timeNow },
-					}, nil
-				},
+			name:       "failure-unknown-error",
+			keyFactory: httpf.IPRateKey(),
+			store: func(t *testing.T) rate.LimiterStore {
+				limiter := mocks.LimiterMock{
+					OnLimit:  func() uint64 { return 10 },
+					OnTokens: func(ctx context.Context) (uint64, error) { return 10, nil },
+					OnTake: func(ctx context.Context) (rate.Token, error) {
+						return mocks.TokenMock{
+							OnUse:      func() error { return errors.New("unknown-error") },
+							OnResetsAt: func() time.Time { return timeNow },
+						}, nil
+					},
+				}
+				return limiterStore(limiter)
 			},
-			assertion: func(t *testing.T) (httpf.HandlerFunc, func(headers http.Header, err error)) {
+			assertion: func(t *testing.T) (httpf.Handler, func(headers http.Header, err error)) {
 				counter := assert.Count(t, 0)
 				handler := func(w httpf.ResponseWriter, r *http.Request) error {
 					counter.Inc()
 					return nil
 				}
-				return handler, func(headers http.Header, err error) {
+				return httpf.HandlerFunc(handler), func(headers http.Header, err error) {
 					assertRateLimitHeaders(t, headers, "", "", nil, err)
 					assert.ErrorWith(t, err, "unknown-error")
 					counter.Assert(t)
@@ -208,24 +228,28 @@ func TestRateLimitMiddleware(t *testing.T) {
 			},
 		},
 		{
-			name: "failure-handler-error",
-			limiter: mocks.LimiterMock{
-				OnLimit:  func() uint64 { return 10 },
-				OnTokens: func(ctx context.Context) (uint64, error) { return 9, nil },
-				OnTake: func(ctx context.Context) (rate.Token, error) {
-					return mocks.TokenMock{
-						OnUse:      func() error { return nil },
-						OnResetsAt: func() time.Time { return timeNow },
-					}, nil
-				},
+			name:       "failure-handler-error",
+			keyFactory: httpf.IPRateKey(),
+			store: func(t *testing.T) rate.LimiterStore {
+				limiter := mocks.LimiterMock{
+					OnLimit:  func() uint64 { return 10 },
+					OnTokens: func(ctx context.Context) (uint64, error) { return 9, nil },
+					OnTake: func(ctx context.Context) (rate.Token, error) {
+						return mocks.TokenMock{
+							OnUse:      func() error { return nil },
+							OnResetsAt: func() time.Time { return timeNow },
+						}, nil
+					},
+				}
+				return limiterStore(limiter)
 			},
-			assertion: func(t *testing.T) (httpf.HandlerFunc, func(headers http.Header, err error)) {
+			assertion: func(t *testing.T) (httpf.Handler, func(headers http.Header, err error)) {
 				counter := assert.Count(t, 1)
 				handler := func(w httpf.ResponseWriter, r *http.Request) error {
 					counter.Inc()
 					return errors.New("handler-error")
 				}
-				return handler, func(headers http.Header, err error) {
+				return httpf.HandlerFunc(handler), func(headers http.Header, err error) {
 					assertRateLimitHeaders(t, headers, "10", "9", &timeNow, err)
 					assert.ErrorWith(t, err, "handler-error")
 					counter.Assert(t)
@@ -233,19 +257,23 @@ func TestRateLimitMiddleware(t *testing.T) {
 			},
 		},
 		{
-			name: "failure-limiter-take-error",
-			limiter: mocks.LimiterMock{
-				OnTake: func(ctx context.Context) (rate.Token, error) {
-					return nil, errors.New("limiter-take-error")
-				},
+			name:       "failure-limiter-take-error",
+			keyFactory: httpf.IPRateKey(),
+			store: func(t *testing.T) rate.LimiterStore {
+				limiter := mocks.LimiterMock{
+					OnTake: func(ctx context.Context) (rate.Token, error) {
+						return nil, errors.New("limiter-take-error")
+					},
+				}
+				return limiterStore(limiter)
 			},
-			assertion: func(t *testing.T) (httpf.HandlerFunc, func(headers http.Header, err error)) {
+			assertion: func(t *testing.T) (httpf.Handler, func(headers http.Header, err error)) {
 				counter := assert.Count(t, 0)
 				handler := func(w httpf.ResponseWriter, r *http.Request) error {
 					counter.Inc()
 					return nil
 				}
-				return handler, func(headers http.Header, err error) {
+				return httpf.HandlerFunc(handler), func(headers http.Header, err error) {
 					assertRateLimitHeaders(t, headers, "", "", nil, err)
 					assert.ErrorWith(t, err, "limiter-take-error")
 					counter.Assert(t)
@@ -253,21 +281,62 @@ func TestRateLimitMiddleware(t *testing.T) {
 			},
 		},
 		{
-			name: "failure-store-limit-error",
-			store: mocks.LimiterStoreMock{
-				OnLimit: func(ctx context.Context, key string) (rate.Limiter, error) {
-					return nil, errors.New("store-error")
-				},
+			name:       "failure-store-limit-error",
+			keyFactory: httpf.IPRateKey(),
+			store: func(t *testing.T) rate.LimiterStore {
+				return mocks.LimiterStoreMock{
+					OnLimit: func(ctx context.Context, key string) (rate.Limiter, error) {
+						return nil, errors.New("store-error")
+					},
+				}
 			},
-			assertion: func(t *testing.T) (httpf.HandlerFunc, func(headers http.Header, err error)) {
+			assertion: func(t *testing.T) (httpf.Handler, func(headers http.Header, err error)) {
 				counter := assert.Count(t, 0)
 				handler := func(w httpf.ResponseWriter, r *http.Request) error {
 					counter.Inc()
 					return nil
 				}
-				return handler, func(headers http.Header, err error) {
+				return httpf.HandlerFunc(handler), func(headers http.Header, err error) {
 					assertRateLimitHeaders(t, headers, "", "", nil, err)
 					assert.ErrorWith(t, err, "store-error")
+					counter.Assert(t)
+				}
+			},
+		},
+		{
+			name:       "failure-nil-keyFactory",
+			keyFactory: nil,
+			store: func(t *testing.T) rate.LimiterStore {
+				return mocks.LimiterStoreMock{}
+			},
+			assertion: func(t *testing.T) (httpf.Handler, func(headers http.Header, err error)) {
+				counter := assert.Count(t, 0)
+				handler := func(w httpf.ResponseWriter, r *http.Request) error {
+					counter.Inc()
+					return nil
+				}
+				return httpf.HandlerFunc(handler), func(headers http.Header, err error) {
+					assertRateLimitHeaders(t, headers, "", "", nil, err)
+					assert.ErrorIs(t, err, httpf.ErrMissingRateKeyFactory)
+					counter.Assert(t)
+				}
+			},
+		},
+		{
+			name:       "failure-nil-store",
+			keyFactory: httpf.IPRateKey(),
+			store: func(t *testing.T) rate.LimiterStore {
+				return nil
+			},
+			assertion: func(t *testing.T) (httpf.Handler, func(headers http.Header, err error)) {
+				counter := assert.Count(t, 0)
+				handler := func(w httpf.ResponseWriter, r *http.Request) error {
+					counter.Inc()
+					return nil
+				}
+				return httpf.HandlerFunc(handler), func(headers http.Header, err error) {
+					assertRateLimitHeaders(t, headers, "", "", nil, err)
+					assert.ErrorIs(t, err, httpf.ErrMissingRateStore)
 					counter.Assert(t)
 				}
 			},
@@ -280,25 +349,24 @@ func TestRateLimitMiddleware(t *testing.T) {
 			handler, assertion := tt.assertion(t)
 			request := &http.Request{RemoteAddr: "0.0.0.0"}
 
-			store := tt.store
-			if store == nil {
-				store = mocks.LimiterStoreMock{
-					OnLimit: func(ctx context.Context, key string) (rate.Limiter, error) {
-						return tt.limiter, nil
-					},
-				}
-			}
-
 			writer := mocks.HttpfResponseWriterMock{
 				OnHeader: func() http.Header {
 					return headers
 				},
 			}
+			store := tt.store(t)
 
-			got := httpf.RateLimitMiddleware(handler, store, httpf.IPRateKey())
-			err := got.ServeHTTP(writer, request)
-
-			assertion(headers, err)
+			defer func() {
+				panicErr := recover()
+				var err error
+				if panicErr != nil {
+					err = exception.ConvertToError(panicErr)
+				} else {
+					err = handler.ServeHTTP(writer, request)
+				}
+				assertion(headers, err)
+			}()
+			handler = httpf.RateLimitMiddleware(handler, store, tt.keyFactory)
 		})
 	}
 }
