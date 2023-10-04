@@ -24,7 +24,7 @@ func Wait(ctx context.Context, deadline time.Time) error {
 	}
 }
 
-// ConsumeAndWait calls Take() on Limiter and immedietely Use the Token. If ErrRateLimitExceeded error occurs
+// ConsumeAndWait calls Take() on Limiter and immediately Use the Token. If ErrRateLimitExceeded error occurs
 // it pauses the current goroutine until Limiter's ResetsAt() time deadline exceeds. If Take() returns any
 // other error it'll immediately return this error. When ctx is canceled or ctx deadline exceeds before
 // reset time it'll return this error.

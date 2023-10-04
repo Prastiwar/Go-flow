@@ -1,14 +1,13 @@
 # Go-flow
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/Prastiwar/go-flow.svg)](https://pkg.go.dev/github.com/Prastiwar/Go-flow)
-[![Go Report Card](https://goreportcard.com/badge/github.com/oklahomer/go-sarah)](https://goreportcard.com/report/github.com/Prastiwar/Go-flow)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Prastiwar/go-flow)](https://goreportcard.com/report/github.com/Prastiwar/Go-flow)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Prastiwar_Go-flow&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Prastiwar_Go-flow)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Prastiwar_Go-flow&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Prastiwar_Go-flow)
 
 Backend framework library written in Go for Gophers who want to focus on building great quality backend. It mostly provides dependency inversion to most common built systems to allow easily modularize our application and change implementation without changing our business logic. This is very cost-effective for organizations moving forward from MVP. The framework is viable for both personal and organization level usage where there are multiple products, APIs and development consistency is needed.
 
 - [Go-flow](#go-flow)
-  - [Production readiness](#production-readiness)
   - [Download](#download)
   - [Library purpose](#library-purpose)
   - [Packages](#packages)
@@ -27,12 +26,6 @@ Backend framework library written in Go for Gophers who want to focus on buildin
     - [tests](#tests)
   - [Contributing](#contributing)
   - [License](#license)
-
-## Production readiness
-
-The library is in final phase before the stable version release. The phase consist of private project released to production. Though it can be already used in production until a stable v1 version release you should keep in mind that some breaking changes can still happen and will not increase the major version. Every breaking change will be noted either in the version release or pull request description.
-
-For release information see https://github.com/Prastiwar/Go-flow/discussions/27
 
 ## Download
 

@@ -24,7 +24,7 @@ func TestElementsMatch(t *testing.T) {
 			fails: false,
 		},
 		{
-			name: "not-matches-similiar",
+			name: "not-matches-similar",
 			arrA: []any{
 				1, 2, 3,
 			},
