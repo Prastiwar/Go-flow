@@ -15,7 +15,7 @@ var (
 )
 
 var (
-	ErrCleanupFailure   = errors.New("at least one error occured at cleanup")
+	ErrCleanupFailure   = errors.New("at least one error occurred at cleanup")
 	ErrMissingAlgorithm = errors.New("nil LimiterAlgorithm was passed to constructor")
 )
 

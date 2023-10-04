@@ -1,7 +1,7 @@
 # Go-flow
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/Prastiwar/go-flow.svg)](https://pkg.go.dev/github.com/Prastiwar/Go-flow)
-[![Go Report Card](https://goreportcard.com/badge/github.com/oklahomer/go-sarah)](https://goreportcard.com/report/github.com/Prastiwar/Go-flow)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Prastiwar/go-flow)](https://goreportcard.com/report/github.com/Prastiwar/Go-flow)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Prastiwar_Go-flow&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Prastiwar_Go-flow)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Prastiwar_Go-flow&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Prastiwar_Go-flow)
 
