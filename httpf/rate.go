@@ -81,7 +81,7 @@ func ComposeRateKeyFactories(factories ...RateHttpKeyFactory) RateHttpKeyFactory
 
 // RateLimitMiddleware returns httpf.Handler which uses rate-limiting feature to decide if h Handler can be requested.
 // If rate limit exceeds maximum value, the error is returned and should be handled by ErrorHandler to actually
-// return 429 status code with appropiate body. This middleware writes all of
+// return 429 status code with appropriate body. This middleware writes all of
 // "X-Rate-Limit-Limit", "X-Rate-Limit-Remaining" and "X-Rate-Limit-Reset" headers with correct values.
 func RateLimitMiddleware(h Handler, store rate.LimiterStore, keyFactory RateHttpKeyFactory) Handler {
 	if store == nil {

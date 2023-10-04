@@ -33,7 +33,7 @@ type Constructor interface {
 	// Dependencies returns an array of reflect.Type defining type of dependencies for object to construct.
 	Dependencies() []reflect.Type
 
-	// Life returns LifeTime which defines scope of existance for constructed object.
+	// Life returns LifeTime which defines scope of existence for constructed object.
 	Life() LifeTime
 }
 

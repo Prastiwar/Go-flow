@@ -3,7 +3,7 @@
 // The package does contain example alghoritm most often used in Web API's but there are much more algorithms already implemented
 // in Go which are open-sourced by the Golang community. Use this package to abstract away the specific implementations
 // provided by third party libraries. This requires to write an adapter for implementation to fulfill rate interfaces
-// in your infrastracture layer.
+// in your infrastructure layer.
 package rate
 
 import "context"
